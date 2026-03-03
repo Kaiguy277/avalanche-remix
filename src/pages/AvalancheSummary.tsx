@@ -1,0 +1,876 @@
+import { useState } from "react";
+import { Mountain, RefreshCw, AlertTriangle, Clock, Snowflake, ExternalLink, Info, CloudSnow, Compass, ChevronRight, ChevronDown } from "lucide-react";
+import Layout from "@/components/layout/Layout";
+import SEO from "@/components/SEO";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { avalancheApi, type AvalancheSummary as AvalancheSummaryType, type AvalancheZone, type ScrapedZoneInfo, type DangerRating, type AvalancheProblem } from "@/lib/api/avalanche";
+import { analytics } from "@/lib/analytics";
+import WeatherStationCard from "@/components/avalanche/WeatherStationCard";
+import LoadingCard from "@/components/avalanche/LoadingCard";
+
+// Hierarchical zone structure: Region → Avalanche Center → Zone
+interface ForecastZone {
+  id: string;
+  name: string;
+}
+interface AvalancheCenter {
+  id: string;
+  name: string;
+  zones: ForecastZone[];
+}
+interface Region {
+  id: string;
+  name: string;
+  centers: AvalancheCenter[];
+}
+const REGION_STRUCTURE: Region[] = [{
+  id: 'southcentral',
+  name: 'Southcentral Alaska',
+  centers: [{
+    id: 'CNFAIC',
+    name: 'Chugach National Forest Avalanche Information Center',
+    zones: [{
+      id: 'turnagain-girdwood',
+      name: 'Turnagain Pass / Girdwood'
+    }, {
+      id: 'summit',
+      name: 'Summit Lake'
+    }, {
+      id: 'seward',
+      name: 'Seward / Lost Lake'
+    }, {
+      id: 'chugach-state-park',
+      name: 'Chugach State Park'
+    }]
+  }, {
+    id: 'HPAC',
+    name: 'Hatcher Pass Avalanche Center',
+    zones: [{
+      id: 'hatcher-pass',
+      name: 'Hatcher Pass'
+    }]
+  }, {
+    id: 'VAC',
+    name: 'Valdez Avalanche Center',
+    zones: [{
+      id: 'valdez-maritime',
+      name: 'Maritime'
+    }, {
+      id: 'valdez-intermountain',
+      name: 'Intermountain'
+    }, {
+      id: 'valdez-continental',
+      name: 'Continental'
+    }]
+  }]
+}, {
+  id: 'interior',
+  name: 'Interior Alaska',
+  centers: [{
+    id: 'EARAC',
+    name: 'Eastern Alaska Range Avalanche Center',
+    zones: [{
+      id: 'earac-north',
+      name: 'North (Castner-Canwell)'
+    }, {
+      id: 'earac-south',
+      name: 'South (Summit)'
+    }]
+  }]
+}, {
+  id: 'southeast',
+  name: 'Southeast Alaska',
+  centers: [{
+    id: 'CAAC',
+    name: 'Coastal Alaska Avalanche Center',
+    zones: [{
+      id: 'douglas-island',
+      name: 'Douglas Island'
+    }, {
+      id: 'juneau-mainland',
+      name: 'Juneau Mainland'
+    }]
+  }, {
+    id: 'HAC',
+    name: 'Haines Avalanche Center',
+    zones: [{
+      id: 'haines-lutak',
+      name: 'Lutak'
+    }, {
+      id: 'haines-transitional',
+      name: 'Transitional'
+    }, {
+      id: 'haines-chilkat-pass',
+      name: 'Chilkat Pass'
+    }]
+  }]
+}];
+
+// Flatten structure for backward compatibility
+const AVAILABLE_ZONES = REGION_STRUCTURE.flatMap(region => region.centers.flatMap(center => center.zones.map(zone => ({
+  id: zone.id,
+  name: zone.name,
+  center: center.id
+}))));
+const ZONE_PREFS_KEY = 'avalanche-zone-selection';
+
+// Hierarchical Zone Selector Component
+interface HierarchicalZoneSelectorProps {
+  selectedZoneIds: string[];
+  onSelectionChange: (zoneIds: string[]) => void;
+}
+function HierarchicalZoneSelector({
+  selectedZoneIds,
+  onSelectionChange
+}: HierarchicalZoneSelectorProps) {
+  const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
+  const [expandedCenters, setExpandedCenters] = useState<Set<string>>(new Set(REGION_STRUCTURE.flatMap(r => r.centers.map(c => `${r.id}-${c.id}`))));
+  const toggleRegion = (regionId: string) => {
+    setExpandedRegions(prev => {
+      const next = new Set(prev);
+      if (next.has(regionId)) {
+        next.delete(regionId);
+      } else {
+        next.add(regionId);
+      }
+      return next;
+    });
+  };
+  const toggleCenter = (regionId: string, centerId: string) => {
+    const key = `${regionId}-${centerId}`;
+    setExpandedCenters(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+  const getRegionZones = (region: Region): string[] => {
+    return region.centers.flatMap(center => center.zones.map(zone => zone.id));
+  };
+  const getCenterZones = (center: AvalancheCenter): string[] => {
+    return center.zones.map(zone => zone.id);
+  };
+  const isRegionSelected = (region: Region): boolean | 'indeterminate' => {
+    const regionZones = getRegionZones(region);
+    const selectedCount = regionZones.filter(id => selectedZoneIds.includes(id)).length;
+    if (selectedCount === 0) return false;
+    if (selectedCount === regionZones.length) return true;
+    return 'indeterminate';
+  };
+  const isCenterSelected = (center: AvalancheCenter): boolean | 'indeterminate' => {
+    const centerZones = getCenterZones(center);
+    const selectedCount = centerZones.filter(id => selectedZoneIds.includes(id)).length;
+    if (selectedCount === 0) return false;
+    if (selectedCount === centerZones.length) return true;
+    return 'indeterminate';
+  };
+  const handleRegionToggle = (region: Region) => {
+    const regionZones = getRegionZones(region);
+    const isSelected = isRegionSelected(region);
+    if (isSelected === true) {
+      // Deselect all zones in region (only if other zones remain)
+      const newSelection = selectedZoneIds.filter(id => !regionZones.includes(id));
+      if (newSelection.length > 0) {
+        onSelectionChange(newSelection);
+      }
+    } else {
+      // Select all zones in region
+      const newSelection = [...new Set([...selectedZoneIds, ...regionZones])];
+      onSelectionChange(newSelection);
+    }
+  };
+  const handleCenterToggle = (center: AvalancheCenter) => {
+    const centerZones = getCenterZones(center);
+    const isSelected = isCenterSelected(center);
+    if (isSelected === true) {
+      // Deselect all zones in center (only if other zones remain)
+      const newSelection = selectedZoneIds.filter(id => !centerZones.includes(id));
+      if (newSelection.length > 0) {
+        onSelectionChange(newSelection);
+      }
+    } else {
+      // Select all zones in center
+      const newSelection = [...new Set([...selectedZoneIds, ...centerZones])];
+      onSelectionChange(newSelection);
+    }
+  };
+  const handleZoneToggle = (zoneId: string) => {
+    if (selectedZoneIds.includes(zoneId)) {
+      // Only deselect if other zones remain
+      const newSelection = selectedZoneIds.filter(id => id !== zoneId);
+      if (newSelection.length > 0) {
+        onSelectionChange(newSelection);
+      }
+    } else {
+      onSelectionChange([...selectedZoneIds, zoneId]);
+    }
+  };
+  return <div className="space-y-3">
+      {REGION_STRUCTURE.map(region => {
+      const isExpanded = expandedRegions.has(region.id);
+      const regionSelection = isRegionSelected(region);
+      return <div key={region.id} className="border rounded-lg overflow-hidden">
+            {/* Region Header */}
+            <div className="bg-muted/50 p-3 flex items-center gap-2">
+              <button onClick={() => toggleRegion(region.id)} className="p-1 hover:bg-background rounded transition-colors">
+                {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+              </button>
+              <Checkbox checked={regionSelection} onCheckedChange={() => handleRegionToggle(region)} className="data-[state=indeterminate]:bg-primary/50" />
+              <button onClick={() => handleRegionToggle(region)} className="flex-1 text-left font-medium text-sm hover:underline">
+                {region.name}
+              </button>
+              <Badge variant="outline" className="text-xs">
+                {getRegionZones(region).filter(id => selectedZoneIds.includes(id)).length} / {getRegionZones(region).length}
+              </Badge>
+            </div>
+
+            {/* Region Content */}
+            {isExpanded && <div className="p-3 space-y-2">
+                {region.centers.map(center => {
+            const centerKey = `${region.id}-${center.id}`;
+            const isCenterExpanded = expandedCenters.has(centerKey);
+            const centerSelection = isCenterSelected(center);
+            return <div key={center.id} className="border rounded-md overflow-hidden">
+                      {/* Center Header */}
+                      <div className="bg-background p-2 flex items-center gap-2">
+                        <button onClick={() => toggleCenter(region.id, center.id)} className="p-1 hover:bg-muted rounded transition-colors">
+                          {isCenterExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                        </button>
+                        <Checkbox checked={centerSelection} onCheckedChange={() => handleCenterToggle(center)} className="data-[state=indeterminate]:bg-primary/50" />
+                        <button onClick={() => handleCenterToggle(center)} className="flex-1 text-left text-sm font-medium hover:underline">
+                          {center.name}
+                        </button>
+                        <Badge variant="secondary" className="text-xs">
+                          {getCenterZones(center).filter(id => selectedZoneIds.includes(id)).length} / {center.zones.length}
+                        </Badge>
+                      </div>
+
+                      {/* Center Zones */}
+                      {isCenterExpanded && <div className="p-2 pl-10 space-y-1.5 bg-muted/20">
+                          {center.zones.map(zone => <div key={zone.id} className="flex items-center gap-2">
+                              <Checkbox checked={selectedZoneIds.includes(zone.id)} onCheckedChange={() => handleZoneToggle(zone.id)} id={zone.id} />
+                              <label htmlFor={zone.id} className="text-sm cursor-pointer hover:underline flex-1">
+                                {zone.name}
+                              </label>
+                            </div>)}
+                        </div>}
+                    </div>;
+          })}
+              </div>}
+          </div>;
+    })}
+    </div>;
+}
+const dangerColors: Record<DangerRating, {
+  bg: string;
+  text: string;
+  border: string;
+}> = {
+  LOW: {
+    bg: "bg-green-500",
+    text: "text-white",
+    border: "border-green-500"
+  },
+  MODERATE: {
+    bg: "bg-yellow-400",
+    text: "text-black",
+    border: "border-yellow-400"
+  },
+  CONSIDERABLE: {
+    bg: "bg-orange-500",
+    text: "text-white",
+    border: "border-orange-500"
+  },
+  HIGH: {
+    bg: "bg-red-600",
+    text: "text-white",
+    border: "border-red-600"
+  },
+  EXTREME: {
+    bg: "bg-black",
+    text: "text-white",
+    border: "border-black"
+  },
+  NO_RATING: {
+    bg: "bg-gray-300",
+    text: "text-gray-700",
+    border: "border-gray-300"
+  }
+};
+const freshnessConfig = {
+  current: {
+    color: "text-green-600",
+    bg: "bg-green-100",
+    label: "Current"
+  },
+  recent: {
+    color: "text-yellow-600",
+    bg: "bg-yellow-100",
+    label: "Recent"
+  },
+  expiring: {
+    color: "text-orange-600",
+    bg: "bg-orange-100",
+    label: "Expiring Soon"
+  },
+  expired: {
+    color: "text-red-600",
+    bg: "bg-red-100",
+    label: "Expired"
+  },
+  unknown: {
+    color: "text-muted-foreground",
+    bg: "bg-muted",
+    label: "Unknown"
+  }
+};
+
+// Size labels for D-scale - helper to format size values (shows exact decimal values)
+function formatSize(value: number): string {
+  // Show exact D-scale value
+  return `D${value}`;
+}
+const sizeLabels: Record<number, string> = {
+  1: "D1 (Small)",
+  2: "D2 (Large)",
+  3: "D3 (Very Large)",
+  4: "D4 (Historic)",
+  5: "D5 (Historic)"
+};
+function ElevationPyramid({
+  danger,
+  size = "normal"
+}: {
+  danger: {
+    alpine: DangerRating;
+    treeline: DangerRating;
+    belowTreeline: DangerRating;
+  };
+  size?: "small" | "normal";
+}) {
+  const isSmall = size === "small";
+  const alpineWidth = isSmall ? "w-6" : "w-8";
+  const treelineWidth = isSmall ? "w-9" : "w-12";
+  const belowWidth = isSmall ? "w-12" : "w-16";
+  const height = isSmall ? "h-3" : "h-4";
+  const fontSize = isSmall ? "text-[7px]" : "text-[9px]";
+  return <div className="flex flex-col items-center gap-0.5">
+      <div className={`${alpineWidth} ${height} ${dangerColors[danger.alpine]?.bg || "bg-gray-300"} rounded-t-md flex items-center justify-center`}>
+        <span className={`${fontSize} font-bold ${dangerColors[danger.alpine]?.text || "text-gray-700"}`}>A</span>
+      </div>
+      <div className={`${treelineWidth} ${height} ${dangerColors[danger.treeline]?.bg || "bg-gray-300"} flex items-center justify-center`}>
+        <span className={`${fontSize} font-bold ${dangerColors[danger.treeline]?.text || "text-gray-700"}`}>TL</span>
+      </div>
+      <div className={`${belowWidth} ${height} ${dangerColors[danger.belowTreeline]?.bg || "bg-gray-300"} rounded-b-md flex items-center justify-center`}>
+        <span className={`${fontSize} font-bold ${dangerColors[danger.belowTreeline]?.text || "text-gray-700"}`}>
+          BTL
+        </span>
+      </div>
+    </div>;
+}
+
+// Component to display detailed avalanche problem info
+function AvalancheProblemCard({
+  problem
+}: {
+  problem: AvalancheProblem;
+}) {
+  const hasAspects = problem.aspects && problem.aspects.length > 0;
+  return <div className="p-3 bg-muted/50 rounded-lg space-y-2 border border-border/50">
+      <div className="flex items-start justify-between gap-2">
+        <span className="font-medium text-sm text-foreground">{problem.name}</span>
+        {problem.likelihood && <Badge variant="outline" className="text-xs shrink-0">
+            {problem.likelihood}
+          </Badge>}
+      </div>
+
+      {/* Size Range */}
+      {problem.size && <div className="text-xs text-muted-foreground">
+          <span className="font-medium">Size:</span>{" "}
+          {problem.size.min === problem.size.max ? formatSize(problem.size.min) : `${formatSize(problem.size.min)} to ${formatSize(problem.size.max)}`}
+        </div>}
+
+      {/* Elevation/Aspect Summary */}
+      {hasAspects && <div className="text-xs space-y-1">
+          <div className="flex items-center gap-1 text-muted-foreground font-medium">
+            <Compass className="h-3 w-3" />
+            <span>Elevation & Aspect</span>
+          </div>
+          <div className="pl-4 space-y-0.5">
+            {problem.aspects.map((a, i) => <div key={i} className="text-muted-foreground">
+                <span className="font-medium text-foreground/80">{a.elevation}:</span>{" "}
+                {a.aspects.length === 8 ? "All aspects" : a.aspects.join(", ")}
+              </div>)}
+          </div>
+        </div>}
+
+      {/* Discussion */}
+      {problem.discussion && <p className="text-xs text-muted-foreground pt-1 border-t border-border/30">{problem.discussion}</p>}
+    </div>;
+}
+function ZoneCard({
+  zone
+}: {
+  zone: AvalancheZone;
+}) {
+  const freshness = freshnessConfig[zone.freshness.status];
+  const todayForecast = zone.forecast?.[0];
+  const tomorrowForecast = zone.forecast?.[1];
+  return <Card className="h-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="text-lg font-display">{zone.name}</CardTitle>
+            <CardDescription className="mt-1 space-y-1">
+              <div className="text-xs text-muted-foreground">
+                {zone.freshness.issueDate && <span>Issued: {zone.freshness.issueDate}</span>}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {zone.freshness.expiresDate && <span className={zone.freshness.status === "expired" ? "text-red-600 font-medium" : zone.freshness.status === "expiring" ? "text-orange-600 font-medium" : ""}>
+                    Expires: {zone.freshness.expiresDate}
+                  </span>}
+              </div>
+            </CardDescription>
+          </div>
+          <Badge className={`${freshness.bg} ${freshness.color}`}>{freshness.label}</Badge>
+        </div>
+
+        {/* Forecast Link */}
+        {zone.forecastUrl && <a href={zone.forecastUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
+            View Official Forecast <ExternalLink className="h-3 w-3" />
+          </a>}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Elevation Danger Display */}
+        {todayForecast && <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2 text-center">Today</p>
+              <div className="flex justify-center">
+                <ElevationPyramid danger={todayForecast.danger} />
+              </div>
+            </div>
+            {tomorrowForecast && <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2 text-center">Tomorrow</p>
+                <div className="flex justify-center">
+                  <ElevationPyramid danger={tomorrowForecast.danger} />
+                </div>
+              </div>}
+          </div>}
+
+        <div>
+          <p className="text-sm font-medium text-foreground mb-1">Key Message</p>
+          <p className="text-sm text-muted-foreground">{zone.keyMessage}</p>
+        </div>
+
+        {/* Detailed Avalanche Problems */}
+        {zone.problems && zone.problems.length > 0 && <div>
+            <p className="text-sm font-medium text-foreground mb-2">Avalanche Problems ({zone.problems.length})</p>
+            <div className="space-y-2">
+              {zone.problems.map((problem, i) => <AvalancheProblemCard key={i} problem={problem} />)}
+            </div>
+          </div>}
+
+        <div>
+          <p className="text-sm font-medium text-foreground mb-1">Travel Advice</p>
+          <p className="text-sm text-muted-foreground">{zone.travelAdvice}</p>
+        </div>
+
+        {/* Weather Station Observations */}
+        {zone.weatherObservations && zone.weatherObservations.length > 0 && (
+          <WeatherStationCard 
+            observations={zone.weatherObservations} 
+            note={zone.id === 'douglas-island' ? 'Note: These stations are outside the forecast zone. Expect high spatial variability.' : undefined}
+          />
+        )}
+      </CardContent>
+    </Card>;
+}
+function ZoneComparisonMatrix({
+  zones
+}: {
+  zones: AvalancheZone[];
+}) {
+  return <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-display flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-primary" />
+          Quick Comparison
+        </CardTitle>
+        <CardDescription>Side-by-side danger ratings with elevation pyramids</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <table className="w-full text-sm min-w-[600px]">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-2 font-medium text-muted-foreground text-xs w-24">Zone</th>
+                {zones.map(zone => {
+                return <th key={zone.id} className="text-center py-2 px-2 font-medium">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-sm font-semibold">{zone.name}</span>
+                        {zone.forecastUrl && <a href={zone.forecastUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+                            Forecast <ExternalLink className="h-2.5 w-2.5" />
+                          </a>}
+                      </div>
+                    </th>;
+              })}
+              </tr>
+            </thead>
+            <tbody>
+              {/* Issued/Expires */}
+              <tr className="border-b">
+                <td className="py-2 px-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Issued
+                  </div>
+                </td>
+                {zones.map(zone => <td key={zone.id} className="py-2 px-2 text-center text-xs">
+                    {zone.freshness.issueDate || "N/A"}
+                  </td>)}
+              </tr>
+              <tr className="border-b">
+                <td className="py-2 px-2 text-xs text-muted-foreground">Expires</td>
+                {zones.map(zone => {
+                const isExpired = zone.freshness.status === "expired";
+                const isExpiring = zone.freshness.status === "expiring";
+                return <td key={zone.id} className={`py-2 px-2 text-center text-xs ${isExpired ? "text-red-600 font-medium" : isExpiring ? "text-orange-600 font-medium" : ""}`}>
+                      {zone.freshness.expiresDate || "N/A"}
+                    </td>;
+              })}
+              </tr>
+
+              {/* Today's Danger - Pyramids */}
+              <tr className="border-b bg-muted/30">
+                <td colSpan={zones.length + 1} className="py-1 px-2 text-xs font-semibold text-muted-foreground">
+                  Today
+                </td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-3 px-2 text-xs text-muted-foreground">Danger</td>
+                {zones.map(zone => <td key={zone.id} className="py-3 px-2">
+                    <div className="flex justify-center">
+                      <ElevationPyramid danger={zone.forecast?.[0]?.danger || {
+                    alpine: "NO_RATING",
+                    treeline: "NO_RATING",
+                    belowTreeline: "NO_RATING"
+                  }} size="small" />
+                    </div>
+                  </td>)}
+              </tr>
+
+              {/* Tomorrow's Danger - Pyramids */}
+              <tr className="border-b bg-muted/30">
+                <td colSpan={zones.length + 1} className="py-1 px-2 text-xs font-semibold text-muted-foreground">
+                  Tomorrow
+                </td>
+              </tr>
+              <tr className="border-b">
+                <td className="py-3 px-2 text-xs text-muted-foreground">Danger</td>
+                {zones.map(zone => <td key={zone.id} className="py-3 px-2">
+                    <div className="flex justify-center">
+                      <ElevationPyramid danger={zone.forecast?.[1]?.danger || {
+                    alpine: "NO_RATING",
+                    treeline: "NO_RATING",
+                    belowTreeline: "NO_RATING"
+                  }} size="small" />
+                    </div>
+                  </td>)}
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        {/* Legend */}
+        <div className="mt-4 pt-4 border-t">
+          <p className="text-xs text-muted-foreground mb-2">Danger Rating Legend:</p>
+          <div className="flex flex-wrap gap-2">
+            {(["LOW", "MODERATE", "CONSIDERABLE", "HIGH", "EXTREME"] as DangerRating[]).map(rating => <div key={rating} className="flex items-center gap-1">
+                <div className={`w-3 h-3 rounded ${dangerColors[rating].bg}`} />
+                <span className="text-xs text-muted-foreground">{rating}</span>
+              </div>)}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            <strong>A</strong> = Alpine (above treeline) · <strong>TL</strong> = Treeline · <strong>BTL</strong> = Below
+            Treeline
+          </p>
+        </div>
+      </CardContent>
+    </Card>;
+}
+export default function AvalancheSummaryPage() {
+  const {
+    toast
+  } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [summary, setSummary] = useState<AvalancheSummaryType | null>(null);
+  const [scrapedAt, setScrapedAt] = useState<string | null>(null);
+  const [zonesScraped, setZonesScraped] = useState<ScrapedZoneInfo[]>([]);
+
+  // Default to CNFAIC zones only
+  const DEFAULT_ZONE_IDS = AVAILABLE_ZONES.filter(z => z.center === 'CNFAIC').map(z => z.id);
+  
+  // Zone selection state - load from localStorage or default to CNFAIC zones
+  const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(ZONE_PREFS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Validate that saved zones still exist
+        const validIds = parsed.filter((id: string) => AVAILABLE_ZONES.some(z => z.id === id));
+        return validIds.length > 0 ? validIds : DEFAULT_ZONE_IDS;
+      }
+    } catch (error) {
+      console.error('Failed to load zone preferences:', error);
+    }
+    return DEFAULT_ZONE_IDS;
+  });
+
+  // Save zone selection to localStorage whenever it changes
+  const updateSelectedZones = (zoneIds: string[]) => {
+    setSelectedZoneIds(zoneIds);
+    try {
+      localStorage.setItem(ZONE_PREFS_KEY, JSON.stringify(zoneIds));
+    } catch (error) {
+      console.error('Failed to save zone preferences:', error);
+    }
+  };
+  const fetchSummary = async () => {
+    if (selectedZoneIds.length === 0) {
+      toast({
+        title: "No zones selected",
+        description: "Please select at least one zone to view forecasts",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsLoading(true);
+    console.log('🔍 Fetching forecasts for zones:', selectedZoneIds);
+    analytics.toolUsed("Avalanche Summary", "fetch_started", {
+      selectedZoneCount: selectedZoneIds.length
+    });
+    try {
+      const response = await avalancheApi.getSummary(selectedZoneIds);
+      if (response.success && response.summary) {
+        setSummary(response.summary);
+        setScrapedAt(response.scrapedAt || null);
+        setZonesScraped(response.zonesScraped || []);
+        analytics.toolUsed("Avalanche Summary", "fetch_success");
+        toast({
+          title: "Conditions loaded",
+          description: `Updated ${new Date().toLocaleTimeString()}`
+        });
+      } else {
+        analytics.toolUsed("Avalanche Summary", "fetch_error", {
+          error: response.error
+        });
+        toast({
+          title: "Error",
+          description: response.error || "Failed to fetch avalanche conditions",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching summary:", error);
+      analytics.toolUsed("Avalanche Summary", "fetch_error", {
+        error: String(error)
+      });
+      toast({
+        title: "Error",
+        description: "Failed to fetch avalanche conditions. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  return <Layout>
+      <SEO title="Avalanche Conditions Summary" description="Avalanche forecasts and live SNOTEL data from Southcentral Alaska zones, AI-synthesized for quick situational awareness." url="https://kaiconsulting.ai/tools/avalanche" />
+      {/* Hero Section */}
+      <section className="py-12 md:py-16 bg-gradient-to-br from-sky-50 via-background to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+              <Mountain className="h-4 w-4" />
+              Alaska
+            </div>
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Avalanche Conditions Summary
+            </h1>
+            <p className="text-muted-foreground text-lg mb-8">Avalanche forecasts side by side across regions and forecast centers with live, 24hr, and 72hr temp and precip from SNOTEL in each zone</p>
+
+            {/* Zone Selection */}
+            <Card className="mb-8 max-w-3xl mx-auto text-left">
+              <CardHeader>
+                <CardTitle className="text-base font-display">Select Forecast Zones</CardTitle>
+                <CardDescription>
+                  Choose regions, centers, and zones to include ({selectedZoneIds.length} of {AVAILABLE_ZONES.length} selected)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HierarchicalZoneSelector selectedZoneIds={selectedZoneIds} onSelectionChange={value => {
+                if (value.length === 0) {
+                  toast({
+                    title: "At least one zone required",
+                    description: "Please select at least one zone",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                updateSelectedZones(value);
+                analytics.toolUsed("Avalanche Summary", "zone_selection_changed", {
+                  selectedCount: value.length
+                });
+              }} />
+                <div className="mt-4 flex justify-end">
+                  <Button variant="outline" size="sm" onClick={() => {
+                  // Select only the first zone to maintain the "at least one" requirement
+                  if (AVAILABLE_ZONES.length > 0) {
+                    updateSelectedZones([AVAILABLE_ZONES[0].id]);
+                    analytics.toolUsed("Avalanche Summary", "reset_to_one");
+                  }
+                }} disabled={selectedZoneIds.length === 1}>
+                    Reset Selection
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button size="lg" onClick={fetchSummary} disabled={isLoading} className="gap-2">
+              {isLoading ? <>
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  Fetching Conditions...
+                </> : <>
+                  <Snowflake className="h-5 w-5" />
+                  Get Current Conditions
+                </>}
+            </Button>
+
+            {/* Loading card with timer and tips */}
+            {isLoading && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} />}
+
+            {scrapedAt && !isLoading && <p className="text-sm text-muted-foreground mt-4">Last updated: {new Date(scrapedAt).toLocaleString()}</p>}
+          </div>
+        </div>
+      </section>
+
+      {/* Results Section */}
+      {summary && <section className="py-12 md:py-16">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+            {/* Quick Take */}
+            <Card className="mb-8 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+              <CardHeader>
+                <CardTitle className="font-display text-xl flex items-center gap-2">
+                  <Info className="h-5 w-5 text-primary" />
+                  Quick Take
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-foreground leading-relaxed">{summary.quickTake}</p>
+              </CardContent>
+            </Card>
+
+            {/* Zone Comparison Matrix */}
+            {summary.zones.length > 0 && <div className="mb-8">
+                <ZoneComparisonMatrix zones={summary.zones} />
+              </div>}
+
+            {/* Zone Details */}
+            {summary.zones.length > 0 && <div className="mb-8">
+                <h2 className="font-display text-xl font-bold mb-4">Zone Details</h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {summary.zones.map(zone => <ZoneCard key={zone.id} zone={zone} />)}
+                </div>
+              </div>}
+
+            {/* Bottom Line */}
+            {summary.bottomLine && <Card className="border-green-500/30 bg-gradient-to-br from-background to-green-50/50 dark:to-green-950/20">
+                <CardHeader>
+                  <CardTitle className="font-display text-lg flex items-center gap-2">
+                    <Info className="h-5 w-5 text-green-600" />
+                    Bottom Line
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground font-medium">{summary.bottomLine}</p>
+                </CardContent>
+              </Card>}
+
+            {/* Data Sources */}
+            <Accordion type="single" collapsible className="mt-8">
+              <AccordionItem value="sources">
+                <AccordionTrigger className="text-sm">Data Sources & Freshness</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2 text-sm">
+                    {zonesScraped.map(zone => {
+                  const freshness = freshnessConfig[zone.freshness.status];
+                  return <div key={zone.id} className="flex items-center justify-between py-1">
+                          <span>
+                            {zone.name} <span className="text-muted-foreground">({zone.center})</span>
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {zone.success ? <>
+                                <span className="text-xs text-muted-foreground">
+                                  {zone.freshness.expiresDate ? `Exp: ${zone.freshness.expiresDate}` : ""}
+                                </span>
+                                <Badge variant="outline" className={freshness.color}>
+                                  {freshness.label}
+                                </Badge>
+                              </> : <Badge variant="destructive">Failed</Badge>}
+                          </div>
+                        </div>;
+                })}
+                    <div className="pt-4 border-t mt-4 space-y-2">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Data sourced from the National Avalanche Center API
+                      </p>
+                      <a href="https://www.cnfaic.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                        CNFAIC Official Forecasts <ExternalLink className="h-3 w-3" />
+                      </a>
+                      <a href="https://hpavalanche.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                        Hatcher Pass Avalanche Center <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Disclaimer */}
+            <div className="mt-8 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
+              <div className="flex gap-3">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <p className="font-medium mb-1">Important Disclaimer</p>
+                  <p>
+                    This tool provides AI-generated summaries of publicly available avalanche forecasts. Always verify
+                    conditions by reading the <strong>original forecasts</strong> from CNFAIC and HPAC before making
+                    travel decisions. This tool is not a substitute for avalanche education, training, and good
+                    judgment.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>}
+
+      {/* Empty State */}
+      {!summary && !isLoading && <section className="py-16">
+          <div className="container mx-auto px-4 text-center">
+            <Mountain className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              Click "Get Current Conditions" to fetch the latest avalanche forecasts.
+            </p>
+          </div>
+        </section>}
+    </Layout>;
+}

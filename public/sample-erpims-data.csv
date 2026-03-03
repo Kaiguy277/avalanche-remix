@@ -1,0 +1,11 @@
+Sample ID,Collection Date,Matrix Type,Parameter Name,Result Value,Units,Method Code,Lab Sample ID,Qualifier,Detection Limit
+WQ-001,2025-12-15,Surface Water,Arsenic,0.005,mg/L,EPA 200.8,LAB-2025-001,,0.001
+WQ-002,2025-12-15,Surface Water,Lead,0.002,mg/L,EPA 200.8,LAB-2025-002,U,0.001
+WQ-003,2025-12-15,Groundwater,Mercury,0.0001,mg/L,EPA 245.1,LAB-2025-003,,0.00005
+WQ-004,2025-12-16,Surface Water,Copper,0.015,mg/L,EPA 200.8,LAB-2025-004,,0.001
+WQ-005,2025-12-16,Sediment,Zinc,45.2,mg/kg,EPA 6010D,LAB-2025-005,,0.5
+WQ-006,2025-12-16,Sediment,Cadmium,0.8,mg/kg,EPA 6010D,LAB-2025-006,,0.1
+WQ-007,2025-12-17,Surface Water,pH,7.5,SU,EPA 150.1,LAB-2025-007,,
+WQ-008,2025-12-17,Groundwater,Nitrate,2.3,mg/L,EPA 300.0,LAB-2025-008,,0.05
+WQ-009,2025-12-17,Surface Water,Dissolved Oxygen,8.2,mg/L,EPA 360.1,LAB-2025-009,,0.1
+WQ-010,2025-12-18,Tissue,Total Mercury,0.15,mg/kg,EPA 7473,LAB-2025-010,,0.01
