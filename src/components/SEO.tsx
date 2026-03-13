@@ -13,7 +13,7 @@ const SEO = ({
   url = "https://kaiconsulting.ai",
   type = "website",
 }: SEOProps) => {
-  const fullTitle = title.includes("Kai Myers") ? title : `${title} | Kai Myers`;
+  const fullTitle = title.includes("Alaska Avalanche") ? title : `${title} | Alaska Avalanche Summary`;
 
   return (
     <Helmet>
