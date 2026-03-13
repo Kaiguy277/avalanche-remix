@@ -1245,6 +1245,51 @@ IMPORTANT INSTRUCTIONS:
 
     console.log('Summary generated successfully');
 
+    // Cache the synthesized results in avalanche_daily_forecasts for future fast loads
+    try {
+      const now = new Date();
+      const akTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Anchorage' }));
+      const forecastDate = akTime.toISOString().split('T')[0];
+
+      const cachePromises = zonesWithMetadata.map((zone: any) => {
+        const sourceData = zonesData.find(z => z.id === zone.id);
+        return supabase
+          .from('avalanche_daily_forecasts')
+          .upsert({
+            zone_id: zone.id,
+            center_id: sourceData?.center || 'UNKNOWN',
+            forecast_date: forecastDate,
+            published_time: zone.freshness?.issueDate ? new Date(zone.freshness.issueDate).toISOString() : null,
+            expires_time: zone.freshness?.expiresDate ? new Date(zone.freshness.expiresDate).toISOString() : null,
+            synthesized_data: {
+              id: zone.id,
+              name: zone.name,
+              forecastUrl: zone.forecastUrl,
+              forecast: zone.forecast,
+              weather: zone.weather,
+              problems: zone.problems,
+              keyMessage: zone.keyMessage,
+              travelAdvice: zone.travelAdvice,
+              freshness: zone.freshness,
+              weatherValidation: zone.weatherValidation,
+            },
+          }, {
+            onConflict: 'zone_id,forecast_date',
+          });
+      });
+
+      const cacheResults = await Promise.all(cachePromises);
+      const cacheErrors = cacheResults.filter(r => r.error);
+      if (cacheErrors.length > 0) {
+        console.error(`Failed to cache ${cacheErrors.length} zones:`, cacheErrors.map(r => r.error));
+      } else {
+        console.log(`Cached ${zonesWithMetadata.length} zones for ${forecastDate}`);
+      }
+    } catch (cacheError) {
+      // Don't fail the response if caching fails
+      console.error('Error caching forecasts:', cacheError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
