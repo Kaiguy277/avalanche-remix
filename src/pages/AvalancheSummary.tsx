@@ -418,9 +418,11 @@ function AvalancheProblemCard({
     </div>;
 }
 function ZoneCard({
-  zone
+  zone,
+  isSnotelLoading = false
 }: {
   zone: AvalancheZone;
+  isSnotelLoading?: boolean;
 }) {
   const freshness = freshnessConfig[zone.freshness.status];
   const todayForecast = zone.forecast?.[0];
