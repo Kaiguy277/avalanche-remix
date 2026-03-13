@@ -612,9 +612,11 @@ export default function AvalancheSummaryPage() {
     toast
   } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSnotelLoading, setIsSnotelLoading] = useState(false);
   const [summary, setSummary] = useState<AvalancheSummaryType | null>(null);
   const [scrapedAt, setScrapedAt] = useState<string | null>(null);
   const [zonesScraped, setZonesScraped] = useState<ScrapedZoneInfo[]>([]);
+  const [loadSource, setLoadSource] = useState<'cached' | 'live' | null>(null);
 
   // Default to CNFAIC zones only
   const DEFAULT_ZONE_IDS = AVAILABLE_ZONES.filter(z => z.center === 'CNFAIC').map(z => z.id);
@@ -625,7 +627,6 @@ export default function AvalancheSummaryPage() {
       const saved = localStorage.getItem(ZONE_PREFS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Validate that saved zones still exist
         const validIds = parsed.filter((id: string) => AVAILABLE_ZONES.some(z => z.id === id));
         return validIds.length > 0 ? validIds : DEFAULT_ZONE_IDS;
       }
@@ -644,6 +645,31 @@ export default function AvalancheSummaryPage() {
       console.error('Failed to save zone preferences:', error);
     }
   };
+
+  // Fetch SNOTEL observations and merge into summary
+  const fetchSnotel = useCallback(async (zoneIds: string[]) => {
+    setIsSnotelLoading(true);
+    try {
+      const snotelResponse = await avalancheApi.getSnotelObservations(zoneIds);
+      if (snotelResponse.success && snotelResponse.observations) {
+        setSummary(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            zones: prev.zones.map(zone => ({
+              ...zone,
+              weatherObservations: snotelResponse.observations?.[zone.id] || zone.weatherObservations,
+            })),
+          };
+        });
+      }
+    } catch (error) {
+      console.error('SNOTEL fetch error:', error);
+    } finally {
+      setIsSnotelLoading(false);
+    }
+  }, []);
+
   const fetchSummary = async () => {
     if (selectedZoneIds.length === 0) {
       toast({
@@ -654,16 +680,56 @@ export default function AvalancheSummaryPage() {
       return;
     }
     setIsLoading(true);
+    setLoadSource(null);
     console.log('🔍 Fetching forecasts for zones:', selectedZoneIds);
     analytics.toolUsed("Avalanche Summary", "fetch_started", {
       selectedZoneCount: selectedZoneIds.length
     });
+
     try {
+      // Phase 1: Try cached forecasts first (fast path)
+      const cachedResponse = await avalancheApi.getCachedForecasts(selectedZoneIds);
+      
+      if (cachedResponse.success && cachedResponse.zones && cachedResponse.zones.length > 0 && 
+          (!cachedResponse.missingZoneIds || cachedResponse.missingZoneIds.length === 0)) {
+        // All zones are cached - show immediately!
+        console.log('✅ All zones cached, showing instantly');
+        
+        // Build a summary-like object from cached zones
+        // The cached data already has the synthesized zone data
+        const cachedSummary: AvalancheSummaryType = {
+          quickTake: '', // Will be filled from summary entries
+          zones: cachedResponse.zones,
+          weatherHighlights: '',
+          bottomLine: '',
+        };
+        
+        setSummary(cachedSummary);
+        setScrapedAt(new Date().toISOString());
+        setLoadSource('cached');
+        setIsLoading(false);
+        
+        toast({
+          title: "Conditions loaded (cached)",
+          description: `Showing today's forecasts. Loading weather stations...`
+        });
+
+        // Phase 2: Fetch SNOTEL in background
+        fetchSnotel(selectedZoneIds);
+        
+        analytics.toolUsed("Avalanche Summary", "fetch_cached_success");
+        return;
+      }
+
+      // Fallback: Use the full avalanche-summary endpoint
+      console.log('⚠️ Cache miss or incomplete, falling back to full fetch');
       const response = await avalancheApi.getSummary(selectedZoneIds);
+      
       if (response.success && response.summary) {
         setSummary(response.summary);
         setScrapedAt(response.scrapedAt || null);
         setZonesScraped(response.zonesScraped || []);
+        setLoadSource('live');
         analytics.toolUsed("Avalanche Summary", "fetch_success");
         toast({
           title: "Conditions loaded",
