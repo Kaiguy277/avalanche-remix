@@ -1133,6 +1133,29 @@ function normalizeElevation(elevName: string): string {
   return elevName;
 }
 
+// Strip HTML tags from a string, returning plain text
+function stripHtml(html: string | null | undefined): string | null {
+  if (!html) return null;
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&rdquo;/g, '"')
+    .replace(/&ldquo;/g, '"')
+    .replace(/&rsquo;/g, "'")
+    .replace(/&lsquo;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim() || null;
+}
+
+// Map aspect abbreviation from NAC API location strings
+const ASPECT_MAP: Record<string, string> = {
+  'north': 'N', 'northeast': 'NE', 'east': 'E', 'southeast': 'SE',
+  'south': 'S', 'southwest': 'SW', 'west': 'W', 'northwest': 'NW',
+};
+
 // Extract avalanche problems with detailed aspect/elevation data
 function extractProblems(forecast: any): Array<{
   name: string;
@@ -1142,59 +1165,53 @@ function extractProblems(forecast: any): Array<{
   discussion: string | null;
 }> {
   const problems = forecast?.forecast_avalanche_problems || [];
-  return problems.slice(0, 4).map((p: any, idx: number) => {
-    // Log raw problem data to debug size field structure
-    console.log(`Problem ${idx} raw data:`, JSON.stringify({
-      name: p.name,
-      size: p.size,
-      min_size: p.min_size,
-      max_size: p.max_size,
-      expected_size: p.expected_size,
-      likelihood: p.likelihood,
-    }));
-    
+  return problems.slice(0, 4).map((p: any) => {
     // Extract aspect/elevation data from the API
-    // The NAC API provides location data with elevation bands and aspect flags
-    const locationData = p.location || [];
-    const aspects: Array<{ elevation: string; aspects: string[] }> = [];
-    
+    // NAC API returns location as an array of strings like "north upper", "southeast middle"
+    const locationData: any[] = p.location || [];
+    const elevAspectMap = new Map<string, Set<string>>();
+
     for (const loc of locationData) {
-      const activeAspects: string[] = [];
-      if (loc.north) activeAspects.push('N');
-      if (loc.northeast) activeAspects.push('NE');
-      if (loc.east) activeAspects.push('E');
-      if (loc.southeast) activeAspects.push('SE');
-      if (loc.south) activeAspects.push('S');
-      if (loc.southwest) activeAspects.push('SW');
-      if (loc.west) activeAspects.push('W');
-      if (loc.northwest) activeAspects.push('NW');
-      
-      if (activeAspects.length > 0) {
-        aspects.push({
-          elevation: normalizeElevation(loc.elev_name || loc.elevation || 'Unknown'),
-          aspects: activeAspects,
-        });
+      if (typeof loc === 'string') {
+        // String format: "north upper", "southeast middle", "west lower"
+        const parts = loc.toLowerCase().split(' ');
+        const aspectKey = parts[0]; // e.g. "north", "southeast"
+        const elevKey = parts[1] || 'unknown'; // e.g. "upper", "middle", "lower"
+        const aspect = ASPECT_MAP[aspectKey];
+        if (aspect) {
+          const elevation = normalizeElevation(elevKey);
+          if (!elevAspectMap.has(elevation)) elevAspectMap.set(elevation, new Set());
+          elevAspectMap.get(elevation)!.add(aspect);
+        }
+      } else if (typeof loc === 'object' && loc !== null) {
+        // Object format (legacy): { north: true, east: true, elev_name: "upper" }
+        const activeAspects: string[] = [];
+        for (const [key, abbr] of Object.entries(ASPECT_MAP)) {
+          if (loc[key]) activeAspects.push(abbr);
+        }
+        const elevation = normalizeElevation(loc.elev_name || loc.elevation || 'Unknown');
+        if (activeAspects.length > 0) {
+          if (!elevAspectMap.has(elevation)) elevAspectMap.set(elevation, new Set());
+          activeAspects.forEach(a => elevAspectMap.get(elevation)!.add(a));
+        }
       }
     }
-    
-    // Parse size values - check multiple possible field structures
+
+    // Convert map to sorted array (Alpine first, then Treeline, then Below Treeline)
+    const elevOrder = ['Alpine', 'Treeline', 'Below Treeline'];
+    const aspects = Array.from(elevAspectMap.entries())
+      .sort((a, b) => elevOrder.indexOf(a[0]) - elevOrder.indexOf(b[0]))
+      .map(([elevation, aspectSet]) => ({
+        elevation,
+        aspects: Array.from(aspectSet),
+      }));
+
+    // Parse size - API returns as array of strings: ["1", "2.5"]
     let size: { min: number; max: number } | null = null;
-    
-    // Try nested size object first (p.size.min, p.size.max)
-    if (p.size?.min !== undefined && p.size?.max !== undefined) {
-      size = { min: Number(p.size.min), max: Number(p.size.max) };
-    } 
-    // Try direct min_size/max_size fields
-    else if (p.min_size !== undefined && p.max_size !== undefined) {
-      size = { min: Number(p.min_size), max: Number(p.max_size) };
-    }
-    // Try expected_size object
-    else if (p.expected_size?.min !== undefined && p.expected_size?.max !== undefined) {
-      size = { min: Number(p.expected_size.min), max: Number(p.expected_size.max) };
-    }
-    // Try size as array [min, max]
-    else if (Array.isArray(p.size) && p.size.length >= 2) {
+    if (Array.isArray(p.size) && p.size.length >= 2) {
       size = { min: Number(p.size[0]), max: Number(p.size[1]) };
+    } else if (p.size?.min !== undefined && p.size?.max !== undefined) {
+      size = { min: Number(p.size.min), max: Number(p.size.max) };
     }
 
     return {
@@ -1202,7 +1219,7 @@ function extractProblems(forecast: any): Array<{
       likelihood: p.likelihood || null,
       size,
       aspects,
-      discussion: p.discussion || null,
+      discussion: stripHtml(p.discussion),
     };
   });
 }
@@ -1962,6 +1979,10 @@ IMPORTANT INSTRUCTIONS:
 
       return {
         ...zone,
+        // Override AI-generated structured fields with directly-extracted API data
+        // AI should only generate: keyMessage, travelAdvice, weatherValidation, weather narrative
+        forecast: sourceData?.forecast || zone.forecast,
+        problems: sourceData?.problems || zone.problems,
         forecastUrl: sourceData?.forecastUrl || zone.forecastUrl || '',
         freshness: sourceData?.freshness || {
           issueDate: null,
