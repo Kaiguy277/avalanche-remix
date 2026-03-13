@@ -491,6 +491,12 @@ function ZoneCard({
             note={zone.id === 'douglas-island' ? 'Note: These stations are outside the forecast zone. Expect high spatial variability.' : undefined}
           />
         )}
+        {!zone.weatherObservations && isSnotelLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading weather station data...
+          </div>
+        )}
       </CardContent>
     </Card>;
 }
