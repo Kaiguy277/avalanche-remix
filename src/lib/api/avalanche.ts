@@ -124,7 +124,23 @@ export interface AvalancheResponse {
   zonesScraped?: ScrapedZoneInfo[];
 }
 
+export interface CachedForecastResponse {
+  success: boolean;
+  zones?: AvalancheZone[];
+  missingZoneIds?: string[];
+  forecastDate?: string;
+  cached?: boolean;
+  error?: string;
+}
+
+export interface SnotelResponse {
+  success: boolean;
+  observations?: Record<string, WeatherObservation[]>;
+  error?: string;
+}
+
 export const avalancheApi = {
+  // Original full endpoint (fallback)
   async getSummary(zoneIds?: string[]): Promise<AvalancheResponse> {
     const { data, error } = await supabase.functions.invoke('avalanche-summary', {
       body: { zoneIds },
@@ -132,6 +148,34 @@ export const avalancheApi = {
 
     if (error) {
       console.error('Error calling avalanche-summary:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data;
+  },
+
+  // Phase 1: Get cached forecasts (fast, ~1s)
+  async getCachedForecasts(zoneIds: string[]): Promise<CachedForecastResponse> {
+    const { data, error } = await supabase.functions.invoke('get-cached-forecasts', {
+      body: { zoneIds },
+    });
+
+    if (error) {
+      console.error('Error calling get-cached-forecasts:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data;
+  },
+
+  // Phase 2: Get SNOTEL observations (progressive, ~2-3s)
+  async getSnotelObservations(zoneIds: string[]): Promise<SnotelResponse> {
+    const { data, error } = await supabase.functions.invoke('get-snotel-observations', {
+      body: { zoneIds },
+    });
+
+    if (error) {
+      console.error('Error calling get-snotel-observations:', error);
       return { success: false, error: error.message };
     }
 
