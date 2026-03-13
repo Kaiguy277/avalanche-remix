@@ -832,7 +832,11 @@ export default function AvalancheSummaryPage() {
             {/* Loading card with timer and tips */}
             {isLoading && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} />}
 
-            {scrapedAt && !isLoading && <p className="text-sm text-muted-foreground mt-4">Last updated: {new Date(scrapedAt).toLocaleString()}</p>}
+            {scrapedAt && !isLoading && <div className="flex items-center justify-center gap-2 mt-4">
+              <p className="text-sm text-muted-foreground">Last updated: {new Date(scrapedAt).toLocaleString()}</p>
+              {loadSource === 'cached' && <Badge variant="outline" className="text-xs">Cached</Badge>}
+              {isSnotelLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading SNOTEL</Badge>}
+            </div>}
           </div>
         </div>
       </section>
