@@ -1,212 +1,77 @@
 
-# Avalanche Forecast Caching Implementation
 
-## Summary
+# Proactive Forecast Caching with Progressive Loading
 
-This implementation adds database-backed caching for **raw NAC forecast data only**. Since AI summaries incorporate real-time SNOTEL observations for weather validation, they cannot be cached. However, caching the forecast data alone will save significant time on:
+## Problem
+Every request hits NAC API + map-layer + potentially Firecrawl + SNOTEL + AI synthesis sequentially, taking 10-25 seconds. Forecasts only publish once per morning but are re-fetched on every user visit.
 
-- NAC API calls (~500ms per zone)
-- Firecrawl web scraping (2-5s per zone, plus credits)
-
-**Expected improvement**: Reduce load times from 15-25s down to 5-10s for repeat requests on the same day.
-
-## What Gets Cached vs Real-Time
-
-| Data Type | Cached? | Reason |
-|-----------|---------|--------|
-| NAC forecast data (danger, problems, weather narrative) | Yes | Updated max once daily |
-| Firecrawl scraped content | Yes | Same content as NAC |
-| SNOTEL observations | No | Updates hourly, critical for safety |
-| AI-synthesized summaries | No | Incorporates real-time SNOTEL data |
-
-## Architecture
+## Proposed Architecture
 
 ```text
-Request Flow (After Implementation)
-===================================
+Current Flow (every request):
+  User click → [NAC API + Map Layer + Firecrawl + SNOTEL + AI] → 10-25s → Results
 
-1. User requests zones [turnagain, hatcher-pass, valdez-maritime]
-                              |
-                              v
-2. Quick map-layer fetch (~200ms) - get published_time for each zone
-                              |
-                              v
-3. For each zone, check forecast cache:
-   ┌─────────────────────────────────────────────────┐
-   │  SELECT * FROM avalanche_forecast_cache        │
-   │  WHERE zone_id = 'turnagain-girdwood'          │
-   │    AND published_time = '2025-02-05T07:30:00Z' │
-   └─────────────────────────────────────────────────┘
-              |                           |
-        [CACHE HIT]                 [CACHE MISS]
-     Use cached data           Fetch from NAC API
-     (Skip API call)           Store in cache
-              |                           |
-              └───────────┬───────────────┘
-                          v
-4. ALWAYS fetch fresh SNOTEL (existing 30-min in-memory cache)
-                          |
-                          v
-5. ALWAYS call AI synthesis (combines forecast + SNOTEL)
-                          |
-                          v
-6. Return response to user
+New Flow:
+  Morning cron → [NAC API + Map Layer + Firecrawl + AI] → Store in DB
+  
+  User visit → Read cached forecasts from DB → ~1s → Show forecasts immediately
+            → Fetch SNOTEL in parallel → ~2-3s → Append weather stations
 ```
 
-## Database Schema
+## Changes
 
-### Table: `avalanche_forecast_cache`
+### 1. New Edge Function: `fetch-all-forecasts` (cron job)
+- Runs daily at ~7:30 AM AKST (16:30 UTC) — after centers typically publish
+- Fetches all 15 zones via NAC API + map-layer
+- Runs AI synthesis per-center (group zones by center to reduce AI calls from 15 to ~6)
+- Stores complete synthesized results in a new `avalanche_daily_forecasts` table
+- Falls back to Firecrawl if API fails for a zone
 
-Stores raw forecast data per zone, keyed by the NAC `published_time`.
+### 2. New DB Table: `avalanche_daily_forecasts`
+Stores the fully synthesized, ready-to-display forecast data:
+- `id`, `zone_id`, `center_id`, `forecast_date` (date only), `published_time`
+- `synthesized_data` (JSONB) — the complete zone object matching the `AvalancheZone` type (danger ratings, problems, key message, travel advice, weather narrative)
+- `created_at`
+- Unique on `(zone_id, forecast_date)`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid | Primary key |
-| `zone_id` | varchar | Zone identifier (e.g., "turnagain-girdwood") |
-| `nac_zone_id` | varchar | NAC API zone ID (e.g., "2815") |
-| `center_id` | varchar | Avalanche center (e.g., "CNFAIC") |
-| `published_time` | timestamptz | Forecast issue time from NAC |
-| `expires_time` | timestamptz | Forecast expiration from NAC |
-| `forecast_data` | jsonb | Complete parsed forecast (danger, problems, weather, etc.) |
-| `scraped_content` | text | Firecrawl markdown if used (null for API data) |
-| `data_source` | varchar | "api", "scrape", or "map-layer" |
-| `created_at` | timestamptz | Cache entry creation time |
+### 3. New Edge Function: `get-cached-forecasts`
+- Simple, fast endpoint: queries `avalanche_daily_forecasts` for today's date + requested zone IDs
+- Returns pre-synthesized zone data immediately
+- No AI calls, no NAC API calls, no Firecrawl
 
-**Unique constraint**: `(zone_id, published_time)` - ensures one entry per forecast version
+### 4. Separate SNOTEL Endpoint: `get-snotel-observations`
+- Extract the existing SNOTEL fetching logic into its own edge function
+- Takes zone IDs, returns weather station observations
+- Called independently from the frontend
 
-**Index**: On `zone_id` for fast lookups
+### 5. Frontend Changes (`AvalancheSummary.tsx` + `avalanche.ts`)
+- **Phase 1 (instant)**: Call `get-cached-forecasts` → display forecast cards, comparison matrix, quick take immediately
+- **Phase 2 (progressive)**: Call `get-snotel-observations` → append weather station cards to each zone as they load
+- Show a small loading indicator on the weather station section while Phase 2 loads
+- If no cached data exists for today (before cron runs, or new zone), fall back to existing `avalanche-summary` endpoint
 
-## RLS Policies
+### 6. Cron Job Setup
+- Use `pg_cron` + `pg_net` to invoke `fetch-all-forecasts` daily at 16:30 UTC
+- Keep the existing `avalanche-summary` endpoint as a manual fallback / refresh option
 
-```sql
--- Public read access (avalanche data is safety-critical)
-CREATE POLICY "Public read access" ON avalanche_forecast_cache
-  FOR SELECT USING (true);
-
--- Only service role (edge functions) can write
-CREATE POLICY "Service role write" ON avalanche_forecast_cache
-  FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Service role update" ON avalanche_forecast_cache
-  FOR UPDATE USING (true);
-```
-
-Note: RLS is enabled, but INSERT/UPDATE policies allow service role access. The table will only be written to by the edge function using `SUPABASE_SERVICE_ROLE_KEY`.
-
-## Edge Function Changes
-
-### New Flow in `avalanche-summary/index.ts`
-
-1. **Add Supabase client import** for database operations
-
-2. **Modify zone data fetching** (Step 2 in current code, lines 597-689):
-   
-   Before fetching from NAC API, check the cache:
-   ```
-   const cachedForecast = await checkForecastCache(zone.id, mapLayerPublishedTime);
-   if (cachedForecast) {
-     // Use cached data, skip API/scrape
-     return buildZoneDataFromCache(cachedForecast, config);
-   }
-   // Otherwise fetch from API and store in cache
-   ```
-
-3. **Add cache helper functions**:
-   - `checkForecastCache(zoneId, publishedTime)` - lookup by zone + timestamp
-   - `storeForecastCache(zoneData)` - insert/update cache entry
-   - `buildZoneDataFromCache(cached, config)` - reconstruct ZoneData from cache
-
-4. **Keep everything else the same**:
-   - SNOTEL fetching remains real-time
-   - AI synthesis remains unchanged
-   - Response format unchanged
-
-### Cache Key Logic
-
-The cache key is `(zone_id, published_time)`. When NAC publishes a new forecast:
-- The `published_time` from map-layer changes
-- Cache lookup returns null (miss)
-- Fresh data is fetched and cached
-
-This naturally handles daily forecast updates without time-based expiration.
-
-## Implementation Steps
-
-### Step 1: Database Migration
-
-Create `avalanche_forecast_cache` table with:
-- All columns defined above
-- Unique constraint on `(zone_id, published_time)`
-- Index on `zone_id`
-- RLS policies for public read, service role write
-
-### Step 2: Edge Function Updates
-
-Modify `supabase/functions/avalanche-summary/index.ts`:
-
-1. Add Supabase client creation at the top (using `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`)
-
-2. Add cache lookup function that queries by zone_id and published_time
-
-3. Add cache store function that upserts forecast data
-
-4. Wrap the existing `fetchZoneForecast` and scraping logic with cache-aside pattern:
-   - Check cache first
-   - If hit, return cached data
-   - If miss, fetch from source, store in cache, return
-
-5. Add logging for cache hits/misses
-
-### Step 3: Response Enhancement (Optional)
-
-Add cache status to response for debugging:
-```json
-{
-  "zonesScraped": [
-    {
-      "id": "turnagain-girdwood",
-      "cacheStatus": "hit" | "miss" | "stored"
-    }
-  ]
-}
-```
+## What Stays the Same
+- Existing `avalanche-summary` edge function remains as fallback
+- Zone configuration, UI components, zone selector
+- The `avalanche_forecast_cache` table (raw NAC data cache, still useful for the cron job)
 
 ## Performance Expectations
 
-| Scenario | Current | After Caching |
-|----------|---------|---------------|
-| First request of day | 15-25s | 15-25s (same) |
-| Second+ request, same zones | 15-25s | 5-10s |
-| Mixed new/cached zones | 15-25s | 8-15s |
+| Scenario | Current | After |
+|----------|---------|-------|
+| Typical visit (after cron) | 10-25s | ~1s forecasts + ~2-3s SNOTEL |
+| First visit before cron | 10-25s | 10-25s (fallback) |
+| SNOTEL data | Blocks everything | Loads progressively |
 
-**Savings per cached zone**:
-- API fetch: ~500ms saved
-- Firecrawl scrape: 2-5s saved (when used)
-- Credits: Firecrawl credits preserved
+## Implementation Order
+1. Create `avalanche_daily_forecasts` table
+2. Build `get-cached-forecasts` edge function
+3. Build `get-snotel-observations` edge function  
+4. Build `fetch-all-forecasts` cron edge function
+5. Update frontend for two-phase loading
+6. Set up cron schedule
 
-## Cache Maintenance
-
-**Automatic cleanup**: Old cache entries naturally become orphaned when new forecasts are published. A periodic cleanup (optional future enhancement) could delete entries older than 7 days.
-
-**No manual invalidation needed**: The cache key includes `published_time`, so new forecasts automatically bypass old cache entries.
-
-## Files to Create/Modify
-
-1. **New migration file**: `supabase/migrations/[timestamp]_avalanche_forecast_cache.sql`
-   - Create table
-   - Add constraints and indexes
-   - Enable RLS
-   - Add policies
-
-2. **Modify**: `supabase/functions/avalanche-summary/index.ts`
-   - Add Supabase client
-   - Add cache check/store functions
-   - Wrap fetch logic with cache-aside pattern
-   - Add cache status logging
-
-## Technical Considerations
-
-- **Service role key**: Edge function already has access to `SUPABASE_SERVICE_ROLE_KEY` (used for Firecrawl calls)
-- **Type safety**: Store `forecast_data` as JSONB matching the `ZoneData` interface
-- **Graceful degradation**: If cache lookup fails, proceed with normal fetch (don't break the flow)
-- **Logging**: Include cache hit/miss in logs for monitoring
