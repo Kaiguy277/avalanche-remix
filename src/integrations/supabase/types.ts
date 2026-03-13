@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      avalanche_daily_forecasts: {
+        Row: {
+          center_id: string
+          created_at: string
+          expires_time: string | null
+          forecast_date: string
+          id: string
+          published_time: string | null
+          synthesized_data: Json
+          zone_id: string
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          expires_time?: string | null
+          forecast_date: string
+          id?: string
+          published_time?: string | null
+          synthesized_data: Json
+          zone_id: string
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          expires_time?: string | null
+          forecast_date?: string
+          id?: string
+          published_time?: string | null
+          synthesized_data?: Json
+          zone_id?: string
+        }
+        Relationships: []
+      }
       avalanche_forecast_cache: {
         Row: {
           center_id: string
