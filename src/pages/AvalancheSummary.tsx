@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Mountain, RefreshCw, AlertTriangle, Clock, Snowflake, ExternalLink, Info, CloudSnow, Compass, ChevronRight, ChevronDown } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Mountain, RefreshCw, AlertTriangle, Clock, Snowflake, ExternalLink, Info, CloudSnow, Compass, ChevronRight, ChevronDown, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { avalancheApi, type AvalancheSummary as AvalancheSummaryType, type AvalancheZone, type ScrapedZoneInfo, type DangerRating, type AvalancheProblem } from "@/lib/api/avalanche";
+import { avalancheApi, type AvalancheSummary as AvalancheSummaryType, type AvalancheZone, type ScrapedZoneInfo, type DangerRating, type AvalancheProblem, type WeatherObservation } from "@/lib/api/avalanche";
 import { analytics } from "@/lib/analytics";
 import WeatherStationCard from "@/components/avalanche/WeatherStationCard";
 import LoadingCard from "@/components/avalanche/LoadingCard";
