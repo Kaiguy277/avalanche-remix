@@ -1917,7 +1917,7 @@ IMPORTANT INSTRUCTIONS:
       if (cacheErrors.length > 0) {
         console.error(`Failed to cache ${cacheErrors.length} zones:`, cacheErrors.map(r => r.error));
       } else {
-        console.log(`Cached ${zonesWithMetadata.length} zones for ${forecastDate}`);
+        console.log(`Cached ${zonesWithMetadata.length} zones`);
       }
     } catch (cacheError) {
       // Don't fail the response if caching fails
