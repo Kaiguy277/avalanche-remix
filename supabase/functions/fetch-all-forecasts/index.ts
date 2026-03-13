@@ -11,12 +11,42 @@ const corsHeaders = {
 // It's designed to be called by a daily cron job.
 
 const ZONE_GROUPS: { centerId: string; zoneIds: string[] }[] = [
+  // Alaska
   { centerId: 'CNFAIC', zoneIds: ['turnagain-girdwood', 'summit', 'seward', 'chugach-state-park'] },
   { centerId: 'HPAC', zoneIds: ['hatcher-pass'] },
   { centerId: 'VAC', zoneIds: ['valdez-maritime', 'valdez-intermountain', 'valdez-continental'] },
+  { centerId: 'CAC', zoneIds: ['cordova'] },
   { centerId: 'EARAC', zoneIds: ['earac-north', 'earac-south'] },
   { centerId: 'CAAC', zoneIds: ['douglas-island', 'juneau-mainland'] },
   { centerId: 'HAC', zoneIds: ['haines-lutak', 'haines-transitional', 'haines-chilkat-pass'] },
+  // Pacific Northwest
+  { centerId: 'NWAC', zoneIds: ['olympics', 'west-slopes-north', 'west-slopes-central', 'west-slopes-south', 'stevens-pass', 'snoqualmie-pass', 'east-slopes-north', 'east-slopes-central', 'east-slopes-south', 'mt-hood'] },
+  { centerId: 'COAA', zoneIds: ['central-cascades', 'newberry'] },
+  { centerId: 'WAC', zoneIds: ['northern-wallowas', 'southern-wallowas', 'elkhorns', 'blues'] },
+  { centerId: 'SOAIX', zoneIds: ['southern-oregon'] },
+  // California & Nevada
+  { centerId: 'SAC', zoneIds: ['central-sierra-nevada'] },
+  { centerId: 'ESAC', zoneIds: ['eastside-region'] },
+  { centerId: 'BAC', zoneIds: ['bridgeport'] },
+  { centerId: 'MSAC', zoneIds: ['mount-shasta'] },
+  // Idaho
+  { centerId: 'SNFAC', zoneIds: ['banner-summit', 'galena-summit-eastern-mtns', 'sawtooth-western-smoky-mtns', 'soldier-wood-river-valley-mtns'] },
+  { centerId: 'PAC', zoneIds: ['salmon-river-mountains', 'west-mountains'] },
+  { centerId: 'IPAC', zoneIds: ['selkirk-mountains', 'west-cabinet-mountains', 'east-cabinet-mountains', 'silver-valley-bitterroot-mountains', 'purcell-mountains'] },
+  // Montana
+  { centerId: 'GNFAC', zoneIds: ['bridger-range', 'northern-gallatin-range', 'southern-gallatin-range', 'northern-madison-range', 'southern-madison-range', 'lionhead-area', 'island-park', 'cooke-city'] },
+  { centerId: 'FAC', zoneIds: ['whitefish-range', 'swan-range', 'flathead-range-glacier-np'] },
+  { centerId: 'WCMAC', zoneIds: ['seeley-lake', 'rattlesnake', 'bitterroot'] },
+  // Wyoming
+  { centerId: 'BTAC', zoneIds: ['tetons', 'togwotee-pass', 'snake-river-range', 'salt-river-wyoming-ranges'] },
+  { centerId: 'EWYAIX', zoneIds: ['big-horns', 'snowy-range', 'sierra-madre'] },
+  // Utah
+  { centerId: 'UAC', zoneIds: ['logan', 'ogden', 'salt-lake', 'provo', 'uintas', 'skyline', 'moab', 'abajos', 'southwest'] },
+  // New Mexico & Arizona
+  { centerId: 'TAC', zoneIds: ['northern-new-mexico'] },
+  { centerId: 'KPAC', zoneIds: ['san-francisco-peaks'] },
+  // Northeast
+  { centerId: 'MWAC', zoneIds: ['presidential-range'] },
 ];
 
 serve(async (req) => {
@@ -29,7 +59,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get today's date in Alaska time
+    // Get today's date in Alaska time (latest US timezone — if it's "today" in AK, it's today everywhere)
     const now = new Date();
     const akTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Anchorage' }));
     const forecastDate = akTime.toISOString().split('T')[0];

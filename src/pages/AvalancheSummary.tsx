@@ -28,88 +28,285 @@ interface Region {
   name: string;
   centers: AvalancheCenter[];
 }
-const REGION_STRUCTURE: Region[] = [{
-  id: 'southcentral',
-  name: 'Southcentral Alaska',
-  centers: [{
-    id: 'CNFAIC',
-    name: 'Chugach National Forest Avalanche Information Center',
-    zones: [{
-      id: 'turnagain-girdwood',
-      name: 'Turnagain Pass / Girdwood'
-    }, {
-      id: 'summit',
-      name: 'Summit Lake'
-    }, {
-      id: 'seward',
-      name: 'Seward / Lost Lake'
-    }, {
-      id: 'chugach-state-park',
-      name: 'Chugach State Park'
-    }]
-  }, {
-    id: 'HPAC',
-    name: 'Hatcher Pass Avalanche Center',
-    zones: [{
-      id: 'hatcher-pass',
-      name: 'Hatcher Pass'
-    }]
-  }, {
-    id: 'VAC',
-    name: 'Valdez Avalanche Center',
-    zones: [{
-      id: 'valdez-maritime',
-      name: 'Maritime'
-    }, {
-      id: 'valdez-intermountain',
-      name: 'Intermountain'
-    }, {
-      id: 'valdez-continental',
-      name: 'Continental'
-    }]
-  }]
-}, {
-  id: 'interior',
-  name: 'Interior Alaska',
-  centers: [{
-    id: 'EARAC',
-    name: 'Eastern Alaska Range Avalanche Center',
-    zones: [{
-      id: 'earac-north',
-      name: 'North (Castner-Canwell)'
-    }, {
-      id: 'earac-south',
-      name: 'South (Summit)'
-    }]
-  }]
-}, {
-  id: 'southeast',
-  name: 'Southeast Alaska',
-  centers: [{
-    id: 'CAAC',
-    name: 'Coastal Alaska Avalanche Center',
-    zones: [{
-      id: 'douglas-island',
-      name: 'Douglas Island'
-    }, {
-      id: 'juneau-mainland',
-      name: 'Juneau Mainland'
-    }]
-  }, {
-    id: 'HAC',
-    name: 'Haines Avalanche Center',
-    zones: [{
-      id: 'haines-lutak',
-      name: 'Lutak'
-    }, {
-      id: 'haines-transitional',
-      name: 'Transitional'
-    }, {
-      id: 'haines-chilkat-pass',
-      name: 'Chilkat Pass'
-    }]
-  }]
-}];
+const REGION_STRUCTURE: Region[] = [
+  {
+    id: 'alaska',
+    name: 'Alaska',
+    centers: [
+      {
+        id: 'CNFAIC',
+        name: 'Chugach National Forest Avalanche Center',
+        zones: [
+          { id: 'turnagain-girdwood', name: 'Turnagain Pass / Girdwood' },
+          { id: 'summit', name: 'Summit Lake' },
+          { id: 'seward', name: 'Seward / Lost Lake' },
+          { id: 'chugach-state-park', name: 'Chugach State Park' },
+        ],
+      },
+      {
+        id: 'HPAC',
+        name: 'Hatcher Pass Avalanche Center',
+        zones: [{ id: 'hatcher-pass', name: 'Hatcher Pass' }],
+      },
+      {
+        id: 'VAC',
+        name: 'Valdez Avalanche Center',
+        zones: [
+          { id: 'valdez-maritime', name: 'Maritime' },
+          { id: 'valdez-intermountain', name: 'Intermountain' },
+          { id: 'valdez-continental', name: 'Continental' },
+        ],
+      },
+      {
+        id: 'CAC',
+        name: 'Cordova Avalanche Center',
+        zones: [{ id: 'cordova', name: 'Cordova' }],
+      },
+      {
+        id: 'EARAC',
+        name: 'Eastern Alaska Range Avalanche Center',
+        zones: [
+          { id: 'earac-north', name: 'North (Castner-Canwell)' },
+          { id: 'earac-south', name: 'South (Summit)' },
+        ],
+      },
+      {
+        id: 'CAAC',
+        name: 'Coastal Alaska Avalanche Center',
+        zones: [
+          { id: 'douglas-island', name: 'Douglas Island' },
+          { id: 'juneau-mainland', name: 'Juneau Mainland' },
+        ],
+      },
+      {
+        id: 'HAC',
+        name: 'Haines Avalanche Center',
+        zones: [
+          { id: 'haines-lutak', name: 'Lutak' },
+          { id: 'haines-transitional', name: 'Transitional' },
+          { id: 'haines-chilkat-pass', name: 'Chilkat Pass' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'pacific-northwest',
+    name: 'Pacific Northwest',
+    centers: [
+      {
+        id: 'NWAC',
+        name: 'Northwest Avalanche Center',
+        zones: [
+          { id: 'olympics', name: 'Olympics' },
+          { id: 'west-slopes-north', name: 'West Slopes North' },
+          { id: 'west-slopes-central', name: 'West Slopes Central' },
+          { id: 'west-slopes-south', name: 'West Slopes South' },
+          { id: 'stevens-pass', name: 'Stevens Pass' },
+          { id: 'snoqualmie-pass', name: 'Snoqualmie Pass' },
+          { id: 'east-slopes-north', name: 'East Slopes North' },
+          { id: 'east-slopes-central', name: 'East Slopes Central' },
+          { id: 'east-slopes-south', name: 'East Slopes South' },
+          { id: 'mt-hood', name: 'Mt Hood' },
+        ],
+      },
+      {
+        id: 'COAA',
+        name: 'Central Oregon Avalanche Center',
+        zones: [
+          { id: 'central-cascades', name: 'Central Cascades' },
+          { id: 'newberry', name: 'Newberry' },
+        ],
+      },
+      {
+        id: 'WAC',
+        name: 'Wallowa Avalanche Center',
+        zones: [
+          { id: 'northern-wallowas', name: 'Northern Wallowas' },
+          { id: 'southern-wallowas', name: 'Southern Wallowas' },
+          { id: 'elkhorns', name: 'Elkhorns' },
+          { id: 'blues', name: 'Blues' },
+        ],
+      },
+      {
+        id: 'SOAIX',
+        name: 'Southern Oregon Avalanche Info Exchange',
+        zones: [{ id: 'southern-oregon', name: 'Southern Oregon' }],
+      },
+    ],
+  },
+  {
+    id: 'california-nevada',
+    name: 'California & Nevada',
+    centers: [
+      {
+        id: 'SAC',
+        name: 'Sierra Avalanche Center',
+        zones: [{ id: 'central-sierra-nevada', name: 'Central Sierra Nevada' }],
+      },
+      {
+        id: 'ESAC',
+        name: 'Eastern Sierra Avalanche Center',
+        zones: [{ id: 'eastside-region', name: 'Eastside Region' }],
+      },
+      {
+        id: 'BAC',
+        name: 'Bridgeport Avalanche Center',
+        zones: [{ id: 'bridgeport', name: 'Bridgeport' }],
+      },
+      {
+        id: 'MSAC',
+        name: 'Mount Shasta Avalanche Center',
+        zones: [{ id: 'mount-shasta', name: 'Mount Shasta' }],
+      },
+    ],
+  },
+  {
+    id: 'idaho',
+    name: 'Idaho',
+    centers: [
+      {
+        id: 'SNFAC',
+        name: 'Sawtooth Avalanche Center',
+        zones: [
+          { id: 'banner-summit', name: 'Banner Summit' },
+          { id: 'galena-summit-eastern-mtns', name: 'Galena Summit & Eastern Mtns' },
+          { id: 'sawtooth-western-smoky-mtns', name: 'Sawtooth & Western Smoky Mtns' },
+          { id: 'soldier-wood-river-valley-mtns', name: 'Soldier & Wood River Valley Mtns' },
+        ],
+      },
+      {
+        id: 'PAC',
+        name: 'Payette Avalanche Center',
+        zones: [
+          { id: 'salmon-river-mountains', name: 'Salmon River Mountains' },
+          { id: 'west-mountains', name: 'West Mountains' },
+        ],
+      },
+      {
+        id: 'IPAC',
+        name: 'Idaho Panhandle Avalanche Center',
+        zones: [
+          { id: 'selkirk-mountains', name: 'Selkirk Mountains' },
+          { id: 'west-cabinet-mountains', name: 'West Cabinet Mountains' },
+          { id: 'east-cabinet-mountains', name: 'East Cabinet Mountains' },
+          { id: 'silver-valley-bitterroot-mountains', name: 'Silver Valley & Bitterroot Mountains' },
+          { id: 'purcell-mountains', name: 'Purcell Mountains' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'montana',
+    name: 'Montana',
+    centers: [
+      {
+        id: 'GNFAC',
+        name: 'Gallatin NF Avalanche Center',
+        zones: [
+          { id: 'bridger-range', name: 'Bridger Range' },
+          { id: 'northern-gallatin-range', name: 'Northern Gallatin Range' },
+          { id: 'southern-gallatin-range', name: 'Southern Gallatin Range' },
+          { id: 'northern-madison-range', name: 'Northern Madison Range' },
+          { id: 'southern-madison-range', name: 'Southern Madison Range' },
+          { id: 'lionhead-area', name: 'Lionhead Area' },
+          { id: 'island-park', name: 'Island Park' },
+          { id: 'cooke-city', name: 'Cooke City' },
+        ],
+      },
+      {
+        id: 'FAC',
+        name: 'Flathead Avalanche Center',
+        zones: [
+          { id: 'whitefish-range', name: 'Whitefish Range' },
+          { id: 'swan-range', name: 'Swan Range' },
+          { id: 'flathead-range-glacier-np', name: 'Flathead Range & Glacier NP' },
+        ],
+      },
+      {
+        id: 'WCMAC',
+        name: 'West Central Montana Avalanche Center',
+        zones: [
+          { id: 'seeley-lake', name: 'Seeley Lake' },
+          { id: 'rattlesnake', name: 'Rattlesnake' },
+          { id: 'bitterroot', name: 'Bitterroot' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'wyoming',
+    name: 'Wyoming',
+    centers: [
+      {
+        id: 'BTAC',
+        name: 'Bridger-Teton Avalanche Center',
+        zones: [
+          { id: 'tetons', name: 'Tetons' },
+          { id: 'togwotee-pass', name: 'Togwotee Pass' },
+          { id: 'snake-river-range', name: 'Snake River Range' },
+          { id: 'salt-river-wyoming-ranges', name: 'Salt River and Wyoming Ranges' },
+        ],
+      },
+      {
+        id: 'EWYAIX',
+        name: 'Eastern Wyoming Avalanche Info Exchange',
+        zones: [
+          { id: 'big-horns', name: 'Big Horns' },
+          { id: 'snowy-range', name: 'Snowy Range' },
+          { id: 'sierra-madre', name: 'Sierra Madre' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'utah',
+    name: 'Utah',
+    centers: [
+      {
+        id: 'UAC',
+        name: 'Utah Avalanche Center',
+        zones: [
+          { id: 'logan', name: 'Logan' },
+          { id: 'ogden', name: 'Ogden' },
+          { id: 'salt-lake', name: 'Salt Lake' },
+          { id: 'provo', name: 'Provo' },
+          { id: 'uintas', name: 'Uintas' },
+          { id: 'skyline', name: 'Skyline' },
+          { id: 'moab', name: 'Moab' },
+          { id: 'abajos', name: 'Abajos' },
+          { id: 'southwest', name: 'Southwest' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'new-mexico-arizona',
+    name: 'New Mexico & Arizona',
+    centers: [
+      {
+        id: 'TAC',
+        name: 'Taos Avalanche Center',
+        zones: [{ id: 'northern-new-mexico', name: 'Northern New Mexico' }],
+      },
+      {
+        id: 'KPAC',
+        name: 'Kachina Peaks Avalanche Center',
+        zones: [{ id: 'san-francisco-peaks', name: 'San Francisco Peaks' }],
+      },
+    ],
+  },
+  {
+    id: 'northeast',
+    name: 'Northeast',
+    centers: [
+      {
+        id: 'MWAC',
+        name: 'Mount Washington Avalanche Center',
+        zones: [{ id: 'presidential-range', name: 'Presidential Range' }],
+      },
+    ],
+  },
+];
 
 // Flatten structure for backward compatibility
 const AVAILABLE_ZONES = REGION_STRUCTURE.flatMap(region => region.centers.flatMap(center => center.zones.map(zone => ({
@@ -768,19 +965,19 @@ export default function AvalancheSummaryPage() {
     }
   };
   return <Layout>
-      <SEO title="Avalanche Conditions Summary" description="Avalanche forecasts and live SNOTEL data from Southcentral Alaska zones, AI-synthesized for quick situational awareness." url="https://kaiconsulting.ai/tools/avalanche" />
+      <SEO title="Avalanche Conditions Summary" description="Avalanche forecasts and live SNOTEL data from across the United States, AI-synthesized for quick situational awareness." url="https://kaiconsulting.ai/tools/avalanche" />
       {/* Hero Section */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-sky-50 via-background to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               <Mountain className="h-4 w-4" />
-              Alaska
+              United States
             </div>
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Avalanche Conditions Summary
             </h1>
-            <p className="text-muted-foreground text-lg mb-8">Avalanche forecasts side by side across regions and forecast centers with live, 24hr, and 72hr temp and precip from SNOTEL in each zone</p>
+            <p className="text-muted-foreground text-lg mb-8">Avalanche forecasts side by side across the United States with live, 24hr, and 72hr temp and precip from SNOTEL in each zone</p>
 
             {/* Zone Selection */}
             <Card className="mb-8 max-w-3xl mx-auto text-left">
@@ -911,11 +1108,8 @@ export default function AvalancheSummaryPage() {
                       <p className="text-xs text-muted-foreground mb-2">
                         Data sourced from the National Avalanche Center API
                       </p>
-                      <a href="https://www.cnfaic.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
-                        CNFAIC Official Forecasts <ExternalLink className="h-3 w-3" />
-                      </a>
-                      <a href="https://hpavalanche.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
-                        Hatcher Pass Avalanche Center <ExternalLink className="h-3 w-3" />
+                      <a href="https://avalanche.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                        National Avalanche Center <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                   </div>
@@ -931,7 +1125,7 @@ export default function AvalancheSummaryPage() {
                   <p className="font-medium mb-1">Important Disclaimer</p>
                   <p>
                     This tool provides AI-generated summaries of publicly available avalanche forecasts. Always verify
-                    conditions by reading the <strong>original forecasts</strong> from CNFAIC and HPAC before making
+                    conditions by reading the <strong>original forecasts</strong> from your local avalanche center before making
                     travel decisions. This tool is not a substitute for avalanche education, training, and good
                     judgment.
                   </p>
