@@ -1099,6 +1099,150 @@ async function fetchMapLayerData(selectedCenterIds: string[]): Promise<Map<strin
   return zoneMap;
 }
 
+// ── UAC (Utah Avalanche Center) custom API integration ──
+// UAC doesn't populate the NAC API — they have their own JSON endpoint
+const UAC_API_BASE = 'https://utahavalanchecenter.org/forecast';
+
+// Parse UAC danger rose: 24 values = 3 elevation bands × 8 aspects
+// Values are danger_level × 2 (0=none, 2=low, 4=moderate, 6=considerable, 8=high, 10=extreme)
+function parseUacDangerRose(roseStr: string): { alpine: string; treeline: string; belowTreeline: string } {
+  if (!roseStr) return { alpine: 'NO_RATING', treeline: 'NO_RATING', belowTreeline: 'NO_RATING' };
+  const values = roseStr.split(',').map(v => Number(v.trim()));
+  // 24 values: first 8 = upper (alpine), next 8 = middle (treeline), last 8 = lower (below treeline)
+  const maxInRange = (start: number, end: number) => {
+    let max = 0;
+    for (let i = start; i < end && i < values.length; i++) {
+      if (values[i] > max) max = values[i];
+    }
+    return max;
+  };
+  const roseToRating = (val: number): string => {
+    const level = Math.round(val / 2);
+    return mapDangerRating(level);
+  };
+  return {
+    alpine: roseToRating(maxInRange(0, 8)),
+    treeline: roseToRating(maxInRange(8, 16)),
+    belowTreeline: roseToRating(maxInRange(16, 24)),
+  };
+}
+
+// Parse UAC per-problem aspect rose: 14 = present, 16 = absent
+function parseUacProblemRose(roseStr: string): Array<{ elevation: string; aspects: string[] }> {
+  if (!roseStr) return [];
+  const values = roseStr.split(',').map(v => Number(v.trim()));
+  const aspectNames = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const elevBands = [
+    { name: 'Alpine', start: 0 },
+    { name: 'Treeline', start: 8 },
+    { name: 'Below Treeline', start: 16 },
+  ];
+  const result: Array<{ elevation: string; aspects: string[] }> = [];
+  for (const band of elevBands) {
+    const aspects: string[] = [];
+    for (let i = 0; i < 8 && (band.start + i) < values.length; i++) {
+      if (values[band.start + i] === 14) {
+        aspects.push(aspectNames[i]);
+      }
+    }
+    if (aspects.length > 0) {
+      result.push({ elevation: band.name, aspects });
+    }
+  }
+  return result;
+}
+
+// Fetch and parse a UAC forecast into our ZoneData format
+async function fetchUacForecast(regionSlug: string, config: typeof ZONE_CONFIG[0]): Promise<{
+  success: boolean;
+  zoneData?: {
+    forecast: Array<{ date: string; danger: { alpine: string; treeline: string; belowTreeline: string } }>;
+    problems: Array<{ name: string; likelihood: string | null; size: { min: number; max: number } | null; aspects: Array<{ elevation: string; aspects: string[] }>; discussion: string | null }>;
+    bottomLine: string;
+    hazardDiscussion: string;
+    weather: { snow: string; wind: string; temps: string; discussion: string | null };
+    publishedTime: string | null;
+    expiresTime: string | null;
+  };
+}> {
+  try {
+    const url = `${UAC_API_BASE}/${regionSlug}/json`;
+    console.log(`Fetching UAC API: ${url}`);
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) {
+      console.error(`UAC API error for ${regionSlug}: ${resp.status}`);
+      return { success: false };
+    }
+    const data = await resp.json();
+    const advisory = data?.advisories?.[0]?.advisory;
+    if (!advisory) {
+      console.error(`No advisory data for UAC ${regionSlug}`);
+      return { success: false };
+    }
+
+    // Parse danger ratings from the overall danger rose
+    const todayDanger = parseUacDangerRose(advisory.overall_danger_rose);
+
+    // Parse avalanche problems (up to 3)
+    const problems: Array<{ name: string; likelihood: string | null; size: { min: number; max: number } | null; aspects: Array<{ elevation: string; aspects: string[] }>; discussion: string | null }> = [];
+    for (let i = 1; i <= 3; i++) {
+      const name = advisory[`avalanche_problem_${i}`];
+      if (!name || name.trim() === '') continue;
+      const description = advisory[`avalanche_problem_${i}_description`] || '';
+      const roseStr = advisory[`danger_rose_${i}`] || '';
+      problems.push({
+        name,
+        likelihood: null, // UAC doesn't provide likelihood separately — it's in the description
+        size: null, // UAC doesn't provide structured size
+        aspects: parseUacProblemRose(roseStr),
+        discussion: stripHtml(description),
+      });
+    }
+
+    // Parse published time
+    let publishedTime: string | null = null;
+    if (advisory.date_issued_timestamp) {
+      publishedTime = new Date(Number(advisory.date_issued_timestamp) * 1000).toISOString();
+    }
+
+    // UAC forecasts typically expire ~24 hours after issue
+    let expiresTime: string | null = null;
+    if (publishedTime) {
+      const expires = new Date(new Date(publishedTime).getTime() + 24 * 60 * 60 * 1000);
+      expiresTime = expires.toISOString();
+    }
+
+    // Build weather from mountain_weather field
+    const weatherText = stripHtml(advisory.mountain_weather) || '';
+
+    console.log(`UAC ${regionSlug}: ${problems.length} problems, danger=${advisory.overall_danger_rating}`);
+
+    return {
+      success: true,
+      zoneData: {
+        forecast: [
+          { date: 'Today', danger: todayDanger },
+          { date: 'Tomorrow', danger: todayDanger }, // UAC only provides current day
+        ],
+        problems,
+        bottomLine: stripHtml(advisory.bottom_line) || '',
+        hazardDiscussion: stripHtml(advisory.current_conditions) || '',
+        weather: {
+          snow: 'N/A',
+          wind: 'N/A',
+          temps: 'N/A',
+          discussion: weatherText,
+        },
+        publishedTime,
+        expiresTime,
+      },
+    };
+  } catch (error) {
+    console.error(`Error fetching UAC ${regionSlug}:`, error);
+    return { success: false };
+  }
+}
+
 // Extract danger ratings from forecast
 function extractDangerRatings(forecast: any): {
   today: { alpine: string; treeline: string; belowTreeline: string };
@@ -1562,6 +1706,37 @@ serve(async (req) => {
         }
       }
       
+      // UAC-specific: Try UAC's own JSON API (they don't populate the NAC API)
+      if (config.centerId === 'UAC') {
+        const uacResult = await fetchUacForecast(config.id, config);
+        if (uacResult.success && uacResult.zoneData) {
+          const uacFreshness = calculateFreshness(uacResult.zoneData.publishedTime, uacResult.zoneData.expiresTime);
+          const zoneData: ZoneData = {
+            id: config.id,
+            nacZoneId: config.nacZoneId,
+            name: config.name,
+            center: config.centerId,
+            forecastUrl: config.forecastUrl,
+            forecast: uacResult.zoneData.forecast,
+            problems: uacResult.zoneData.problems,
+            weather: uacResult.zoneData.weather,
+            bottomLine: uacResult.zoneData.bottomLine,
+            hazardDiscussion: uacResult.zoneData.hazardDiscussion,
+            freshness: uacFreshness,
+            dataSource: 'api',
+            scrapedContent: null,
+            publishedTime: uacResult.zoneData.publishedTime,
+            expiresTime: uacResult.zoneData.expiresTime,
+          };
+
+          storeForecastCache(zoneData, { nacZoneId: config.nacZoneId, centerId: config.centerId })
+            .then(status => cacheStatuses.set(config.id, status))
+            .catch(err => console.error(`Cache store failed for ${config.id}:`, err));
+
+          return zoneData;
+        }
+      }
+
       // Fallback: Try web scraping
       console.log(`API insufficient for ${config.name}, trying Firecrawl...`);
       const scrapeResult = await scrapeZoneForecast(config.fallbackUrl, config.name);
