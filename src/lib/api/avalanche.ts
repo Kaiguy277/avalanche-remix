@@ -97,6 +97,7 @@ export interface AvalancheZone {
   keyMessage: string;
   travelAdvice: string;
   freshness: ZoneFreshness;
+  hazardDiscussion?: string;
   weatherObservations?: WeatherObservation[];
   weatherValidation?: 'confirmed' | 'partial' | 'discrepancy' | 'no_data';
 }

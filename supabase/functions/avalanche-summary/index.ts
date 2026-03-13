@@ -1983,6 +1983,7 @@ IMPORTANT INSTRUCTIONS:
         // AI should only generate: keyMessage, travelAdvice, weatherValidation, weather narrative
         forecast: sourceData?.forecast || zone.forecast,
         problems: sourceData?.problems || zone.problems,
+        hazardDiscussion: stripHtml(sourceData?.hazardDiscussion) || undefined,
         forecastUrl: sourceData?.forecastUrl || zone.forecastUrl || '',
         freshness: sourceData?.freshness || {
           issueDate: null,
@@ -2026,6 +2027,7 @@ IMPORTANT INSTRUCTIONS:
               keyMessage: zone.keyMessage,
               travelAdvice: zone.travelAdvice,
               freshness: zone.freshness,
+              hazardDiscussion: zone.hazardDiscussion,
               weatherValidation: zone.weatherValidation,
             },
           }, {

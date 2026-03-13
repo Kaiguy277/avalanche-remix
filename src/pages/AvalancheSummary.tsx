@@ -701,6 +701,12 @@ function ZoneCard({
             </div>
           </div>}
 
+        {/* Hazard Discussion — shown for centers that don't provide structured problem data */}
+        {(!zone.problems || zone.problems.length === 0) && zone.hazardDiscussion && <div>
+            <p className="text-sm font-medium text-foreground mb-1">Hazard Discussion</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">{zone.hazardDiscussion}</p>
+          </div>}
+
         <div>
           <p className="text-sm font-medium text-foreground mb-1">Travel Advice</p>
           <p className="text-sm text-muted-foreground">{zone.travelAdvice}</p>
