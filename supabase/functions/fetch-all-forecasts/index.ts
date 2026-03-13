@@ -24,6 +24,8 @@ const ZONE_GROUPS: { centerId: string; zoneIds: string[] }[] = [
   { centerId: 'COAA', zoneIds: ['central-cascades', 'newberry'] },
   { centerId: 'WAC', zoneIds: ['northern-wallowas', 'southern-wallowas', 'elkhorns', 'blues'] },
   { centerId: 'SOAIX', zoneIds: ['southern-oregon'] },
+  // Colorado
+  { centerId: 'CAIC', zoneIds: ['caic-northern-san-juan', 'caic-sangre-de-cristo', 'caic-southern-san-juan', 'caic-park-range', 'caic-front-range-north', 'caic-vail-summit-county', 'caic-front-range-boulder', 'caic-grand-mesa-west-elk', 'caic-elk-mountains', 'caic-sawatch-range', 'caic-front-range-south'] },
   // California & Nevada
   { centerId: 'SAC', zoneIds: ['central-sierra-nevada'] },
   { centerId: 'ESAC', zoneIds: ['eastside-region'] },

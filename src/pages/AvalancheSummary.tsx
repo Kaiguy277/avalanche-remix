@@ -280,6 +280,29 @@ const REGION_STRUCTURE: Region[] = [
     ],
   },
   {
+    id: 'colorado',
+    name: 'Colorado',
+    centers: [
+      {
+        id: 'CAIC',
+        name: 'Colorado Avalanche Information Center',
+        zones: [
+          { id: 'caic-front-range-north', name: 'Front Range & Never Summer Mountains' },
+          { id: 'caic-front-range-boulder', name: 'Front Range (Boulder)' },
+          { id: 'caic-front-range-south', name: 'Front Range South & Pikes Peak' },
+          { id: 'caic-vail-summit-county', name: 'Vail & Summit County' },
+          { id: 'caic-elk-mountains', name: 'Elk Mountains (Aspen)' },
+          { id: 'caic-sawatch-range', name: 'Sawatch Range' },
+          { id: 'caic-grand-mesa-west-elk', name: 'Grand Mesa & Flat Tops' },
+          { id: 'caic-park-range', name: 'Park Range (Steamboat)' },
+          { id: 'caic-northern-san-juan', name: 'Northern San Juan Mountains' },
+          { id: 'caic-southern-san-juan', name: 'Southern San Juan Mountains' },
+          { id: 'caic-sangre-de-cristo', name: 'Sangre de Cristo Mountains' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'new-mexico-arizona',
     name: 'New Mexico & Arizona',
     centers: [
