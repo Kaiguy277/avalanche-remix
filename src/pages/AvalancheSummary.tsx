@@ -955,27 +955,70 @@ export default function AvalancheSummaryPage() {
         return;
       }
 
-      // Fallback: Use the full avalanche-summary endpoint
-      console.log('⚠️ Cache miss or incomplete, falling back to full fetch');
-      const response = await avalancheApi.getSummary(selectedZoneIds);
-      
-      if (response.success && response.summary) {
-        setSummary(response.summary);
-        setScrapedAt(response.scrapedAt || null);
-        setZonesScraped(response.zonesScraped || []);
+      // Fallback: Batch by center to avoid overloading a single edge function call
+      // Group missing zones by their center ID
+      const missingZoneIds = cachedResponse.missingZoneIds || selectedZoneIds;
+      const centerGroups = new Map<string, string[]>();
+      for (const zoneId of missingZoneIds) {
+        const zoneInfo = AVAILABLE_ZONES.find(z => z.id === zoneId);
+        const centerId = zoneInfo?.center || 'UNKNOWN';
+        if (!centerGroups.has(centerId)) centerGroups.set(centerId, []);
+        centerGroups.get(centerId)!.push(zoneId);
+      }
+
+      console.log(`⚠️ Cache miss for ${missingZoneIds.length} zones across ${centerGroups.size} centers, fetching per-center`);
+
+      // Fetch each center group in parallel
+      const centerPromises = Array.from(centerGroups.entries()).map(([centerId, zoneIds]) => {
+        console.log(`  Fetching ${centerId}: ${zoneIds.length} zones`);
+        return avalancheApi.getSummary(zoneIds).then(response => ({
+          centerId,
+          response,
+        }));
+      });
+
+      const centerResults = await Promise.all(centerPromises);
+
+      // Merge all center results into a single summary
+      const allZones: AvalancheZone[] = cachedResponse.zones || [];
+      const allZonesScraped: ScrapedZoneInfo[] = [];
+      let hasAnySuccess = false;
+
+      for (const { centerId, response } of centerResults) {
+        if (response.success && response.summary) {
+          allZones.push(...response.summary.zones);
+          if (response.zonesScraped) allZonesScraped.push(...response.zonesScraped);
+          hasAnySuccess = true;
+        } else {
+          console.error(`Failed to fetch ${centerId}:`, response.error);
+        }
+      }
+
+      if (hasAnySuccess) {
+        setSummary({
+          quickTake: '',
+          zones: allZones,
+          weatherHighlights: '',
+          bottomLine: '',
+        });
+        setScrapedAt(new Date().toISOString());
+        setZonesScraped(allZonesScraped);
         setLoadSource('live');
         analytics.toolUsed("Avalanche Summary", "fetch_success");
         toast({
           title: "Conditions loaded",
           description: `Updated ${new Date().toLocaleTimeString()}`
         });
+
+        // Fetch SNOTEL in background for all zones
+        fetchSnotel(selectedZoneIds);
       } else {
         analytics.toolUsed("Avalanche Summary", "fetch_error", {
-          error: response.error
+          error: 'All center fetches failed'
         });
         toast({
           title: "Error",
-          description: response.error || "Failed to fetch avalanche conditions",
+          description: "Failed to fetch avalanche conditions",
           variant: "destructive"
         });
       }
