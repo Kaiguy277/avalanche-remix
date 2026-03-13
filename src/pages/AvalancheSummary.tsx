@@ -862,7 +862,7 @@ export default function AvalancheSummaryPage() {
             {summary.zones.length > 0 && <div className="mb-8">
                 <h2 className="font-display text-xl font-bold mb-4">Zone Details</h2>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {summary.zones.map(zone => <ZoneCard key={zone.id} zone={zone} />)}
+                  {summary.zones.map(zone => <ZoneCard key={zone.id} zone={zone} isSnotelLoading={isSnotelLoading} />)}
                 </div>
               </div>}
 
