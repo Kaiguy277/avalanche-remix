@@ -984,12 +984,18 @@ export default function AvalancheSummaryPage() {
       // Merge all center results into a single summary
       const allZones: AvalancheZone[] = cachedResponse.zones || [];
       const allZonesScraped: ScrapedZoneInfo[] = [];
+      const quickTakes: string[] = [];
+      const weatherHighlightsList: string[] = [];
+      const bottomLines: string[] = [];
       let hasAnySuccess = false;
 
       for (const { centerId, response } of centerResults) {
         if (response.success && response.summary) {
           allZones.push(...response.summary.zones);
           if (response.zonesScraped) allZonesScraped.push(...response.zonesScraped);
+          if (response.summary.quickTake) quickTakes.push(response.summary.quickTake);
+          if (response.summary.weatherHighlights) weatherHighlightsList.push(response.summary.weatherHighlights);
+          if (response.summary.bottomLine) bottomLines.push(response.summary.bottomLine);
           hasAnySuccess = true;
         } else {
           console.error(`Failed to fetch ${centerId}:`, response.error);
@@ -998,10 +1004,10 @@ export default function AvalancheSummaryPage() {
 
       if (hasAnySuccess) {
         setSummary({
-          quickTake: '',
+          quickTake: quickTakes.join(' ').trim(),
           zones: allZones,
-          weatherHighlights: '',
-          bottomLine: '',
+          weatherHighlights: weatherHighlightsList.join(' ').trim(),
+          bottomLine: bottomLines.join(' ').trim(),
         });
         setScrapedAt(new Date().toISOString());
         setZonesScraped(allZonesScraped);

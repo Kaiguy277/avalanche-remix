@@ -113,13 +113,21 @@ serve(async (req) => {
     const cachedZoneIds = new Set(zoneEntries.map((z: any) => z.id));
     const missingZoneIds = zoneIds.filter(id => !cachedZoneIds.has(id));
 
-    console.log(`Found ${zoneEntries.length} cached zones, ${Object.keys(summaryEntries).length} summaries, ${missingZoneIds.length} missing`);
+    const foundSummaryCenters = new Set(
+      Object.keys(summaryEntries).map((zoneId) => zoneId.replace('_summary_', ''))
+    );
+    const missingSummaryCenterIds = centerIds.filter(centerId => !foundSummaryCenters.has(centerId));
+
+    console.log(
+      `Found ${zoneEntries.length} cached zones, ${Object.keys(summaryEntries).length} summaries, ${missingZoneIds.length} missing zones, ${missingSummaryCenterIds.length} missing summaries`
+    );
 
     return new Response(
       JSON.stringify({
         success: true,
         zones: zoneEntries,
         missingZoneIds,
+        missingSummaryCenterIds,
         forecastDate,
         cached: true,
         quickTake,

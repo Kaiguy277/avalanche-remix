@@ -2178,12 +2178,13 @@ IMPORTANT INSTRUCTIONS:
     try {
       const now = new Date();
 
-      const cachePromises = zonesWithMetadata.map((zone: any) => {
+      const zoneCachePromises = zonesWithMetadata.map((zone: any) => {
         const sourceData = zonesData.find(z => z.id === zone.id);
         const zoneConfig = ZONE_CONFIG.find(z => z.id === zone.id);
         const zoneTz = zoneConfig?.timezone || 'America/Anchorage';
         const localTime = new Date(now.toLocaleString('en-US', { timeZone: zoneTz }));
         const forecastDate = localTime.toISOString().split('T')[0];
+
         return supabase
           .from('avalanche_daily_forecasts')
           .upsert({
@@ -2210,12 +2211,41 @@ IMPORTANT INSTRUCTIONS:
           });
       });
 
-      const cacheResults = await Promise.all(cachePromises);
+      const summaryCenters = new Map<string, string>();
+      for (const zone of zonesWithMetadata) {
+        const sourceData = zonesData.find(z => z.id === zone.id);
+        if (!sourceData?.center || summaryCenters.has(sourceData.center)) continue;
+
+        const zoneConfig = ZONE_CONFIG.find(z => z.id === zone.id);
+        const zoneTz = zoneConfig?.timezone || 'America/Anchorage';
+        const localTime = new Date(now.toLocaleString('en-US', { timeZone: zoneTz }));
+        const forecastDate = localTime.toISOString().split('T')[0];
+        summaryCenters.set(sourceData.center, forecastDate);
+      }
+
+      const summaryCachePromises = Array.from(summaryCenters.entries()).map(([centerId, forecastDate]) =>
+        supabase
+          .from('avalanche_daily_forecasts')
+          .upsert({
+            zone_id: `_summary_${centerId}`,
+            center_id: centerId,
+            forecast_date: forecastDate,
+            synthesized_data: {
+              quickTake: summary.quickTake || '',
+              weatherHighlights: summary.weatherHighlights || '',
+              bottomLine: summary.bottomLine || '',
+            },
+          }, {
+            onConflict: 'zone_id,forecast_date',
+          })
+      );
+
+      const cacheResults = await Promise.all([...zoneCachePromises, ...summaryCachePromises]);
       const cacheErrors = cacheResults.filter(r => r.error);
       if (cacheErrors.length > 0) {
-        console.error(`Failed to cache ${cacheErrors.length} zones:`, cacheErrors.map(r => r.error));
+        console.error(`Failed to cache ${cacheErrors.length} forecast rows:`, cacheErrors.map(r => r.error));
       } else {
-        console.log(`Cached ${zonesWithMetadata.length} zones`);
+        console.log(`Cached ${zonesWithMetadata.length} zones and ${summaryCachePromises.length} summaries`);
       }
     } catch (cacheError) {
       // Don't fail the response if caching fails
