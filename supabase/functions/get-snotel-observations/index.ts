@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { fetchMultipleStations } from '../_shared/snotel-api.ts';
+import { fetchMultipleStations } from '../_shared/synoptic-api.ts';
 import { getStationsForZone } from '../_shared/weather-station-config.ts';
 
 const corsHeaders = {
