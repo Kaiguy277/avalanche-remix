@@ -932,10 +932,10 @@ export default function AvalancheSummaryPage() {
         // Build a summary-like object from cached zones
         // The cached data already has the synthesized zone data
         const cachedSummary: AvalancheSummaryType = {
-          quickTake: '', // Will be filled from summary entries
+          quickTake: cachedResponse.quickTake || '',
           zones: cachedResponse.zones,
-          weatherHighlights: '',
-          bottomLine: '',
+          weatherHighlights: cachedResponse.weatherHighlights || '',
+          bottomLine: cachedResponse.bottomLine || '',
         };
         
         setSummary(cachedSummary);
