@@ -132,6 +132,9 @@ export interface CachedForecastResponse {
   missingZoneIds?: string[];
   forecastDate?: string;
   cached?: boolean;
+  quickTake?: string;
+  weatherHighlights?: string;
+  bottomLine?: string;
   error?: string;
 }
 
