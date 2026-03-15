@@ -33,10 +33,29 @@ serve(async (req) => {
 
     console.log(`Fetching cached forecasts for ${zoneIds.length} zones, date: ${forecastDate}`);
 
+    // Determine which center summary entries to fetch
+    // We need _summary_* entries to get quickTake, bottomLine, weatherHighlights
+    const centerIds = new Set<string>();
+    // Map zone IDs to center IDs based on known prefixes
+    const centerMapping: Record<string, string> = {
+      'turnagain-girdwood': 'CNFAIC', 'summit': 'CNFAIC', 'seward': 'CNFAIC', 'chugach-state-park': 'CNFAIC',
+      'hatcher-pass': 'HPAC',
+      'valdez-maritime': 'VAC', 'valdez-intermountain': 'VAC', 'valdez-continental': 'VAC', 'cordova': 'VAC',
+      'earac-north': 'EARAC', 'earac-south': 'EARAC',
+      'douglas-island': 'JNFAC', 'juneau-mainland': 'JNFAC',
+      'haines-lutak': 'HAFAC', 'haines-transitional': 'HAFAC', 'haines-chilkat-pass': 'HAFAC',
+    };
+    for (const zoneId of zoneIds) {
+      const center = centerMapping[zoneId];
+      if (center) centerIds.add(center);
+    }
+    const summaryZoneIds = Array.from(centerIds).map(c => `_summary_${c}`);
+    const allRequestedIds = [...zoneIds, ...summaryZoneIds];
+
     const { data, error } = await supabase
       .from('avalanche_daily_forecasts')
       .select('*')
-      .in('zone_id', zoneIds)
+      .in('zone_id', allRequestedIds)
       .eq('forecast_date', forecastDate);
 
     if (error) {
