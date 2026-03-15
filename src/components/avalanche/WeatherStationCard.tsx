@@ -1,4 +1,4 @@
-import { Snowflake, Thermometer, Activity } from "lucide-react";
+import { Snowflake, Thermometer, Activity, Wind } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TempSparkline from "./TempSparkline";
 import type { WeatherObservation } from "@/lib/api/avalanche";
@@ -103,6 +103,33 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                 </div>
               </div>
 
+              {/* Wind 24hr */}
+              {obs.wind && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                    <Wind className="h-3 w-3 text-teal-500" />
+                    Wind (24hr)
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {obs.wind.speedAvg24hr !== null && (
+                      <div className="text-sm">
+                        Avg: <span className="font-semibold">{obs.wind.speedAvg24hr} mph</span>
+                      </div>
+                    )}
+                    {obs.wind.speedMax24hr !== null && (
+                      <div className="text-sm">
+                        Max: <span className="font-semibold">{obs.wind.speedMax24hr} mph</span>
+                      </div>
+                    )}
+                    {obs.wind.direction24hr && (
+                      <div className="text-sm">
+                        Dir: <span className="font-semibold">{obs.wind.direction24hr}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* 72 Hour Data */}
               <div className="space-y-2">
                 <div className="text-xs font-semibold text-foreground border-b border-border pb-1">Last 72 Hours</div>
@@ -163,6 +190,33 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                   </div>
                 </div>
               </div>
+
+              {/* Wind 72hr */}
+              {obs.wind && (obs.wind.speedAvg72hr !== null || obs.wind.speedMax72hr !== null) && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                    <Wind className="h-3 w-3 text-teal-500" />
+                    Wind (72hr)
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {obs.wind.speedAvg72hr !== null && (
+                      <div className="text-sm">
+                        Avg: <span className="font-semibold">{obs.wind.speedAvg72hr} mph</span>
+                      </div>
+                    )}
+                    {obs.wind.speedMax72hr !== null && (
+                      <div className="text-sm">
+                        Max: <span className="font-semibold">{obs.wind.speedMax72hr} mph</span>
+                      </div>
+                    )}
+                    {obs.wind.direction72hr && (
+                      <div className="text-sm">
+                        Dir: <span className="font-semibold">{obs.wind.direction72hr}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {idx < observations.length - 1 && <hr className="border-border/50" />}
             </div>
