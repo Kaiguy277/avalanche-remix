@@ -929,7 +929,9 @@ export default function AvalancheSummaryPage() {
   } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const videoPlayedRef = useRef(false);
+  const dataReadyRef = useRef(false);
   const [isSnotelLoading, setIsSnotelLoading] = useState(false);
   const [isWeatherForecastLoading, setIsWeatherForecastLoading] = useState(false);
   const [weatherForecastData, setWeatherForecastData] = useState<{
@@ -958,6 +960,14 @@ export default function AvalancheSummaryPage() {
     }
     return DEFAULT_ZONE_IDS;
   });
+
+  // Reveal results once both data is loaded and video has played once
+  const tryRevealResults = useCallback(() => {
+    if (dataReadyRef.current && videoPlayedRef.current) {
+      setShowVideo(false);
+      setShowResults(true);
+    }
+  }, []);
 
   // Save zone selection to localStorage whenever it changes
   const updateSelectedZones = (zoneIds: string[]) => {
@@ -1032,7 +1042,9 @@ export default function AvalancheSummaryPage() {
     }
     setIsLoading(true);
     setShowVideo(true);
+    setShowResults(false);
     videoPlayedRef.current = false;
+    dataReadyRef.current = false;
     setLoadSource(null);
     console.log('🔍 Fetching forecasts for zones:', selectedZoneIds);
     analytics.toolUsed("Avalanche Summary", "fetch_started", {
@@ -1063,11 +1075,8 @@ export default function AvalancheSummaryPage() {
         setScrapedAt(new Date().toISOString());
         setLoadSource('cached');
         setIsLoading(false);
-        
-        toast({
-          title: "Conditions loaded (cached)",
-          description: `Showing today's forecasts. Loading station data & weather outlook...`
-        });
+        dataReadyRef.current = true;
+        tryRevealResults();
 
         // Phase 2 & 3: Fetch station observations and weather forecasts in parallel
         fetchSnotel(selectedZoneIds);
@@ -1142,6 +1151,7 @@ export default function AvalancheSummaryPage() {
         setScrapedAt(new Date().toISOString());
         setZonesScraped(allZonesScraped);
         setLoadSource('live');
+        dataReadyRef.current = true;
         analytics.toolUsed("Avalanche Summary", "fetch_success");
         toast({
           title: "Conditions loaded",
@@ -1173,7 +1183,7 @@ export default function AvalancheSummaryPage() {
       });
     } finally {
       setIsLoading(false);
-      if (videoPlayedRef.current) setShowVideo(false);
+      tryRevealResults();
     }
   };
   return <Layout>
@@ -1239,9 +1249,9 @@ export default function AvalancheSummaryPage() {
             </Button>
 
             {/* Loading card with timer and tips */}
-            {(isLoading || showVideo) && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} onVideoComplete={() => { videoPlayedRef.current = true; if (!isLoading) setShowVideo(false); }} />}
+            {(isLoading || showVideo) && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} onVideoComplete={() => { videoPlayedRef.current = true; tryRevealResults(); }} />}
 
-            {scrapedAt && !isLoading && <div className="flex items-center justify-center gap-2 mt-4">
+            {scrapedAt && showResults && <div className="flex items-center justify-center gap-2 mt-4">
               <p className="text-sm text-muted-foreground">Last updated: {new Date(scrapedAt).toLocaleString()}</p>
               {loadSource === 'cached' && <Badge variant="outline" className="text-xs">Cached</Badge>}
               {isSnotelLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading Stations</Badge>}
@@ -1251,8 +1261,8 @@ export default function AvalancheSummaryPage() {
         </div>
       </section>
 
-      {/* Results Section */}
-      {summary && <section className="py-12 md:py-16">
+      {/* Results Section — shown after video plays once and data is ready */}
+      {summary && showResults && <section className="py-12 md:py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             {/* Quick Take */}
             <Card className="mb-8 border-primary/30 bg-gradient-to-br from-background to-primary/5">
