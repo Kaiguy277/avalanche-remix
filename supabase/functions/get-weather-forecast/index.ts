@@ -219,6 +219,7 @@ async function fetchNwsForecast(lat: number, lon: number): Promise<{
   }>;
   gridpoint: string;
   forecastZone: string | null;
+  forecastPageUrl: string;
 } | null> {
   try {
     // Step 1: Look up NWS grid coordinates for this point
@@ -263,10 +264,14 @@ async function fetchNwsForecast(lat: number, lon: number): Promise<{
       isDaytime: p.isDaytime,
     }));
 
+    // Build human-readable forecast page URL
+    const forecastPageUrl = `https://forecast.weather.gov/MapClick.php?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
+
     return {
       periods,
       gridpoint,
       forecastZone: forecastZoneUrl ? forecastZoneUrl.split('/').pop() || null : null,
+      forecastPageUrl,
     };
   } catch (error) {
     console.error(`Error fetching NWS forecast for ${lat},${lon}:`, error);

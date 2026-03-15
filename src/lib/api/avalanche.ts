@@ -176,6 +176,7 @@ export interface NwsForecast {
   periods: NwsForecastPeriod[];
   gridpoint: string;
   forecastZone: string | null;
+  forecastPageUrl: string;
 }
 
 export interface ZoneWeatherForecast {

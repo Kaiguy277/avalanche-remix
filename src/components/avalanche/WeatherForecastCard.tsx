@@ -1,5 +1,4 @@
-import { Cloud, Sun, Wind, Thermometer, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sun, Wind, Thermometer, Loader2, ExternalLink, Cloud } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import type { NacWeatherProduct, NwsForecast, NwsForecastPeriod, NacWeatherTable } from "@/lib/api/avalanche";
@@ -129,20 +128,10 @@ function NacWeatherDataTable({ table }: { table: NacWeatherTable }) {
 export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading }: WeatherForecastCardProps) {
   if (isLoading) {
     return (
-      <Card className="border-sky-500/30">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Cloud className="h-4 w-4 text-sky-500" />
-            Weather Outlook
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading weather forecast...
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading weather forecast...
+      </div>
     );
   }
 
@@ -159,110 +148,98 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading
       ? buildNwsHeadline(nwsForecast!.periods)
       : null;
 
-  // Determine data source badges
-  const sources: string[] = [];
-  if (nacWeather) sources.push('Avalanche Center');
-  if (nwsForecast) sources.push('NWS');
-
   return (
-    <Card className="border-sky-500/30">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Cloud className="h-4 w-4 text-sky-500" />
-            Weather Outlook
-          </CardTitle>
-          <div className="flex gap-1">
-            {sources.map(source => (
-              <Badge key={source} variant="outline" className="text-[10px] px-1.5 py-0">
-                {source}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Always-visible headline */}
-        {headline && (
-          <p className="text-sm text-foreground leading-relaxed">{headline}</p>
+    <div className="space-y-3">
+      {/* Always-visible headline */}
+      {headline && (
+        <p className="text-sm text-foreground leading-relaxed">{headline}</p>
+      )}
+
+      {/* Collapsible sub-sections */}
+      <Accordion type="multiple" className="space-y-1">
+
+        {/* Section 1: Forecaster Weather Discussion (NAC) */}
+        {hasDiscussion && (
+          <AccordionItem value="discussion" className="border rounded-lg px-3">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              <span className="flex items-center gap-2">
+                Weather Discussion
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                  Avy Center
+                </Badge>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line pb-2">
+                {nacWeather!.discussion}
+              </div>
+              {nacWeather!.publishedTime && (
+                <p className="text-[10px] text-muted-foreground/60 mt-2">
+                  Published: {new Date(nacWeather!.publishedTime).toLocaleString()}
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
         )}
 
-        {/* Collapsible sections */}
-        <Accordion type="multiple" className="space-y-1">
-
-          {/* Section 1: Forecaster Weather Discussion (NAC) */}
-          {hasDiscussion && (
-            <AccordionItem value="discussion" className="border rounded-lg px-3">
-              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-                <span className="flex items-center gap-2">
-                  Weather Discussion
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
-                    Avy Center
-                  </Badge>
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line pb-2">
-                  {nacWeather!.discussion}
-                </div>
-                {nacWeather!.publishedTime && (
-                  <p className="text-[10px] text-muted-foreground/60 mt-2">
-                    Published: {new Date(nacWeather!.publishedTime).toLocaleString()}
-                  </p>
+        {/* Section 2: NWS Mountain Forecast (NOAA) */}
+        {hasNwsPeriods && (
+          <AccordionItem value="nws-forecast" className="border rounded-lg px-3">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              <span className="flex items-center gap-2">
+                NWS Mountain Forecast
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                  NOAA
+                </Badge>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pb-2">
+                {nwsForecast!.periods.map((period, idx) => (
+                  <NwsPeriodRow key={idx} period={period} />
+                ))}
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-[10px] text-muted-foreground/60">
+                  NWS Gridpoint: {nwsForecast!.gridpoint}
+                </p>
+                {nwsForecast!.forecastPageUrl && (
+                  <a
+                    href={nwsForecast!.forecastPageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    View on weather.gov <ExternalLink className="h-3 w-3" />
+                  </a>
                 )}
-              </AccordionContent>
-            </AccordionItem>
-          )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
 
-          {/* Section 2: NWS Mountain Forecast (NOAA) */}
-          {hasNwsPeriods && (
-            <AccordionItem value="nws-forecast" className="border rounded-lg px-3">
-              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-                <span className="flex items-center gap-2">
-                  NWS Mountain Forecast
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
-                    NOAA
-                  </Badge>
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-2 pb-2">
-                  {nwsForecast!.periods.map((period, idx) => (
-                    <NwsPeriodRow key={idx} period={period} />
-                  ))}
-                </div>
-                {nwsForecast!.gridpoint && (
-                  <p className="text-[10px] text-muted-foreground/60 mt-2">
-                    NWS Gridpoint: {nwsForecast!.gridpoint}
-                  </p>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          )}
+        {/* Section 3: Station Forecast Data Table (NAC) */}
+        {hasTables && (
+          <AccordionItem value="station-data" className="border rounded-lg px-3">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              <span className="flex items-center gap-2">
+                Station Forecast Data
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+                  Avy Center
+                </Badge>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pb-2">
+                {nacWeather!.tables.map((table, idx) => (
+                  <NacWeatherDataTable key={idx} table={table} />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        )}
 
-          {/* Section 3: Station Forecast Data Table (NAC) */}
-          {hasTables && (
-            <AccordionItem value="station-data" className="border rounded-lg px-3">
-              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
-                <span className="flex items-center gap-2">
-                  Station Forecast Data
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
-                    Avy Center
-                  </Badge>
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4 pb-2">
-                  {nacWeather!.tables.map((table, idx) => (
-                    <NacWeatherDataTable key={idx} table={table} />
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
-
-        </Accordion>
-      </CardContent>
-    </Card>
+      </Accordion>
+    </div>
   );
 }

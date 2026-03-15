@@ -708,39 +708,99 @@ function ZoneCard({
           <p className="text-sm text-muted-foreground">{zone.keyMessage}</p>
         </div>
 
-        {/* Detailed Avalanche Problems */}
-        {zone.problems && zone.problems.length > 0 && <div>
-            <p className="text-sm font-medium text-foreground mb-2">Avalanche Problems ({zone.problems.length})</p>
-            <div className="space-y-2">
-              {zone.problems.map((problem, i) => <AvalancheProblemCard key={i} problem={problem} />)}
-            </div>
-          </div>}
+        {/* Collapsible detail sections */}
+        <Accordion type="multiple" className="space-y-1">
 
-        {/* Hazard Discussion — shown for centers that don't provide structured problem data */}
-        {(!zone.problems || zone.problems.length === 0) && zone.hazardDiscussion && <div>
-            <p className="text-sm font-medium text-foreground mb-1">Hazard Discussion</p>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">{zone.hazardDiscussion}</p>
-          </div>}
+          {/* Avalanche Problems */}
+          {zone.problems && zone.problems.length > 0 && (
+            <AccordionItem value="problems" className="border rounded-lg px-3">
+              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  Avalanche Problems ({zone.problems.length})
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 pb-2">
+                  {zone.problems.map((problem, i) => <AvalancheProblemCard key={i} problem={problem} />)}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
 
-        <div>
-          <p className="text-sm font-medium text-foreground mb-1">Travel Advice</p>
-          <p className="text-sm text-muted-foreground">{zone.travelAdvice}</p>
-        </div>
+          {/* Hazard Discussion — shown for centers that don't provide structured problem data */}
+          {(!zone.problems || zone.problems.length === 0) && zone.hazardDiscussion && (
+            <AccordionItem value="hazard-discussion" className="border rounded-lg px-3">
+              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  Hazard Discussion
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-sm text-muted-foreground whitespace-pre-line pb-2">{zone.hazardDiscussion}</p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
 
-        {/* Weather Outlook (forecast/what's coming) */}
-        <WeatherForecastCard
-          nacWeather={weatherForecast?.nacWeather}
-          nwsForecast={weatherForecast?.nwsForecast}
-          isLoading={isWeatherForecastLoading && !weatherForecast}
-        />
+          {/* Travel Advice */}
+          <AccordionItem value="travel-advice" className="border rounded-lg px-3">
+            <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+              <span className="flex items-center gap-2">
+                <Compass className="h-4 w-4 text-blue-500" />
+                Travel Advice
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <p className="text-sm text-muted-foreground pb-2">{zone.travelAdvice}</p>
+            </AccordionContent>
+          </AccordionItem>
 
-        {/* Weather Station Observations (what already happened) */}
-        {zone.weatherObservations && zone.weatherObservations.length > 0 && (
-          <WeatherStationCard
-            observations={zone.weatherObservations}
-            note={zone.id === 'douglas-island' ? 'Note: These stations are outside the forecast zone. Expect high spatial variability.' : undefined}
-          />
-        )}
+          {/* Weather Outlook (forecast/what's coming) */}
+          {(weatherForecast?.nacWeather || weatherForecast?.nwsForecast || (isWeatherForecastLoading && !weatherForecast)) && (
+            <AccordionItem value="weather-outlook" className="border rounded-lg border-sky-500/30 px-3">
+              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+                <span className="flex items-center gap-2">
+                  <CloudSnow className="h-4 w-4 text-sky-500" />
+                  Weather Outlook
+                  {weatherForecast?.nacWeather && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">Avy Center</Badge>}
+                  {weatherForecast?.nwsForecast && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">NWS</Badge>}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="pb-2">
+                  <WeatherForecastCard
+                    nacWeather={weatherForecast?.nacWeather}
+                    nwsForecast={weatherForecast?.nwsForecast}
+                    isLoading={isWeatherForecastLoading && !weatherForecast}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {/* Weather Station Observations (what already happened) */}
+          {zone.weatherObservations && zone.weatherObservations.length > 0 && (
+            <AccordionItem value="station-obs" className="border rounded-lg border-blue-500/30 px-3">
+              <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
+                <span className="flex items-center gap-2">
+                  <Snowflake className="h-4 w-4 text-blue-500" />
+                  Weather Station Observations ({zone.weatherObservations.length})
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="pb-2">
+                  <WeatherStationCard
+                    observations={zone.weatherObservations}
+                    note={zone.id === 'douglas-island' ? 'Note: These stations are outside the forecast zone. Expect high spatial variability.' : undefined}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+        </Accordion>
+
         {!zone.weatherObservations && isSnotelLoading && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg">
             <Loader2 className="h-4 w-4 animate-spin" />
