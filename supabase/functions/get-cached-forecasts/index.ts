@@ -33,38 +33,47 @@ serve(async (req) => {
 
     console.log(`Fetching cached forecasts for ${zoneIds.length} zones, date: ${forecastDate}`);
 
-    // Determine which center summary entries to fetch
-    // We need _summary_* entries to get quickTake, bottomLine, weatherHighlights
-    const centerIds = new Set<string>();
-    // Map zone IDs to center IDs based on known prefixes
-    const centerMapping: Record<string, string> = {
-      'turnagain-girdwood': 'CNFAIC', 'summit': 'CNFAIC', 'seward': 'CNFAIC', 'chugach-state-park': 'CNFAIC',
-      'hatcher-pass': 'HPAC',
-      'valdez-maritime': 'VAC', 'valdez-intermountain': 'VAC', 'valdez-continental': 'VAC', 'cordova': 'VAC',
-      'earac-north': 'EARAC', 'earac-south': 'EARAC',
-      'douglas-island': 'JNFAC', 'juneau-mainland': 'JNFAC',
-      'haines-lutak': 'HAFAC', 'haines-transitional': 'HAFAC', 'haines-chilkat-pass': 'HAFAC',
-    };
-    for (const zoneId of zoneIds) {
-      const center = centerMapping[zoneId];
-      if (center) centerIds.add(center);
-    }
-    const summaryZoneIds = Array.from(centerIds).map(c => `_summary_${c}`);
-    const allRequestedIds = [...zoneIds, ...summaryZoneIds];
-
-    const { data, error } = await supabase
+    // Fetch requested zones first, then derive centers dynamically.
+    // This avoids brittle hardcoded zone→center maps and works for all regions.
+    const { data: zoneRows, error: zoneError } = await supabase
       .from('avalanche_daily_forecasts')
       .select('*')
-      .in('zone_id', allRequestedIds)
+      .in('zone_id', zoneIds)
       .eq('forecast_date', forecastDate);
 
-    if (error) {
-      console.error('Database query error:', error);
+    if (zoneError) {
+      console.error('Zone query error:', zoneError);
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to fetch cached forecasts' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const centerIds = Array.from(
+      new Set((zoneRows || []).map((row: any) => row.center_id).filter(Boolean))
+    );
+    const summaryZoneIds = centerIds.map((centerId) => `_summary_${centerId}`);
+
+    let summaryRows: any[] = [];
+    if (summaryZoneIds.length > 0) {
+      const { data: summaryData, error: summaryError } = await supabase
+        .from('avalanche_daily_forecasts')
+        .select('*')
+        .in('zone_id', summaryZoneIds)
+        .eq('forecast_date', forecastDate);
+
+      if (summaryError) {
+        console.error('Summary query error:', summaryError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to fetch cached forecasts' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      summaryRows = summaryData || [];
+    }
+
+    const data = [...(zoneRows || []), ...summaryRows];
 
     // Separate summary entries from zone entries
     const summaryEntries: Record<string, any> = {};

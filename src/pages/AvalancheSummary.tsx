@@ -924,8 +924,10 @@ export default function AvalancheSummaryPage() {
       // Phase 1: Try cached forecasts first (fast path)
       const cachedResponse = await avalancheApi.getCachedForecasts(selectedZoneIds);
       
-      if (cachedResponse.success && cachedResponse.zones && cachedResponse.zones.length > 0 && 
-          (!cachedResponse.missingZoneIds || cachedResponse.missingZoneIds.length === 0)) {
+      const hasMissingZones = Boolean(cachedResponse.missingZoneIds?.length);
+      const hasMissingSummaries = Boolean(cachedResponse.missingSummaryCenterIds?.length);
+
+      if (cachedResponse.success && cachedResponse.zones && cachedResponse.zones.length > 0 && !hasMissingZones && !hasMissingSummaries) {
         // All zones are cached - show immediately!
         console.log('✅ All zones cached, showing instantly');
         
