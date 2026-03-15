@@ -108,7 +108,7 @@ export async function fetchStationObservations(
 
     // Build reportGenerator CSV URL
     // Format: /view_csv/customSingleStationReport/hourly/{triplet}|id=""|name/{hoursBack},0/ELEMENT::value,...
-    const elements = 'TOBS::value,SNWD::value,PREC::value,WTEQ::value';
+    const elements = 'TOBS::value,SNWD::value,PREC::value,WTEQ::value,WSPD::value,WSPDX::value,WDIR::value';
     const encodedTriplet = encodeURIComponent(`${stationTriplet}|id=""|name`);
     const url = `${REPORT_GENERATOR_BASE_URL}/view_csv/customSingleStationReport/hourly/${encodedTriplet}/-${hoursBack},0/${elements}`;
 
