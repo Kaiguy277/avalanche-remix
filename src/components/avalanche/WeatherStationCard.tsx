@@ -1,5 +1,6 @@
-import { Snowflake, Thermometer, Activity, Wind } from "lucide-react";
+import { Snowflake, Thermometer, Activity, Wind, Info, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import TempSparkline from "./TempSparkline";
 import type { WeatherObservation } from "@/lib/api/avalanche";
 
@@ -26,14 +27,84 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
       </CardHeader>
       <CardContent className="space-y-4">
         {observations.map((obs, idx) => {
+          const stationUrl = `https://mesowest.utah.edu/cgi-bin/droman/meso_base_dyn.cgi?stn=${obs.stationTriplet}`;
+          const lastUpdated = obs.timestamp ? new Date(obs.timestamp).toLocaleString() : null;
+
           return (
             <div key={idx} className="space-y-3">
-              {/* Station Header */}
-              <div className="flex items-baseline justify-between">
-                <div className="text-xs font-medium text-foreground">{obs.stationName}</div>
-                <div className="text-xs font-semibold text-muted-foreground">{obs.elevation.toLocaleString()}' Elevation</div>
+              {/* Station Header with Info Icon */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-medium text-foreground">{obs.stationName}</span>
+                  <HoverCard openDelay={200}>
+                    <HoverCardTrigger asChild>
+                      <button className="text-muted-foreground hover:text-foreground transition-colors">
+                        <Info className="h-3.5 w-3.5" />
+                      </button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-64 text-xs space-y-2" side="top">
+                      <div className="font-semibold text-sm">{obs.stationName}</div>
+                      <div className="space-y-1 text-muted-foreground">
+                        <div>Station ID: <span className="font-medium text-foreground">{obs.stationTriplet}</span></div>
+                        <div>Elevation: <span className="font-medium text-foreground">{obs.elevation.toLocaleString()}'</span></div>
+                        <div>Data Quality: <span className="font-medium text-foreground capitalize">{obs.dataQuality}</span></div>
+                        {lastUpdated && <div>Last Updated: <span className="font-medium text-foreground">{lastUpdated}</span></div>}
+                      </div>
+                      <a
+                        href={stationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline mt-1"
+                      >
+                        View Station Data <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </HoverCardContent>
+                  </HoverCard>
+                </div>
+                <div className="text-xs font-semibold text-muted-foreground">{obs.elevation.toLocaleString()}' Elev</div>
               </div>
 
+              {/* Wind (current + 24hr + 72hr) */}
+              {obs.wind && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                    <Wind className="h-3 w-3 text-teal-500" />
+                    Wind
+                  </div>
+                  {/* Current */}
+                  {(obs.wind.speedCurrent !== null || obs.wind.direction !== null) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10">Now:</span>
+                      <span className="text-sm font-semibold">
+                        {obs.wind.direction && `${obs.wind.direction} `}
+                        {obs.wind.speedCurrent !== null ? `${obs.wind.speedCurrent} mph` : ''}
+                      </span>
+                    </div>
+                  )}
+                  {/* 24hr */}
+                  {(obs.wind.speedAvg24hr !== null || obs.wind.direction24hr !== null) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10">24hr:</span>
+                      <span className="text-sm">
+                        {obs.wind.direction24hr && <span className="font-semibold">{obs.wind.direction24hr} </span>}
+                        {obs.wind.speedAvg24hr !== null && <span>avg {obs.wind.speedAvg24hr} mph</span>}
+                        {obs.wind.speedMax24hr !== null && <span className="text-muted-foreground">, gusts to <span className="font-semibold text-foreground">{obs.wind.speedMax24hr} mph</span></span>}
+                      </span>
+                    </div>
+                  )}
+                  {/* 72hr */}
+                  {(obs.wind.speedAvg72hr !== null || obs.wind.direction72hr !== null) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10">72hr:</span>
+                      <span className="text-sm">
+                        {obs.wind.direction72hr && <span className="font-semibold">{obs.wind.direction72hr} </span>}
+                        {obs.wind.speedAvg72hr !== null && <span>avg {obs.wind.speedAvg72hr} mph</span>}
+                        {obs.wind.speedMax72hr !== null && <span className="text-muted-foreground">, gusts to <span className="font-semibold text-foreground">{obs.wind.speedMax72hr} mph</span></span>}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 24 Hour Data */}
               <div className="space-y-2">
@@ -91,8 +162,8 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                         )}
                       </div>
                       {obs.temperature.hourly24hr && obs.temperature.hourly24hr.length >= 2 && (
-                        <TempSparkline 
-                          data={obs.temperature.hourly24hr} 
+                        <TempSparkline
+                          data={obs.temperature.hourly24hr}
                           high={obs.temperature.high24hr}
                           low={obs.temperature.low24hr}
                           hours={24}
@@ -102,37 +173,6 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                   </div>
                 </div>
               </div>
-
-              {/* Wind */}
-              {obs.wind && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                    <Wind className="h-3 w-3 text-teal-500" />
-                    Wind
-                  </div>
-                  {/* Current */}
-                  {(obs.wind.speedCurrent !== null || obs.wind.direction !== null) && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground w-10">Now:</span>
-                      <span className="text-sm font-semibold">
-                        {obs.wind.direction && `${obs.wind.direction} `}
-                        {obs.wind.speedCurrent !== null ? `${obs.wind.speedCurrent} mph` : ''}
-                      </span>
-                    </div>
-                  )}
-                  {/* 24hr summary */}
-                  {(obs.wind.speedAvg24hr !== null || obs.wind.direction24hr !== null) && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground w-10">24hr:</span>
-                      <span className="text-sm">
-                        {obs.wind.direction24hr && <span className="font-semibold">{obs.wind.direction24hr} </span>}
-                        {obs.wind.speedAvg24hr !== null && <span>avg {obs.wind.speedAvg24hr} mph</span>}
-                        {obs.wind.speedMax24hr !== null && <span className="text-muted-foreground">, gusts to <span className="font-semibold text-foreground">{obs.wind.speedMax24hr} mph</span></span>}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* 72 Hour Data */}
               <div className="space-y-2">
@@ -183,8 +223,8 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                         )}
                       </div>
                       {obs.temperature.hourly72hr && obs.temperature.hourly72hr.length >= 2 && (
-                        <TempSparkline 
-                          data={obs.temperature.hourly72hr} 
+                        <TempSparkline
+                          data={obs.temperature.hourly72hr}
                           high={obs.temperature.high72hr}
                           low={obs.temperature.low72hr}
                           hours={72}
