@@ -64,7 +64,6 @@ export default function LoadingCard({ className, zoneCount = 4 }: LoadingCardPro
         <div className="w-full max-w-sm rounded-lg overflow-hidden">
           <video
             autoPlay
-            loop
             muted
             playsInline
             className="w-full h-auto rounded-lg"
