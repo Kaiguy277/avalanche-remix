@@ -66,24 +66,56 @@ serve(async (req) => {
       );
     }
 
-    const cachedZones = (data || []).map((row: any) => ({
-      ...row.synthesized_data,
-      _cachedAt: row.created_at,
-      _forecastDate: row.forecast_date,
-    }));
+    // Separate summary entries from zone entries
+    const summaryEntries: Record<string, any> = {};
+    const zoneEntries: any[] = [];
+    
+    for (const row of (data || [])) {
+      if (row.zone_id.startsWith('_summary_')) {
+        summaryEntries[row.zone_id] = row.synthesized_data;
+      } else {
+        zoneEntries.push({
+          ...row.synthesized_data,
+          _cachedAt: row.created_at,
+          _forecastDate: row.forecast_date,
+        });
+      }
+    }
 
-    const cachedZoneIds = new Set((data || []).map((row: any) => row.zone_id));
+    // Merge summary data from all centers
+    let quickTake = '';
+    let weatherHighlights = '';
+    let bottomLine = '';
+    const quickTakes: string[] = [];
+    const bottomLines: string[] = [];
+    const weatherHighlightsList: string[] = [];
+    
+    for (const [_, summaryData] of Object.entries(summaryEntries)) {
+      const sd = summaryData as any;
+      if (sd.quickTake) quickTakes.push(sd.quickTake);
+      if (sd.bottomLine) bottomLines.push(sd.bottomLine);
+      if (sd.weatherHighlights) weatherHighlightsList.push(sd.weatherHighlights);
+    }
+    
+    quickTake = quickTakes.join(' ');
+    bottomLine = bottomLines.join(' ');
+    weatherHighlights = weatherHighlightsList.join(' ');
+
+    const cachedZoneIds = new Set(zoneEntries.map((z: any) => z.id));
     const missingZoneIds = zoneIds.filter(id => !cachedZoneIds.has(id));
 
-    console.log(`Found ${cachedZones.length} cached, ${missingZoneIds.length} missing`);
+    console.log(`Found ${zoneEntries.length} cached zones, ${Object.keys(summaryEntries).length} summaries, ${missingZoneIds.length} missing`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        zones: cachedZones,
+        zones: zoneEntries,
         missingZoneIds,
         forecastDate,
         cached: true,
+        quickTake,
+        weatherHighlights,
+        bottomLine,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
