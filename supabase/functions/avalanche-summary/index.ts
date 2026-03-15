@@ -1815,33 +1815,112 @@ serve(async (req) => {
       console.log(`${z.name}: source=${z.dataSource}, cache=${cacheStatus}, freshness=${z.freshness.status}, problems=${z.problems.length}`);
     });
 
-    // Step 2.5: Fetch weather station observations (in parallel)
-    console.log('Fetching weather station observations...');
+    // Step 2.5: Fetch weather station observations AND weather forecasts (in parallel)
+    console.log('Fetching weather station observations and weather forecasts...');
     const weatherObservationsMap = new Map<string, StationObservation[]>();
+    const weatherForecastMap = new Map<string, string>(); // centerId → weather discussion text
 
     try {
-      const weatherFetchPromises = zonesData.map(async (zone) => {
+      // Fetch station observations per zone
+      const stationFetchPromises = zonesData.map(async (zone) => {
         const stations = getStationsForZone(zone.id);
         if (stations.length === 0) {
-          console.log(`No weather stations configured for ${zone.name}`);
           return { zoneId: zone.id, observations: [] };
         }
-
-        console.log(`Fetching ${stations.length} stations for ${zone.name}`);
         const observations = await fetchMultipleStations(
           stations.map(s => ({ triplet: s.triplet, name: s.name, elevation: s.elevation }))
         );
-
         return { zoneId: zone.id, observations };
       });
 
-      const weatherResults = await Promise.all(weatherFetchPromises);
-      weatherResults.forEach(result => {
-        weatherObservationsMap.set(result.zoneId, result.observations);
-        console.log(`${result.zoneId}: ${result.observations.length} station observations fetched`);
+      // Fetch NAC weather product per center (for weather forecast/outlook)
+      const uniqueCenters = [...new Set(zonesData.map(z => z.center))];
+      const weatherProductPromises = uniqueCenters.map(async (centerId) => {
+        try {
+          const url = `${NAC_API_BASE}/product?type=weather&center_id=${centerId}`;
+          console.log(`Fetching NAC weather product for ${centerId}`);
+          const response = await fetch(url, { headers: nacHeaders });
+          if (!response.ok) return { centerId, discussion: null };
+          const data = await response.json();
+          // Strip HTML but preserve paragraph structure
+          let discussion = data.weather_discussion || null;
+          if (discussion) {
+            discussion = discussion
+              .replace(/<br\s*\/?>/gi, '\n')
+              .replace(/<\/p>/gi, '\n\n')
+              .replace(/<[^>]*>/g, '')
+              .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+              .replace(/&rdquo;|&ldquo;/g, '"').replace(/&rsquo;|&lsquo;/g, "'").replace(/&deg;/g, '°')
+              .replace(/\n{3,}/g, '\n\n').trim();
+          }
+          return { centerId, discussion };
+        } catch (err) {
+          console.error(`Error fetching NAC weather for ${centerId}:`, err);
+          return { centerId, discussion: null };
+        }
       });
+
+      // Fetch NOAA NWS forecast for centers without NAC weather
+      // (done after NAC results are in, so we know which centers need NOAA)
+
+      // Run station + NAC weather fetches in parallel
+      const [stationResults, weatherProductResults] = await Promise.all([
+        Promise.all(stationFetchPromises),
+        Promise.all(weatherProductPromises),
+      ]);
+
+      stationResults.forEach(result => {
+        weatherObservationsMap.set(result.zoneId, result.observations);
+      });
+
+      const centersWithNacWeather = new Set<string>();
+      weatherProductResults.forEach(result => {
+        if (result.discussion) {
+          weatherForecastMap.set(result.centerId, result.discussion);
+          centersWithNacWeather.add(result.centerId);
+        }
+      });
+
+      console.log(`NAC weather forecasts available for: ${[...centersWithNacWeather].join(', ') || 'none'}`);
+
+      // For centers without NAC weather, try NOAA NWS
+      const centersNeedingNoaa = uniqueCenters.filter(c => !centersWithNacWeather.has(c));
+      if (centersNeedingNoaa.length > 0) {
+        console.log(`Fetching NOAA forecasts for: ${centersNeedingNoaa.join(', ')}`);
+        const noaaPromises = centersNeedingNoaa.map(async (centerId) => {
+          // Find a representative lat/lon from any zone in this center
+          const zoneForCenter = zonesData.find(z => z.center === centerId);
+          if (!zoneForCenter) return;
+          const stations = getStationsForZone(zoneForCenter.id);
+          if (stations.length === 0) return;
+          const lat = stations[0].latitude;
+          const lon = stations[0].longitude;
+          try {
+            const nwsHeaders = {
+              'User-Agent': '(AvalancheComparison/1.0, kaimyers@alaskapacific.edu)',
+              'Accept': 'application/geo+json',
+            };
+            const pointsResp = await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`, { headers: nwsHeaders });
+            if (!pointsResp.ok) return;
+            const pointsData = await pointsResp.json();
+            const { gridId, gridX, gridY } = pointsData.properties;
+            const forecastResp = await fetch(`https://api.weather.gov/gridpoints/${gridId}/${gridX},${gridY}/forecast?units=us`, { headers: nwsHeaders });
+            if (!forecastResp.ok) return;
+            const forecastData = await forecastResp.json();
+            const periods = (forecastData.properties?.periods || []).slice(0, 6);
+            if (periods.length > 0) {
+              const nwsText = periods.map((p: any) => `${p.name}: ${p.detailedForecast}`).join('\n');
+              weatherForecastMap.set(centerId, `[NWS Mountain Forecast]\n${nwsText}`);
+              console.log(`NOAA forecast retrieved for ${centerId}`);
+            }
+          } catch (err) {
+            console.error(`NOAA fetch error for ${centerId}:`, err);
+          }
+        });
+        await Promise.all(noaaPromises);
+      }
     } catch (error) {
-      console.error('Error fetching weather observations:', error);
+      console.error('Error fetching weather data:', error);
       // Continue without weather data - graceful degradation
     }
 
@@ -1950,6 +2029,13 @@ AVALANCHE PROBLEMS:`;
         // Add comparison instructions for AI
         context += `\n\n**IMPORTANT**: Compare the WEATHER OBSERVATIONS above with the forecast WEATHER section.`;
         context += `\nNote any discrepancies or confirmations between predicted and actual measurements.`;
+      }
+
+      // Include weather forecast/outlook for this zone's center
+      const weatherForecast = weatherForecastMap.get(zone.center);
+      if (weatherForecast) {
+        context += `\n\n=== WEATHER FORECAST / OUTLOOK (NEXT 2-3 DAYS) ===`;
+        context += `\n${weatherForecast.slice(0, 2000)}`;
       }
 
       return context;
