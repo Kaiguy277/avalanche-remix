@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Mountain, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const SAFETY_TIPS = [
@@ -33,7 +33,7 @@ function getWaitTimeMessage(zoneCount: number): { time: string; note: string } {
     };
   } else if (zoneCount <= 10) {
     return {
-      time: "15–25 seconds", 
+      time: "15–25 seconds",
       note: "Patience pays off for broader coverage",
     };
   } else {
@@ -59,9 +59,18 @@ export default function LoadingCard({ className, zoneCount = 4 }: LoadingCardPro
 
   return (
     <Card className={className}>
-      <CardContent className="py-8 px-6 flex flex-col items-center text-center space-y-5">
-        {/* Pulsing mountain icon */}
-        <Mountain className="h-12 w-12 text-primary animate-pulse" />
+      <CardContent className="py-6 px-6 flex flex-col items-center text-center space-y-4">
+        {/* Video */}
+        <div className="w-full max-w-sm rounded-lg overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-auto rounded-lg"
+            src="/loading-clip.mp4"
+          />
+        </div>
 
         {/* Status message */}
         <div className="space-y-2">
