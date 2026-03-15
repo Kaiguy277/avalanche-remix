@@ -969,7 +969,7 @@ export default function AvalancheSummaryPage() {
     }
   };
 
-  // Fetch SNOTEL observations and merge into summary
+  // Fetch weather station observations and merge into summary
   const fetchSnotel = useCallback(async (zoneIds: string[]) => {
     setIsSnotelLoading(true);
     try {
@@ -1066,10 +1066,10 @@ export default function AvalancheSummaryPage() {
         
         toast({
           title: "Conditions loaded (cached)",
-          description: `Showing today's forecasts. Loading weather stations...`
+          description: `Showing today's forecasts. Loading station data & weather outlook...`
         });
 
-        // Phase 2 & 3: Fetch SNOTEL and weather forecasts in parallel
+        // Phase 2 & 3: Fetch station observations and weather forecasts in parallel
         fetchSnotel(selectedZoneIds);
         fetchWeatherForecast(selectedZoneIds);
 
@@ -1148,7 +1148,7 @@ export default function AvalancheSummaryPage() {
           description: `Updated ${new Date().toLocaleTimeString()}`
         });
 
-        // Fetch SNOTEL and weather forecasts in background for all zones
+        // Fetch station observations and weather forecasts in background
         fetchSnotel(selectedZoneIds);
         fetchWeatherForecast(selectedZoneIds);
       } else {
@@ -1177,7 +1177,7 @@ export default function AvalancheSummaryPage() {
     }
   };
   return <Layout>
-      <SEO title="Avalanche Conditions Summary" description="Avalanche forecasts and live SNOTEL data from across the United States, AI-synthesized for quick situational awareness." url="https://kaiconsulting.ai/tools/avalanche" />
+      <SEO title="Avalanche Conditions Summary" description="Side-by-side avalanche forecasts, weather outlooks, and live weather station data from across the United States." url="https://kaiconsulting.ai/tools/avalanche" />
       {/* Hero Section */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-sky-50 via-background to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -1189,7 +1189,7 @@ export default function AvalancheSummaryPage() {
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Avalanche Conditions Summary
             </h1>
-            <p className="text-muted-foreground text-lg mb-8">Avalanche forecasts side by side across the United States with live, 24hr, and 72hr temp and precip from SNOTEL in each zone</p>
+            <p className="text-muted-foreground text-lg mb-8">Avalanche forecasts, mountain weather outlooks, and live weather station observations side by side across the United States</p>
 
             {/* Zone Selection */}
             <Card className="mb-8 max-w-3xl mx-auto text-left">
@@ -1244,7 +1244,7 @@ export default function AvalancheSummaryPage() {
             {scrapedAt && !isLoading && <div className="flex items-center justify-center gap-2 mt-4">
               <p className="text-sm text-muted-foreground">Last updated: {new Date(scrapedAt).toLocaleString()}</p>
               {loadSource === 'cached' && <Badge variant="outline" className="text-xs">Cached</Badge>}
-              {isSnotelLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading SNOTEL</Badge>}
+              {isSnotelLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading Stations</Badge>}
               {isWeatherForecastLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading Weather</Badge>}
             </div>}
           </div>
@@ -1280,19 +1280,6 @@ export default function AvalancheSummaryPage() {
                 </div>
               </div>}
 
-            {/* Bottom Line */}
-            {summary.bottomLine && <Card className="border-green-500/30 bg-gradient-to-br from-background to-green-50/50 dark:to-green-950/20">
-                <CardHeader>
-                  <CardTitle className="font-display text-lg flex items-center gap-2">
-                    <Info className="h-5 w-5 text-green-600" />
-                    Bottom Line
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-foreground font-medium">{summary.bottomLine}</p>
-                </CardContent>
-              </Card>}
-
             {/* Data Sources */}
             <Accordion type="single" collapsible className="mt-8">
               <AccordionItem value="sources">
@@ -1317,13 +1304,34 @@ export default function AvalancheSummaryPage() {
                           </div>
                         </div>;
                 })}
-                    <div className="pt-4 border-t mt-4 space-y-2">
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Data sourced from the National Avalanche Center API
-                      </p>
-                      <a href="https://avalanche.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
-                        National Avalanche Center <ExternalLink className="h-3 w-3" />
-                      </a>
+                    <div className="pt-4 border-t mt-4 space-y-3">
+                      <p className="text-xs font-semibold text-foreground">Data Sources</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <a href="https://avalanche.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                            National Avalanche Center API <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <span className="text-xs text-muted-foreground">Avalanche forecasts & danger ratings</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                            NOAA National Weather Service <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <span className="text-xs text-muted-foreground">Mountain weather forecasts</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <a href="https://synopticdata.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                            Synoptic Data (MesoWest) <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <span className="text-xs text-muted-foreground">Weather station observations</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <a href="https://utahavalanchecenter.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                            Utah Avalanche Center <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <span className="text-xs text-muted-foreground">UAC forecasts (direct API)</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </AccordionContent>
