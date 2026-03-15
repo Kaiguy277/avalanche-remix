@@ -959,7 +959,9 @@ export default function AvalancheSummaryPage() {
 
       // Fallback: Batch by center to avoid overloading a single edge function call
       // Group missing zones by their center ID
-      const missingZoneIds = cachedResponse.missingZoneIds || selectedZoneIds;
+      const missingZoneIds = cachedResponse.missingZoneIds && cachedResponse.missingZoneIds.length > 0
+        ? cachedResponse.missingZoneIds
+        : selectedZoneIds;
       const centerGroups = new Map<string, string[]>();
       for (const zoneId of missingZoneIds) {
         const zoneInfo = AVAILABLE_ZONES.find(z => z.id === zoneId);
