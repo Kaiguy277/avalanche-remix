@@ -130,6 +130,7 @@ export interface CachedForecastResponse {
   success: boolean;
   zones?: AvalancheZone[];
   missingZoneIds?: string[];
+  missingSummaryCenterIds?: string[];
   forecastDate?: string;
   cached?: boolean;
   quickTake?: string;

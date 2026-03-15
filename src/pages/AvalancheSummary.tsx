@@ -924,8 +924,10 @@ export default function AvalancheSummaryPage() {
       // Phase 1: Try cached forecasts first (fast path)
       const cachedResponse = await avalancheApi.getCachedForecasts(selectedZoneIds);
       
-      if (cachedResponse.success && cachedResponse.zones && cachedResponse.zones.length > 0 && 
-          (!cachedResponse.missingZoneIds || cachedResponse.missingZoneIds.length === 0)) {
+      const hasMissingZones = Boolean(cachedResponse.missingZoneIds?.length);
+      const hasMissingSummaries = Boolean(cachedResponse.missingSummaryCenterIds?.length);
+
+      if (cachedResponse.success && cachedResponse.zones && cachedResponse.zones.length > 0 && !hasMissingZones && !hasMissingSummaries) {
         // All zones are cached - show immediately!
         console.log('✅ All zones cached, showing instantly');
         
@@ -957,7 +959,9 @@ export default function AvalancheSummaryPage() {
 
       // Fallback: Batch by center to avoid overloading a single edge function call
       // Group missing zones by their center ID
-      const missingZoneIds = cachedResponse.missingZoneIds || selectedZoneIds;
+      const missingZoneIds = cachedResponse.missingZoneIds && cachedResponse.missingZoneIds.length > 0
+        ? cachedResponse.missingZoneIds
+        : selectedZoneIds;
       const centerGroups = new Map<string, string[]>();
       for (const zoneId of missingZoneIds) {
         const zoneInfo = AVAILABLE_ZONES.find(z => z.id === zoneId);
@@ -982,12 +986,18 @@ export default function AvalancheSummaryPage() {
       // Merge all center results into a single summary
       const allZones: AvalancheZone[] = cachedResponse.zones || [];
       const allZonesScraped: ScrapedZoneInfo[] = [];
+      const quickTakes: string[] = [];
+      const weatherHighlightsList: string[] = [];
+      const bottomLines: string[] = [];
       let hasAnySuccess = false;
 
       for (const { centerId, response } of centerResults) {
         if (response.success && response.summary) {
           allZones.push(...response.summary.zones);
           if (response.zonesScraped) allZonesScraped.push(...response.zonesScraped);
+          if (response.summary.quickTake) quickTakes.push(response.summary.quickTake);
+          if (response.summary.weatherHighlights) weatherHighlightsList.push(response.summary.weatherHighlights);
+          if (response.summary.bottomLine) bottomLines.push(response.summary.bottomLine);
           hasAnySuccess = true;
         } else {
           console.error(`Failed to fetch ${centerId}:`, response.error);
@@ -996,10 +1006,10 @@ export default function AvalancheSummaryPage() {
 
       if (hasAnySuccess) {
         setSummary({
-          quickTake: '',
+          quickTake: quickTakes.join(' ').trim(),
           zones: allZones,
-          weatherHighlights: '',
-          bottomLine: '',
+          weatherHighlights: weatherHighlightsList.join(' ').trim(),
+          bottomLine: bottomLines.join(' ').trim(),
         });
         setScrapedAt(new Date().toISOString());
         setZonesScraped(allZonesScraped);
