@@ -976,16 +976,24 @@ export default function AvalancheSummaryPage() {
 
       console.log(`⚠️ Cache miss for ${missingZoneIds.length} zones across ${centerGroups.size} centers, fetching per-center`);
 
-      // Fetch each center group in parallel
-      const centerPromises = Array.from(centerGroups.entries()).map(([centerId, zoneIds]) => {
-        console.log(`  Fetching ${centerId}: ${zoneIds.length} zones`);
-        return avalancheApi.getSummary(zoneIds).then(response => ({
-          centerId,
-          response,
-        }));
-      });
+      // Fetch centers in throttled batches of 4 to avoid rate limits
+      const BATCH_SIZE = 4;
+      const centerEntries = Array.from(centerGroups.entries());
+      const centerResults: Array<{ centerId: string; response: any }> = [];
 
-      const centerResults = await Promise.all(centerPromises);
+      for (let i = 0; i < centerEntries.length; i += BATCH_SIZE) {
+        const batch = centerEntries.slice(i, i + BATCH_SIZE);
+        console.log(`  Batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(centerEntries.length / BATCH_SIZE)}: ${batch.map(([c]) => c).join(', ')}`);
+        const batchResults = await Promise.all(
+          batch.map(([centerId, zoneIds]) =>
+            avalancheApi.getSummary(zoneIds).then(response => ({
+              centerId,
+              response,
+            }))
+          )
+        );
+        centerResults.push(...batchResults);
+      }
 
       // Merge all center results into a single summary
       const allZones: AvalancheZone[] = cachedResponse.zones || [];
