@@ -1959,7 +1959,7 @@ const systemPrompt = `You are an expert avalanche safety analyst. Synthesize the
 
 OUTPUT FORMAT (JSON):
 {
-  "quickTake": "3-4 sentence overview for this avalanche center's zones. Summarize the current avalanche situation - dominant problems, danger levels, which elevations/aspects are most concerning, and overall trend. Keep it specific to the zones in the data, not a generic national summary.",
+  "quickTake": "Overview of current conditions. Adapt length and scope to the number of zones: for 1-2 zones, give a focused 2-3 sentence briefing specific to those zones. For 3+ zones, give a 3-5 sentence regional summary covering dominant problems, danger level patterns, and overall trend across the area. Always start with the most important safety information.",
   "zones": [
     {
       "id": "EXACT_ZONE_ID_FROM_DATA",
@@ -2040,7 +2040,18 @@ If a zone includes "WEATHER STATION OBSERVATIONS (ACTUAL MEASUREMENTS)":
 
 ALWAYS include weatherValidation field for every zone, even if "no_data".`;
 
-    const userPrompt = `Analyze these avalanche forecasts and synthesize a comprehensive summary:
+    // Build scope context for the AI
+    const centerNames = [...new Set(zonesData.map(z => z.center))];
+    const scopeDescription = zonesData.length === 1
+      ? `Single zone: ${zonesData[0].name}`
+      : zonesData.length <= 3
+        ? `${zonesData.length} zones: ${zonesData.map(z => z.name).join(', ')}`
+        : `${zonesData.length} zones across ${centerNames.length} center(s): ${centerNames.join(', ')}`;
+
+    const userPrompt = `Analyze these avalanche forecasts and synthesize a comprehensive summary.
+
+SCOPE: ${scopeDescription}
+${zonesData.length <= 2 ? 'This is a focused request for specific zones — keep the quickTake tightly focused on these zones specifically.' : 'This covers a broader area — the quickTake should be a regional overview.'}
 
 ${forecastContext}
 
