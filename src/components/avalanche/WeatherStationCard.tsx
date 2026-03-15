@@ -103,30 +103,34 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                 </div>
               </div>
 
-              {/* Wind 24hr */}
+              {/* Wind */}
               {obs.wind && (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
                     <Wind className="h-3 w-3 text-teal-500" />
-                    Wind (24hr)
+                    Wind
                   </div>
-                  <div className="flex items-center gap-3">
-                    {obs.wind.speedAvg24hr !== null && (
-                      <div className="text-sm">
-                        Avg: <span className="font-semibold">{obs.wind.speedAvg24hr} mph</span>
-                      </div>
-                    )}
-                    {obs.wind.speedMax24hr !== null && (
-                      <div className="text-sm">
-                        Max: <span className="font-semibold">{obs.wind.speedMax24hr} mph</span>
-                      </div>
-                    )}
-                    {obs.wind.direction24hr && (
-                      <div className="text-sm">
-                        Dir: <span className="font-semibold">{obs.wind.direction24hr}</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* Current */}
+                  {(obs.wind.speedCurrent !== null || obs.wind.direction !== null) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10">Now:</span>
+                      <span className="text-sm font-semibold">
+                        {obs.wind.direction && `${obs.wind.direction} `}
+                        {obs.wind.speedCurrent !== null ? `${obs.wind.speedCurrent} mph` : ''}
+                      </span>
+                    </div>
+                  )}
+                  {/* 24hr summary */}
+                  {(obs.wind.speedAvg24hr !== null || obs.wind.direction24hr !== null) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10">24hr:</span>
+                      <span className="text-sm">
+                        {obs.wind.direction24hr && <span className="font-semibold">{obs.wind.direction24hr} </span>}
+                        {obs.wind.speedAvg24hr !== null && <span>avg {obs.wind.speedAvg24hr} mph</span>}
+                        {obs.wind.speedMax24hr !== null && <span className="text-muted-foreground">, gusts to <span className="font-semibold text-foreground">{obs.wind.speedMax24hr} mph</span></span>}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -190,33 +194,6 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
                   </div>
                 </div>
               </div>
-
-              {/* Wind 72hr */}
-              {obs.wind && (obs.wind.speedAvg72hr !== null || obs.wind.speedMax72hr !== null) && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                    <Wind className="h-3 w-3 text-teal-500" />
-                    Wind (72hr)
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {obs.wind.speedAvg72hr !== null && (
-                      <div className="text-sm">
-                        Avg: <span className="font-semibold">{obs.wind.speedAvg72hr} mph</span>
-                      </div>
-                    )}
-                    {obs.wind.speedMax72hr !== null && (
-                      <div className="text-sm">
-                        Max: <span className="font-semibold">{obs.wind.speedMax72hr} mph</span>
-                      </div>
-                    )}
-                    {obs.wind.direction72hr && (
-                      <div className="text-sm">
-                        Dir: <span className="font-semibold">{obs.wind.direction72hr}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {idx < observations.length - 1 && <hr className="border-border/50" />}
             </div>

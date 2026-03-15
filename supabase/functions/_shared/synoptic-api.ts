@@ -52,11 +52,12 @@ export interface StationObservation {
     hourly72hr: TempDataPoint[];       // hourly temps for last 72hr (for sparkline)
   };
   wind: {
+    speedCurrent: number | null;       // most recent speed (mph)
     speedAvg24hr: number | null;       // 24hr average (mph)
-    speedMax24hr: number | null;       // 24hr max (mph)
+    speedMax24hr: number | null;       // 24hr max gust (mph)
     speedAvg72hr: number | null;       // 72hr average (mph)
-    speedMax72hr: number | null;       // 72hr max (mph)
-    direction: string | null;          // predominant direction (most recent)
+    speedMax72hr: number | null;       // 72hr max gust (mph)
+    direction: string | null;          // most recent direction
     direction24hr: string | null;      // predominant 24hr direction
     direction72hr: string | null;      // predominant 72hr direction
   } | null; // null if station doesn't have wind sensors
@@ -279,6 +280,7 @@ function buildObservation(
       hourly72hr: hourlyPoints(tobsVals, timestamps, 72),
     },
     wind: hasWindData ? {
+      speedCurrent: lastNonNull(wspdVals),
       speedAvg24hr: avgOfLast(wspdVals, 24),
       speedMax24hr: maxOfLast(wspdxVals.length > 0 ? wspdxVals : wspdVals, 24),
       speedAvg72hr: avgOfLast(wspdVals, 72),
