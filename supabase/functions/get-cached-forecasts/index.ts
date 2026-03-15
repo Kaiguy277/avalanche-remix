@@ -33,10 +33,29 @@ serve(async (req) => {
 
     console.log(`Fetching cached forecasts for ${zoneIds.length} zones, date: ${forecastDate}`);
 
+    // Determine which center summary entries to fetch
+    // We need _summary_* entries to get quickTake, bottomLine, weatherHighlights
+    const centerIds = new Set<string>();
+    // Map zone IDs to center IDs based on known prefixes
+    const centerMapping: Record<string, string> = {
+      'turnagain-girdwood': 'CNFAIC', 'summit': 'CNFAIC', 'seward': 'CNFAIC', 'chugach-state-park': 'CNFAIC',
+      'hatcher-pass': 'HPAC',
+      'valdez-maritime': 'VAC', 'valdez-intermountain': 'VAC', 'valdez-continental': 'VAC', 'cordova': 'VAC',
+      'earac-north': 'EARAC', 'earac-south': 'EARAC',
+      'douglas-island': 'JNFAC', 'juneau-mainland': 'JNFAC',
+      'haines-lutak': 'HAFAC', 'haines-transitional': 'HAFAC', 'haines-chilkat-pass': 'HAFAC',
+    };
+    for (const zoneId of zoneIds) {
+      const center = centerMapping[zoneId];
+      if (center) centerIds.add(center);
+    }
+    const summaryZoneIds = Array.from(centerIds).map(c => `_summary_${c}`);
+    const allRequestedIds = [...zoneIds, ...summaryZoneIds];
+
     const { data, error } = await supabase
       .from('avalanche_daily_forecasts')
       .select('*')
-      .in('zone_id', zoneIds)
+      .in('zone_id', allRequestedIds)
       .eq('forecast_date', forecastDate);
 
     if (error) {
@@ -47,24 +66,56 @@ serve(async (req) => {
       );
     }
 
-    const cachedZones = (data || []).map((row: any) => ({
-      ...row.synthesized_data,
-      _cachedAt: row.created_at,
-      _forecastDate: row.forecast_date,
-    }));
+    // Separate summary entries from zone entries
+    const summaryEntries: Record<string, any> = {};
+    const zoneEntries: any[] = [];
+    
+    for (const row of (data || [])) {
+      if (row.zone_id.startsWith('_summary_')) {
+        summaryEntries[row.zone_id] = row.synthesized_data;
+      } else {
+        zoneEntries.push({
+          ...row.synthesized_data,
+          _cachedAt: row.created_at,
+          _forecastDate: row.forecast_date,
+        });
+      }
+    }
 
-    const cachedZoneIds = new Set((data || []).map((row: any) => row.zone_id));
+    // Merge summary data from all centers
+    let quickTake = '';
+    let weatherHighlights = '';
+    let bottomLine = '';
+    const quickTakes: string[] = [];
+    const bottomLines: string[] = [];
+    const weatherHighlightsList: string[] = [];
+    
+    for (const [_, summaryData] of Object.entries(summaryEntries)) {
+      const sd = summaryData as any;
+      if (sd.quickTake) quickTakes.push(sd.quickTake);
+      if (sd.bottomLine) bottomLines.push(sd.bottomLine);
+      if (sd.weatherHighlights) weatherHighlightsList.push(sd.weatherHighlights);
+    }
+    
+    quickTake = quickTakes.join(' ');
+    bottomLine = bottomLines.join(' ');
+    weatherHighlights = weatherHighlightsList.join(' ');
+
+    const cachedZoneIds = new Set(zoneEntries.map((z: any) => z.id));
     const missingZoneIds = zoneIds.filter(id => !cachedZoneIds.has(id));
 
-    console.log(`Found ${cachedZones.length} cached, ${missingZoneIds.length} missing`);
+    console.log(`Found ${zoneEntries.length} cached zones, ${Object.keys(summaryEntries).length} summaries, ${missingZoneIds.length} missing`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        zones: cachedZones,
+        zones: zoneEntries,
         missingZoneIds,
         forecastDate,
         cached: true,
+        quickTake,
+        weatherHighlights,
+        bottomLine,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
