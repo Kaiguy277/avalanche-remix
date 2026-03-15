@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Mountain, RefreshCw, AlertTriangle, Clock, Snowflake, ExternalLink, Info, CloudSnow, Compass, ChevronRight, ChevronDown, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import SEO from "@/components/SEO";
@@ -846,6 +846,8 @@ export default function AvalancheSummaryPage() {
     toast
   } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const videoPlayedRef = useRef(false);
   const [isSnotelLoading, setIsSnotelLoading] = useState(false);
   const [summary, setSummary] = useState<AvalancheSummaryType | null>(null);
   const [scrapedAt, setScrapedAt] = useState<string | null>(null);
@@ -914,6 +916,8 @@ export default function AvalancheSummaryPage() {
       return;
     }
     setIsLoading(true);
+    setShowVideo(true);
+    videoPlayedRef.current = false;
     setLoadSource(null);
     console.log('🔍 Fetching forecasts for zones:', selectedZoneIds);
     analytics.toolUsed("Avalanche Summary", "fetch_started", {
@@ -1044,6 +1048,7 @@ export default function AvalancheSummaryPage() {
       });
     } finally {
       setIsLoading(false);
+      if (videoPlayedRef.current) setShowVideo(false);
     }
   };
   return <Layout>
@@ -1109,7 +1114,7 @@ export default function AvalancheSummaryPage() {
             </Button>
 
             {/* Loading card with timer and tips */}
-            {isLoading && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} />}
+            {(isLoading || showVideo) && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} onVideoComplete={() => { videoPlayedRef.current = true; if (!isLoading) setShowVideo(false); }} />}
 
             {scrapedAt && !isLoading && <div className="flex items-center justify-center gap-2 mt-4">
               <p className="text-sm text-muted-foreground">Last updated: {new Date(scrapedAt).toLocaleString()}</p>

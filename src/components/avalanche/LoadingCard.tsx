@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -18,6 +18,7 @@ const SAFETY_TIPS = [
 interface LoadingCardProps {
   className?: string;
   zoneCount?: number;
+  onVideoComplete?: () => void;
 }
 
 function getWaitTimeMessage(zoneCount: number): { time: string; note: string } {
@@ -44,9 +45,24 @@ function getWaitTimeMessage(zoneCount: number): { time: string; note: string } {
   }
 }
 
-export default function LoadingCard({ className, zoneCount = 4 }: LoadingCardProps) {
+export default function LoadingCard({ className, zoneCount = 4, onVideoComplete }: LoadingCardProps) {
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const waitInfo = getWaitTimeMessage(zoneCount);
+
+  // After the first playthrough ends, signal completion and enable looping
+  const handleEnded = useCallback(() => {
+    if (!hasPlayedOnce) {
+      setHasPlayedOnce(true);
+      onVideoComplete?.();
+      // Keep looping in case we're still loading
+      if (videoRef.current) {
+        videoRef.current.loop = true;
+        videoRef.current.play();
+      }
+    }
+  }, [hasPlayedOnce, onVideoComplete]);
 
   // Rotate tips every 4 seconds
   useEffect(() => {
@@ -63,9 +79,11 @@ export default function LoadingCard({ className, zoneCount = 4 }: LoadingCardPro
         {/* Video */}
         <div className="w-full max-w-sm rounded-lg overflow-hidden">
           <video
+            ref={videoRef}
             autoPlay
             muted
             playsInline
+            onEnded={handleEnded}
             className="w-full h-auto rounded-lg"
             src="/loading-clip.mp4"
           />
