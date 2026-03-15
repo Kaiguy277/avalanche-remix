@@ -145,6 +145,51 @@ export interface SnotelResponse {
   error?: string;
 }
 
+// Weather Forecast types (NAC weather products + NOAA NWS)
+
+export interface NacWeatherTable {
+  zone_name: string;
+  zone_id: string;
+  columns: string[];
+  rows: Array<{ heading: string; field: string; unit: string | null }>;
+  data: (string | null)[][];
+}
+
+export interface NacWeatherProduct {
+  discussion: string | null;
+  tables: NacWeatherTable[];
+  publishedTime: string | null;
+}
+
+export interface NwsForecastPeriod {
+  name: string;
+  temperature: number;
+  temperatureUnit: string;
+  windSpeed: string;
+  windDirection: string;
+  shortForecast: string;
+  detailedForecast: string;
+  isDaytime: boolean;
+}
+
+export interface NwsForecast {
+  periods: NwsForecastPeriod[];
+  gridpoint: string;
+  forecastZone: string | null;
+}
+
+export interface ZoneWeatherForecast {
+  nacWeather?: NacWeatherProduct;
+  nwsForecast?: NwsForecast;
+}
+
+export interface WeatherForecastResponse {
+  success: boolean;
+  centerWeather?: Record<string, NacWeatherProduct>;
+  zoneNwsForecasts?: Record<string, NwsForecast>;
+  error?: string;
+}
+
 export const avalancheApi = {
   // Original full endpoint (fallback)
   async getSummary(zoneIds?: string[]): Promise<AvalancheResponse> {
@@ -182,6 +227,20 @@ export const avalancheApi = {
 
     if (error) {
       console.error('Error calling get-snotel-observations:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data;
+  },
+
+  // Phase 3: Get weather forecasts (NAC weather products + NOAA NWS, ~2-4s)
+  async getWeatherForecast(zoneIds: string[]): Promise<WeatherForecastResponse> {
+    const { data, error } = await supabase.functions.invoke('get-weather-forecast', {
+      body: { zoneIds },
+    });
+
+    if (error) {
+      console.error('Error calling get-weather-forecast:', error);
       return { success: false, error: error.message };
     }
 

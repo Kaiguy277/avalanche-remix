@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { avalancheApi, type AvalancheSummary as AvalancheSummaryType, type AvalancheZone, type ScrapedZoneInfo, type DangerRating, type AvalancheProblem, type WeatherObservation } from "@/lib/api/avalanche";
+import { avalancheApi, type AvalancheSummary as AvalancheSummaryType, type AvalancheZone, type ScrapedZoneInfo, type DangerRating, type AvalancheProblem, type WeatherObservation, type NacWeatherProduct, type NwsForecast, type ZoneWeatherForecast } from "@/lib/api/avalanche";
 import { analytics } from "@/lib/analytics";
 import WeatherStationCard from "@/components/avalanche/WeatherStationCard";
+import WeatherForecastCard from "@/components/avalanche/WeatherForecastCard";
 import LoadingCard from "@/components/avalanche/LoadingCard";
 
 // Hierarchical zone structure: Region → Avalanche Center → Zone
@@ -337,6 +338,16 @@ const AVAILABLE_ZONES = REGION_STRUCTURE.flatMap(region => region.centers.flatMa
   name: zone.name,
   center: center.id
 }))));
+// Zone ID → Center ID lookup (built from REGION_STRUCTURE)
+const ZONE_TO_CENTER: Record<string, string> = {};
+for (const region of REGION_STRUCTURE) {
+  for (const center of region.centers) {
+    for (const zone of center.zones) {
+      ZONE_TO_CENTER[zone.id] = center.id;
+    }
+  }
+}
+
 const ZONE_PREFS_KEY = 'avalanche-zone-selection';
 
 // Hierarchical Zone Selector Component
@@ -639,10 +650,14 @@ function AvalancheProblemCard({
 }
 function ZoneCard({
   zone,
-  isSnotelLoading = false
+  isSnotelLoading = false,
+  isWeatherForecastLoading = false,
+  weatherForecast
 }: {
   zone: AvalancheZone;
   isSnotelLoading?: boolean;
+  isWeatherForecastLoading?: boolean;
+  weatherForecast?: ZoneWeatherForecast;
 }) {
   const freshness = freshnessConfig[zone.freshness.status];
   const todayForecast = zone.forecast?.[0];
@@ -712,10 +727,17 @@ function ZoneCard({
           <p className="text-sm text-muted-foreground">{zone.travelAdvice}</p>
         </div>
 
-        {/* Weather Station Observations */}
+        {/* Weather Outlook (forecast/what's coming) */}
+        <WeatherForecastCard
+          nacWeather={weatherForecast?.nacWeather}
+          nwsForecast={weatherForecast?.nwsForecast}
+          isLoading={isWeatherForecastLoading && !weatherForecast}
+        />
+
+        {/* Weather Station Observations (what already happened) */}
         {zone.weatherObservations && zone.weatherObservations.length > 0 && (
-          <WeatherStationCard 
-            observations={zone.weatherObservations} 
+          <WeatherStationCard
+            observations={zone.weatherObservations}
             note={zone.id === 'douglas-island' ? 'Note: These stations are outside the forecast zone. Expect high spatial variability.' : undefined}
           />
         )}
@@ -849,6 +871,11 @@ export default function AvalancheSummaryPage() {
   const [showVideo, setShowVideo] = useState(false);
   const videoPlayedRef = useRef(false);
   const [isSnotelLoading, setIsSnotelLoading] = useState(false);
+  const [isWeatherForecastLoading, setIsWeatherForecastLoading] = useState(false);
+  const [weatherForecastData, setWeatherForecastData] = useState<{
+    centerWeather: Record<string, NacWeatherProduct>;
+    zoneNwsForecasts: Record<string, NwsForecast>;
+  } | null>(null);
   const [summary, setSummary] = useState<AvalancheSummaryType | null>(null);
   const [scrapedAt, setScrapedAt] = useState<string | null>(null);
   const [zonesScraped, setZonesScraped] = useState<ScrapedZoneInfo[]>([]);
@@ -906,6 +933,34 @@ export default function AvalancheSummaryPage() {
     }
   }, []);
 
+  // Fetch weather forecasts (NAC weather products + NOAA NWS)
+  const fetchWeatherForecast = useCallback(async (zoneIds: string[]) => {
+    setIsWeatherForecastLoading(true);
+    try {
+      const response = await avalancheApi.getWeatherForecast(zoneIds);
+      if (response.success) {
+        setWeatherForecastData({
+          centerWeather: response.centerWeather || {},
+          zoneNwsForecasts: response.zoneNwsForecasts || {},
+        });
+      }
+    } catch (error) {
+      console.error('Weather forecast fetch error:', error);
+    } finally {
+      setIsWeatherForecastLoading(false);
+    }
+  }, []);
+
+  // Resolve weather forecast data for a specific zone
+  const getZoneWeatherForecast = useCallback((zoneId: string): ZoneWeatherForecast | undefined => {
+    if (!weatherForecastData) return undefined;
+    const centerId = ZONE_TO_CENTER[zoneId];
+    const nacWeather = centerId ? weatherForecastData.centerWeather[centerId] : undefined;
+    const nwsForecast = weatherForecastData.zoneNwsForecasts[zoneId];
+    if (!nacWeather && !nwsForecast) return undefined;
+    return { nacWeather, nwsForecast };
+  }, [weatherForecastData]);
+
   const fetchSummary = async () => {
     if (selectedZoneIds.length === 0) {
       toast({
@@ -954,9 +1009,10 @@ export default function AvalancheSummaryPage() {
           description: `Showing today's forecasts. Loading weather stations...`
         });
 
-        // Phase 2: Fetch SNOTEL in background
+        // Phase 2 & 3: Fetch SNOTEL and weather forecasts in parallel
         fetchSnotel(selectedZoneIds);
-        
+        fetchWeatherForecast(selectedZoneIds);
+
         analytics.toolUsed("Avalanche Summary", "fetch_cached_success");
         return;
       }
@@ -1032,8 +1088,9 @@ export default function AvalancheSummaryPage() {
           description: `Updated ${new Date().toLocaleTimeString()}`
         });
 
-        // Fetch SNOTEL in background for all zones
+        // Fetch SNOTEL and weather forecasts in background for all zones
         fetchSnotel(selectedZoneIds);
+        fetchWeatherForecast(selectedZoneIds);
       } else {
         analytics.toolUsed("Avalanche Summary", "fetch_error", {
           error: 'All center fetches failed'
@@ -1128,6 +1185,7 @@ export default function AvalancheSummaryPage() {
               <p className="text-sm text-muted-foreground">Last updated: {new Date(scrapedAt).toLocaleString()}</p>
               {loadSource === 'cached' && <Badge variant="outline" className="text-xs">Cached</Badge>}
               {isSnotelLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading SNOTEL</Badge>}
+              {isWeatherForecastLoading && <Badge variant="secondary" className="text-xs flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Loading Weather</Badge>}
             </div>}
           </div>
         </div>
@@ -1158,7 +1216,7 @@ export default function AvalancheSummaryPage() {
             {summary.zones.length > 0 && <div className="mb-8">
                 <h2 className="font-display text-xl font-bold mb-4">Zone Details</h2>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {summary.zones.map(zone => <ZoneCard key={zone.id} zone={zone} isSnotelLoading={isSnotelLoading} />)}
+                  {summary.zones.map(zone => <ZoneCard key={zone.id} zone={zone} isSnotelLoading={isSnotelLoading} isWeatherForecastLoading={isWeatherForecastLoading} weatherForecast={getZoneWeatherForecast(zone.id)} />)}
                 </div>
               </div>}
 
