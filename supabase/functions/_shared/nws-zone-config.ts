@@ -60,9 +60,9 @@ export const NWS_ZONE_MAP: Record<string, NwsZoneMapping> = {
   // ===================================================================
   'olympics':          { forecastZone: 'WAZ328', wfo: 'SEW' },  // Olympics
   'west-slopes-north': { forecastZone: 'WAZ301', wfo: 'SEW' },  // Cascades of Whatcom and Skagit Counties
-  'west-slopes-central': { forecastZone: 'WAZ302', wfo: 'SEW' },  // Cascades of Snohomish and Northern King Counties
+  'west-slopes-central': { forecastZone: 'WAZ305', wfo: 'SEW' },  // West Slopes of the Central Cascades
   'west-slopes-south': { forecastZone: 'WAZ304', wfo: 'SEW' },  // Cascades of Pierce and Lewis Counties
-  'stevens-pass':      { forecastZone: 'WAZ048', wfo: 'OTX' },  // Western Chelan County (crest/east side)
+  'stevens-pass':      { forecastZone: 'WAZ302', wfo: 'SEW' },  // Cascades of Snohomish/King Counties (pass summit)
   'snoqualmie-pass':   { forecastZone: 'WAZ303', wfo: 'SEW' },  // Cascades of Southern King County
   'east-slopes-north': { forecastZone: 'WAZ049', wfo: 'OTX' },  // Western Okanogan County
   'east-slopes-central': { forecastZone: 'WAZ047', wfo: 'OTX' },  // Central Chelan County
@@ -75,7 +75,7 @@ export const NWS_ZONE_MAP: Record<string, NwsZoneMapping> = {
   'mt-hood': { forecastZone: 'ORZ126', wfo: 'PQR' },  // North Oregon Cascades
 
   // COAA (Central Oregon Avalanche Association)
-  'central-cascades': { forecastZone: 'ORZ127', wfo: 'PQR' },  // Cascades of Marion and Linn Counties
+  'central-cascades': { forecastZone: 'ORZ509', wfo: 'PDT' },  // East Slopes Oregon Cascades (Three Sisters/Bachelor)
   'newberry':         { forecastZone: 'ORZ509', wfo: 'PDT' },  // East Slopes of the Oregon Cascades
 
   // WAC (Wallowa Avalanche Center)
@@ -91,7 +91,7 @@ export const NWS_ZONE_MAP: Record<string, NwsZoneMapping> = {
   // CALIFORNIA
   // ===================================================================
   // MSAC (Mt Shasta Avalanche Center)
-  'mount-shasta': { forecastZone: 'CAZ082', wfo: 'MFR' },  // South Central Siskiyou County
+  'mount-shasta': { forecastZone: 'CAZ083', wfo: 'MFR' },  // North Central/SE Siskiyou County (Mt Shasta area)
 
   // SAC (Sierra Avalanche Center)
   'central-sierra-nevada': { forecastZone: 'CAZ069', wfo: 'STO' },  // West Slope Northern Sierra Nevada
@@ -100,7 +100,7 @@ export const NWS_ZONE_MAP: Record<string, NwsZoneMapping> = {
   'eastside-region': { forecastZone: 'CAZ073', wfo: 'REV' },  // Mono County
 
   // BAC (Bridgeport Avalanche Center)
-  'bridgeport': { forecastZone: 'CAZ073', wfo: 'REV' },  // Mono County
+  'bridgeport': { forecastZone: 'CAZ069', wfo: 'STO' },  // West Slope Northern Sierra Nevada (Sonora Pass)
 
   // ===================================================================
   // IDAHO - SNFAC (Sawtooth National Forest Avalanche Center)
