@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getStationsForZone } from '../_shared/weather-station-config.ts';
+import { getNwsZoneMapping, getAvgWfos } from '../_shared/nws-zone-config.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,9 +7,16 @@ const corsHeaders = {
 };
 
 const NAC_API_BASE = 'https://api.avalanche.org/v2/public';
+const NWS_API_BASE = 'https://api.weather.gov';
+
 const nacHeaders = {
   'User-Agent': '(kaiconsulting.lovable.app, kaimyers@alaskapacific.edu)',
   'Accept': 'application/json',
+};
+
+const nwsHeaders = {
+  'User-Agent': '(AvalancheComparison/1.0, kaimyers@alaskapacific.edu)',
+  'Accept': 'application/geo+json',
 };
 
 // Strip HTML preserving paragraph breaks
@@ -35,20 +42,38 @@ async function fetchNacWeather(centerId: string): Promise<string | null> {
   } catch { return null; }
 }
 
-// Fetch NOAA NWS forecast for a lat/lon
-async function fetchNoaaForecast(lat: number, lon: number): Promise<string | null> {
+// Fetch AVG discussion from a WFO
+async function fetchAvgDiscussion(wfo: string): Promise<string | null> {
   try {
-    const nwsHeaders = { 'User-Agent': '(AvalancheComparison/1.0, kaimyers@alaskapacific.edu)', 'Accept': 'application/geo+json' };
-    const pointsResp = await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`, { headers: nwsHeaders });
-    if (!pointsResp.ok) return null;
-    const { properties: { gridId, gridX, gridY } } = await pointsResp.json();
-    const forecastResp = await fetch(`https://api.weather.gov/gridpoints/${gridId}/${gridX},${gridY}/forecast?units=us`, { headers: nwsHeaders });
-    if (!forecastResp.ok) return null;
-    const forecastData = await forecastResp.json();
-    const periods = (forecastData.properties?.periods || []).slice(0, 6);
-    return periods.length > 0
-      ? '[NWS Mountain Forecast]\n' + periods.map((p: any) => `${p.name}: ${p.detailedForecast}`).join('\n')
-      : null;
+    const listResp = await fetch(`${NWS_API_BASE}/products/types/AVG/locations/${wfo}`, { headers: nwsHeaders });
+    if (!listResp.ok) return null;
+    const listData = await listResp.json();
+    const products = listData['@graph'] || [];
+    if (products.length === 0) return null;
+
+    const latestId = products[0].id || products[0]['@id']?.split('/').pop();
+    if (!latestId) return null;
+
+    const productResp = await fetch(`${NWS_API_BASE}/products/${latestId}`, { headers: nwsHeaders });
+    if (!productResp.ok) return null;
+    const productData = await productResp.json();
+    const text = productData.productText || '';
+
+    // Extract just the .DISCUSSION... section
+    const match = text.match(/\.DISCUSSION\.\.\.\s*\n([\s\S]*?)(?=\n\s*\n\s*\.\.\.)/);
+    return match ? match[1].replace(/\s+/g, ' ').trim() : null;
+  } catch { return null; }
+}
+
+// Fetch NWS zone forecast (text periods for a mountain zone)
+async function fetchNwsZoneForecast(forecastZone: string): Promise<string | null> {
+  try {
+    const resp = await fetch(`${NWS_API_BASE}/zones/forecast/${forecastZone}/forecast`, { headers: nwsHeaders });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const periods = (data.properties?.periods || []).slice(0, 4);
+    if (periods.length === 0) return null;
+    return periods.map((p: any) => `${p.name}: ${p.detailedForecast}`).join('\n');
   } catch { return null; }
 }
 
@@ -121,11 +146,12 @@ serve(async (req) => {
 
     console.log(`Generating Quick Take for ${zones.length} zones`);
 
-    // Determine unique centers
+    // Determine unique centers and WFOs
     const centerIds = [...new Set(zones.map((z: any) => z.centerId).filter(Boolean))];
 
-    // Fetch weather forecasts per center (NAC + NOAA fallback) in parallel
-    const weatherForecasts = new Map<string, string>();
+    // ── Fetch weather data in parallel: NAC + AVG + NWS zone forecasts ──
+
+    // 1. NAC weather discussions (per center)
     const nacResults = await Promise.all(
       centerIds.map(async (centerId: string) => {
         const discussion = await fetchNacWeather(centerId);
@@ -133,28 +159,77 @@ serve(async (req) => {
       })
     );
 
-    const centersWithNac = new Set<string>();
-    for (const { centerId, discussion } of nacResults) {
-      if (discussion) {
-        weatherForecasts.set(centerId, discussion);
-        centersWithNac.add(centerId);
+    // 2. AVG discussions (per WFO, deduplicated)
+    const wfosNeeded = new Set<string>();
+    for (const centerId of centerIds) {
+      for (const wfo of getAvgWfos(centerId)) {
+        wfosNeeded.add(wfo);
       }
     }
 
-    // NOAA fallback for centers without NAC weather
-    const centersNeedingNoaa = centerIds.filter((c: string) => !centersWithNac.has(c));
-    if (centersNeedingNoaa.length > 0) {
-      await Promise.all(centersNeedingNoaa.map(async (centerId: string) => {
-        const zone = zones.find((z: any) => z.centerId === centerId);
-        if (!zone) return;
-        const stations = getStationsForZone(zone.id);
-        if (stations.length === 0) return;
-        const forecast = await fetchNoaaForecast(stations[0].latitude, stations[0].longitude);
-        if (forecast) weatherForecasts.set(centerId, forecast);
-      }));
+    const avgResults = await Promise.all(
+      Array.from(wfosNeeded).map(async (wfo) => {
+        const discussion = await fetchAvgDiscussion(wfo);
+        return { wfo, discussion };
+      })
+    );
+
+    // 3. NWS zone forecasts (per unique NWS zone, deduplicated)
+    const nwsZonesNeeded = new Map<string, string[]>(); // nwsZone → [avyZoneIds]
+    for (const zone of zones) {
+      const mapping = getNwsZoneMapping(zone.id);
+      if (mapping) {
+        if (!nwsZonesNeeded.has(mapping.forecastZone)) {
+          nwsZonesNeeded.set(mapping.forecastZone, []);
+        }
+        nwsZonesNeeded.get(mapping.forecastZone)!.push(zone.id);
+      }
     }
 
-    console.log(`Weather forecasts available for: ${[...weatherForecasts.keys()].join(', ') || 'none'}`);
+    const nwsResults = await Promise.all(
+      Array.from(nwsZonesNeeded.entries()).map(async ([nwsZone, avyZoneIds]) => {
+        const forecast = await fetchNwsZoneForecast(nwsZone);
+        return { nwsZone, avyZoneIds, forecast };
+      })
+    );
+
+    // ── Assemble weather context ──
+
+    const weatherForecasts = new Map<string, string>();
+
+    // NAC weather discussions
+    for (const { centerId, discussion } of nacResults) {
+      if (discussion) {
+        weatherForecasts.set(`NAC:${centerId}`, discussion);
+      }
+    }
+
+    // AVG discussions (mapped back to centers)
+    const wfoToAvg = new Map<string, string>();
+    for (const { wfo, discussion } of avgResults) {
+      if (discussion) wfoToAvg.set(wfo, discussion);
+    }
+    for (const centerId of centerIds) {
+      const wfos = getAvgWfos(centerId);
+      for (const wfo of wfos) {
+        const disc = wfoToAvg.get(wfo);
+        if (disc && !weatherForecasts.has(`AVG:${centerId}`)) {
+          weatherForecasts.set(`AVG:${centerId}`, disc);
+        }
+      }
+    }
+
+    // NWS zone forecasts (mapped to avy zone IDs)
+    const zoneToNwsForecast = new Map<string, string>();
+    for (const { nwsZone, avyZoneIds, forecast } of nwsResults) {
+      if (forecast) {
+        for (const zoneId of avyZoneIds) {
+          zoneToNwsForecast.set(zoneId, forecast);
+        }
+      }
+    }
+
+    console.log(`Weather sources: NAC=${nacResults.filter(r => r.discussion).length}, AVG=${avgResults.filter(r => r.discussion).length} WFOs, NWS zones=${nwsResults.filter(r => r.forecast).length}`);
 
     // Build concise AI context
     const zoneContexts = zones.map((zone: any) => {
@@ -199,13 +274,23 @@ serve(async (req) => {
         if (winds.length > 0) ctx += `\nStation max wind 24hr: ${winds.map((v: number) => `${v} mph`).join(', ')}`;
       }
 
+      // NWS zone forecast for this specific zone
+      const nwsForecast = zoneToNwsForecast.get(zone.id);
+      if (nwsForecast) {
+        ctx += `\nNWS Zone Forecast:\n${nwsForecast}`;
+      }
+
       return ctx;
     }).join('\n\n');
 
-    // Add weather forecasts by center
+    // Add regional weather forecasts (AVG discussions + NAC discussions)
     let weatherContext = '';
-    for (const [centerId, forecast] of weatherForecasts) {
-      weatherContext += `\n\n=== WEATHER FORECAST (${centerId}, next 2-3 days) ===\n${forecast.slice(0, 1500)}`;
+    for (const [key, forecast] of weatherForecasts) {
+      const [source, id] = key.split(':');
+      const label = source === 'AVG'
+        ? `NWS AVALANCHE WEATHER GUIDANCE (${id})`
+        : `NAC WEATHER DISCUSSION (${id})`;
+      weatherContext += `\n\n=== ${label} ===\n${forecast.slice(0, 2000)}`;
     }
 
     // Build scope description
