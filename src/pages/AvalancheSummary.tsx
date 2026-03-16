@@ -1038,9 +1038,13 @@ export default function AvalancheSummaryPage() {
     return { nacWeather, nwsForecast };
   }, [weatherForecastData]);
 
+  // Use a ref so generateQuickTake always reads the current value
+  const quickTakeEnabledRef = useRef(quickTakeEnabled);
+  quickTakeEnabledRef.current = quickTakeEnabled;
+
   // Generate Quick Take from the AI using the user's selected zones
   const generateQuickTake = useCallback(async (zones: AvalancheZone[]) => {
-    if (!quickTakeEnabled || zones.length === 0) return;
+    if (!quickTakeEnabledRef.current || zones.length === 0) return;
     setIsQuickTakeLoading(true);
     try {
       // Enrich zones with centerId for the edge function
@@ -1048,7 +1052,9 @@ export default function AvalancheSummaryPage() {
         ...z,
         centerId: ZONE_TO_CENTER[z.id] || 'unknown',
       }));
+      console.log('🤖 Generating Quick Take for', zonesWithCenter.length, 'zones');
       const response = await avalancheApi.generateQuickTake(zonesWithCenter);
+      console.log('🤖 Quick Take response:', response.success, response.quickTake?.slice(0, 100));
       if (response.success && response.quickTake) {
         setSummary(prev => {
           if (!prev) return prev;
@@ -1064,7 +1070,7 @@ export default function AvalancheSummaryPage() {
     } finally {
       setIsQuickTakeLoading(false);
     }
-  }, [quickTakeEnabled]);
+  }, []);
 
   // Toggle Quick Take and persist preference
   const toggleQuickTake = useCallback((enabled: boolean) => {
@@ -1281,15 +1287,27 @@ export default function AvalancheSummaryPage() {
               </CardContent>
             </Card>
 
-            <Button size="lg" onClick={fetchSummary} disabled={isLoading} className="gap-2">
-              {isLoading ? <>
-                  <RefreshCw className="h-5 w-5 animate-spin" />
-                  Fetching Conditions...
-                </> : <>
-                  <Snowflake className="h-5 w-5" />
-                  Get Current Conditions
-                </>}
-            </Button>
+            <div className="flex flex-col items-center gap-3">
+              <Button size="lg" onClick={fetchSummary} disabled={isLoading} className="gap-2">
+                {isLoading ? <>
+                    <RefreshCw className="h-5 w-5 animate-spin" />
+                    Fetching Conditions...
+                  </> : <>
+                    <Snowflake className="h-5 w-5" />
+                    Get Current Conditions
+                  </>}
+              </Button>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="quick-take-toggle"
+                  checked={quickTakeEnabled}
+                  onCheckedChange={(checked) => toggleQuickTake(checked === true)}
+                />
+                <label htmlFor="quick-take-toggle" className="text-sm text-muted-foreground cursor-pointer">
+                  Include AI Quick Take
+                </label>
+              </div>
+            </div>
 
             {/* Loading card with timer and tips */}
             {(isLoading || showVideo) && <LoadingCard className="mt-8 max-w-md mx-auto" zoneCount={selectedZoneIds.length} onVideoComplete={() => { videoPlayedRef.current = true; tryRevealResults(); }} />}
@@ -1308,44 +1326,27 @@ export default function AvalancheSummaryPage() {
       {summary && showResults && <section className="py-12 md:py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
             {/* Quick Take */}
-            <Card className="mb-8 border-primary/30 bg-gradient-to-br from-background to-primary/5">
-              <CardHeader>
-                <div className="flex items-center justify-between">
+            {(quickTakeEnabled && (isQuickTakeLoading || summary.quickTake)) && (
+              <Card className="mb-8 border-primary/30 bg-gradient-to-br from-background to-primary/5">
+                <CardHeader>
                   <CardTitle className="font-display text-xl flex items-center gap-2">
                     <Info className="h-5 w-5 text-primary" />
                     Quick Take
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">AI</Badge>
                   </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="quick-take-toggle"
-                      checked={quickTakeEnabled}
-                      onCheckedChange={(checked) => toggleQuickTake(checked === true)}
-                    />
-                    <label htmlFor="quick-take-toggle" className="text-xs text-muted-foreground cursor-pointer">
-                      Generate AI summary
-                    </label>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isQuickTakeLoading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating Quick Take for {summary.zones.length} zone{summary.zones.length !== 1 ? 's' : ''}...
-                  </div>
-                )}
-                {!isQuickTakeLoading && summary.quickTake && (
-                  <p className="text-foreground leading-relaxed">{summary.quickTake}</p>
-                )}
-                {!isQuickTakeLoading && !summary.quickTake && quickTakeEnabled && (
-                  <p className="text-sm text-muted-foreground">Quick Take will be generated when conditions are loaded.</p>
-                )}
-                {!quickTakeEnabled && (
-                  <p className="text-sm text-muted-foreground">AI summary is disabled. Enable it above to generate a Quick Take.</p>
-                )}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  {isQuickTakeLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating Quick Take for {summary.zones.length} zone{summary.zones.length !== 1 ? 's' : ''}...
+                    </div>
+                  ) : (
+                    <p className="text-foreground leading-relaxed">{summary.quickTake}</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Zone Comparison Matrix */}
             {summary.zones.length > 0 && <div className="mb-8">
