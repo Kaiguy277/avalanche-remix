@@ -933,6 +933,13 @@ export default function AvalancheSummaryPage() {
   const videoPlayedRef = useRef(false);
   const dataReadyRef = useRef(false);
   const [isSnotelLoading, setIsSnotelLoading] = useState(false);
+  const [isQuickTakeLoading, setIsQuickTakeLoading] = useState(false);
+  const [quickTakeEnabled, setQuickTakeEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem('avalanche-quick-take-enabled');
+      return saved !== null ? saved === 'true' : true; // default on
+    } catch { return true; }
+  });
   const [isWeatherForecastLoading, setIsWeatherForecastLoading] = useState(false);
   const [weatherForecastData, setWeatherForecastData] = useState<{
     centerWeather: Record<string, NacWeatherProduct>;
@@ -1031,6 +1038,40 @@ export default function AvalancheSummaryPage() {
     return { nacWeather, nwsForecast };
   }, [weatherForecastData]);
 
+  // Generate Quick Take from the AI using the user's selected zones
+  const generateQuickTake = useCallback(async (zones: AvalancheZone[]) => {
+    if (!quickTakeEnabled || zones.length === 0) return;
+    setIsQuickTakeLoading(true);
+    try {
+      // Enrich zones with centerId for the edge function
+      const zonesWithCenter = zones.map(z => ({
+        ...z,
+        centerId: ZONE_TO_CENTER[z.id] || 'unknown',
+      }));
+      const response = await avalancheApi.generateQuickTake(zonesWithCenter);
+      if (response.success && response.quickTake) {
+        setSummary(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            quickTake: response.quickTake || prev.quickTake,
+            weatherHighlights: response.weatherHighlights || prev.weatherHighlights,
+          };
+        });
+      }
+    } catch (error) {
+      console.error('Quick Take generation error:', error);
+    } finally {
+      setIsQuickTakeLoading(false);
+    }
+  }, [quickTakeEnabled]);
+
+  // Toggle Quick Take and persist preference
+  const toggleQuickTake = useCallback((enabled: boolean) => {
+    setQuickTakeEnabled(enabled);
+    try { localStorage.setItem('avalanche-quick-take-enabled', String(enabled)); } catch {}
+  }, []);
+
   const fetchSummary = async () => {
     if (selectedZoneIds.length === 0) {
       toast({
@@ -1065,12 +1106,12 @@ export default function AvalancheSummaryPage() {
         // Build a summary-like object from cached zones
         // The cached data already has the synthesized zone data
         const cachedSummary: AvalancheSummaryType = {
-          quickTake: cachedResponse.quickTake || '',
+          quickTake: '', // Will be generated fresh by AI
           zones: cachedResponse.zones,
-          weatherHighlights: cachedResponse.weatherHighlights || '',
-          bottomLine: cachedResponse.bottomLine || '',
+          weatherHighlights: '',
+          bottomLine: '',
         };
-        
+
         setSummary(cachedSummary);
         setScrapedAt(new Date().toISOString());
         setLoadSource('cached');
@@ -1078,9 +1119,10 @@ export default function AvalancheSummaryPage() {
         dataReadyRef.current = true;
         tryRevealResults();
 
-        // Phase 2 & 3: Fetch station observations and weather forecasts in parallel
+        // Phase 2, 3, & Quick Take: Fetch station observations, weather forecasts, and generate Quick Take in parallel
         fetchSnotel(selectedZoneIds);
         fetchWeatherForecast(selectedZoneIds);
+        generateQuickTake(cachedResponse.zones);
 
         analytics.toolUsed("Avalanche Summary", "fetch_cached_success");
         return;
@@ -1143,10 +1185,10 @@ export default function AvalancheSummaryPage() {
 
       if (hasAnySuccess) {
         setSummary({
-          quickTake: quickTakes.join(' ').trim(),
+          quickTake: '', // Will be generated fresh by AI
           zones: allZones,
-          weatherHighlights: weatherHighlightsList.join(' ').trim(),
-          bottomLine: bottomLines.join(' ').trim(),
+          weatherHighlights: '',
+          bottomLine: '',
         });
         setScrapedAt(new Date().toISOString());
         setZonesScraped(allZonesScraped);
@@ -1158,9 +1200,10 @@ export default function AvalancheSummaryPage() {
           description: `Updated ${new Date().toLocaleTimeString()}`
         });
 
-        // Fetch station observations and weather forecasts in background
+        // Fetch station observations, weather forecasts, and Quick Take in background
         fetchSnotel(selectedZoneIds);
         fetchWeatherForecast(selectedZoneIds);
+        generateQuickTake(allZones);
       } else {
         analytics.toolUsed("Avalanche Summary", "fetch_error", {
           error: 'All center fetches failed'
@@ -1267,13 +1310,40 @@ export default function AvalancheSummaryPage() {
             {/* Quick Take */}
             <Card className="mb-8 border-primary/30 bg-gradient-to-br from-background to-primary/5">
               <CardHeader>
-                <CardTitle className="font-display text-xl flex items-center gap-2">
-                  <Info className="h-5 w-5 text-primary" />
-                  Quick Take
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-display text-xl flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    Quick Take
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">AI</Badge>
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="quick-take-toggle"
+                      checked={quickTakeEnabled}
+                      onCheckedChange={(checked) => toggleQuickTake(checked === true)}
+                    />
+                    <label htmlFor="quick-take-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                      Generate AI summary
+                    </label>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground leading-relaxed">{summary.quickTake}</p>
+                {isQuickTakeLoading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generating Quick Take for {summary.zones.length} zone{summary.zones.length !== 1 ? 's' : ''}...
+                  </div>
+                )}
+                {!isQuickTakeLoading && summary.quickTake && (
+                  <p className="text-foreground leading-relaxed">{summary.quickTake}</p>
+                )}
+                {!isQuickTakeLoading && !summary.quickTake && quickTakeEnabled && (
+                  <p className="text-sm text-muted-foreground">Quick Take will be generated when conditions are loaded.</p>
+                )}
+                {!quickTakeEnabled && (
+                  <p className="text-sm text-muted-foreground">AI summary is disabled. Enable it above to generate a Quick Take.</p>
+                )}
               </CardContent>
             </Card>
 

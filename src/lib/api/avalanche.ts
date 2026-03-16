@@ -184,6 +184,13 @@ export interface ZoneWeatherForecast {
   nwsForecast?: NwsForecast;
 }
 
+export interface QuickTakeResponse {
+  success: boolean;
+  quickTake?: string;
+  weatherHighlights?: string;
+  error?: string;
+}
+
 export interface WeatherForecastResponse {
   success: boolean;
   centerWeather?: Record<string, NacWeatherProduct>;
@@ -228,6 +235,20 @@ export const avalancheApi = {
 
     if (error) {
       console.error('Error calling get-snotel-observations:', error);
+      return { success: false, error: error.message };
+    }
+
+    return data;
+  },
+
+  // Generate Quick Take summary for selected zones (AI synthesis)
+  async generateQuickTake(zones: Array<{ id: string; centerId: string; [key: string]: any }>): Promise<QuickTakeResponse> {
+    const { data, error } = await supabase.functions.invoke('generate-quick-take', {
+      body: { zones },
+    });
+
+    if (error) {
+      console.error('Error calling generate-quick-take:', error);
       return { success: false, error: error.message };
     }
 
