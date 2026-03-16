@@ -1319,7 +1319,7 @@ export default function AvalancheSummaryPage() {
             </div>
 
             {/* Loading card with timer and tips */}
-            {(isLoading || showVideo) && <LoadingCard className="mt-8 max-w-5xl mx-auto" zoneCount={selectedZoneIds.length} onVideoComplete={() => { videoPlayedRef.current = true; tryRevealResults(); }} />}
+            {(isLoading || showVideo) && <LoadingCard className="mt-8 w-full" zoneCount={selectedZoneIds.length} onVideoComplete={() => { videoPlayedRef.current = true; tryRevealResults(); }} />}
 
             {scrapedAt && showResults && <div className="flex items-center justify-center gap-2 mt-4">
               <p className="text-sm text-muted-foreground">Last updated: {new Date(scrapedAt).toLocaleString()}</p>
