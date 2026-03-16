@@ -29,27 +29,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'turnagain-girdwood',
     stations: [
       {
+        triplet: 'SNBA2',
+        name: 'SUNBURST',
+        elevation: 3799,
+        latitude: 60.7583,
+        longitude: -149.1789,
+        primary: true,
+      },
+      {
+        triplet: 'SERA2',
+        name: 'SEATTLE RIDGE',
+        elevation: 2400,
+        latitude: 60.8332,
+        longitude: -149.1602,
+        primary: true,
+      },
+      {
         triplet: 'TUGA2',
         name: 'TURNAGAIN PASS',
         elevation: 1880,
         latitude: 60.78043,
         longitude: -149.18325,
-        primary: true,
-      },
-      {
-        triplet: 'SUUA2',
-        name: 'SUMMIT CREEK',
-        elevation: 1400,
-        latitude: 60.61713,
-        longitude: -149.53128,
-        primary: true,
-      },
-      {
-        triplet: 'SRPA2',
-        name: 'Seward Highway @ Turnagain Pass MP 69.9',
-        elevation: 1033,
-        latitude: 60.8042,
-        longitude: -149.18451,
         primary: true,
       }
     ]
@@ -71,6 +71,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         elevation: 1880,
         latitude: 60.78043,
         longitude: -149.18325,
+        primary: true,
+      },
+      {
+        triplet: 'TNCA2',
+        name: 'TINCAN SNOLITE',
+        elevation: 3370,
+        latitude: 60.75,
+        longitude: -149.13,
         primary: true,
       }
     ]
@@ -113,6 +121,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         elevation: 2100,
         latitude: 61.37727,
         longitude: -148.99917,
+        primary: true,
+      },
+      {
+        triplet: 'AYSA2',
+        name: 'ALYESKA SUMMIT',
+        elevation: 3664,
+        latitude: 60.9563,
+        longitude: -149.0632,
         primary: true,
       }
     ]
