@@ -408,13 +408,11 @@ function HierarchicalZoneSelector({
     const regionZones = getRegionZones(region);
     const isSelected = isRegionSelected(region);
     if (isSelected === true) {
-      // Deselect all zones in region (only if other zones remain)
+      // Fully selected → deselect all in region
       const newSelection = selectedZoneIds.filter(id => !regionZones.includes(id));
-      if (newSelection.length > 0) {
-        onSelectionChange(newSelection);
-      }
+      onSelectionChange(newSelection);
     } else {
-      // Select all zones in region
+      // Indeterminate or unchecked → select all in region
       const newSelection = [...new Set([...selectedZoneIds, ...regionZones])];
       onSelectionChange(newSelection);
     }
@@ -423,24 +421,19 @@ function HierarchicalZoneSelector({
     const centerZones = getCenterZones(center);
     const isSelected = isCenterSelected(center);
     if (isSelected === true) {
-      // Deselect all zones in center (only if other zones remain)
+      // Fully selected → deselect all in center
       const newSelection = selectedZoneIds.filter(id => !centerZones.includes(id));
-      if (newSelection.length > 0) {
-        onSelectionChange(newSelection);
-      }
+      onSelectionChange(newSelection);
     } else {
-      // Select all zones in center
+      // Indeterminate or unchecked → select all in center
       const newSelection = [...new Set([...selectedZoneIds, ...centerZones])];
       onSelectionChange(newSelection);
     }
   };
   const handleZoneToggle = (zoneId: string) => {
     if (selectedZoneIds.includes(zoneId)) {
-      // Only deselect if other zones remain
       const newSelection = selectedZoneIds.filter(id => id !== zoneId);
-      if (newSelection.length > 0) {
-        onSelectionChange(newSelection);
-      }
+      onSelectionChange(newSelection);
     } else {
       onSelectionChange([...selectedZoneIds, zoneId]);
     }
@@ -965,7 +958,7 @@ export default function AvalancheSummaryPage() {
       if (saved) {
         const parsed = JSON.parse(saved);
         const validIds = parsed.filter((id: string) => AVAILABLE_ZONES.some(z => z.id === id));
-        return validIds.length > 0 ? validIds : DEFAULT_ZONE_IDS;
+        return validIds;
       }
     } catch (error) {
       console.error('Failed to load zone preferences:', error);
@@ -1269,27 +1262,22 @@ export default function AvalancheSummaryPage() {
               </CardHeader>
               <CardContent>
                 <HierarchicalZoneSelector selectedZoneIds={selectedZoneIds} onSelectionChange={value => {
-                if (value.length === 0) {
-                  toast({
-                    title: "At least one zone required",
-                    description: "Please select at least one zone",
-                    variant: "destructive"
-                  });
-                  return;
-                }
                 updateSelectedZones(value);
                 analytics.toolUsed("Avalanche Summary", "zone_selection_changed", {
                   selectedCount: value.length
                 });
               }} />
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-end gap-2">
                   <Button variant="outline" size="sm" onClick={() => {
-                  // Select only the first zone to maintain the "at least one" requirement
-                  if (AVAILABLE_ZONES.length > 0) {
-                    updateSelectedZones([AVAILABLE_ZONES[0].id]);
-                    analytics.toolUsed("Avalanche Summary", "reset_to_one");
-                  }
-                }} disabled={selectedZoneIds.length === 1}>
+                  updateSelectedZones([]);
+                  analytics.toolUsed("Avalanche Summary", "clear_selection");
+                }} disabled={selectedZoneIds.length === 0}>
+                    Clear Selection
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => {
+                  updateSelectedZones(DEFAULT_ZONE_IDS);
+                  analytics.toolUsed("Avalanche Summary", "reset_selection");
+                }} disabled={JSON.stringify(selectedZoneIds.slice().sort()) === JSON.stringify(DEFAULT_ZONE_IDS.slice().sort())}>
                     Reset Selection
                   </Button>
                 </div>
