@@ -28,7 +28,7 @@ export default function LoadingCard({ className, zoneCount = 4, onVideoComplete 
     <Card className={className}>
       <CardContent className="py-6 px-6 flex flex-col items-center text-center space-y-4">
         {/* Video */}
-        <div className="w-full max-w-sm rounded-lg overflow-hidden">
+        <div className="w-full max-w-2xl rounded-lg overflow-hidden">
           <video
             ref={videoRef}
             autoPlay
