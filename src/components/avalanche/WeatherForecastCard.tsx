@@ -1,18 +1,19 @@
-import { Sun, Wind, Thermometer, Loader2, ExternalLink, Cloud, FileText } from "lucide-react";
-import type { NacWeatherProduct, NwsForecast, NwsForecastPeriod, NacWeatherTable, AvgProduct } from "@/lib/api/avalanche";
+import { Sun, Wind, Thermometer, Loader2, ExternalLink, Cloud, FileText, ChevronDown, ChevronRight } from "lucide-react";
+import type { NacWeatherProduct, NwsForecast, NwsForecastPeriod, NacWeatherTable, AvgDiscussion, AvgLocation } from "@/lib/api/avalanche";
 import { useState } from "react";
 
 interface WeatherForecastCardProps {
   nacWeather?: NacWeatherProduct;
   nwsForecast?: NwsForecast;
-  avgProducts?: AvgProduct[];
+  avgDiscussion?: AvgDiscussion;
+  avgLocations?: AvgLocation[];
   isLoading?: boolean;
 }
 
-// Extract first 1-2 sentences as a headline from the discussion text
+// ─── Utility Functions ───────────────────────────────────────────────────────
+
 function extractHeadline(text: string | null | undefined, maxLength = 250): string | null {
   if (!text) return null;
-  // Split on sentence boundaries
   const sentences = text.split(/(?<=[.!?])\s+/);
   let headline = sentences[0] || '';
   if (sentences.length > 1 && (headline.length + sentences[1].length) < maxLength) {
@@ -21,7 +22,6 @@ function extractHeadline(text: string | null | undefined, maxLength = 250): stri
   return headline.trim() || null;
 }
 
-// Build a headline from NOAA forecast periods when no NAC discussion exists
 function buildNwsHeadline(periods: NwsForecastPeriod[]): string | null {
   if (!periods || periods.length === 0) return null;
   const today = periods[0];
@@ -42,7 +42,8 @@ function buildNwsHeadline(periods: NwsForecastPeriod[]): string | null {
   return parts.join(' ');
 }
 
-// Render a NOAA forecast period row
+// ─── NWS Period Row ──────────────────────────────────────────────────────────
+
 function NwsPeriodRow({ period }: { period: NwsForecastPeriod }) {
   return (
     <div className={`p-3 rounded-lg ${period.isDaytime ? 'bg-sky-50/50 dark:bg-sky-950/20' : 'bg-slate-50/50 dark:bg-slate-950/20'}`}>
@@ -76,7 +77,8 @@ function NwsPeriodRow({ period }: { period: NwsForecastPeriod }) {
   );
 }
 
-// Render NAC weather data table
+// ─── NAC Weather Data Table ──────────────────────────────────────────────────
+
 function NacWeatherDataTable({ table }: { table: NacWeatherTable }) {
   if (!table.columns || !table.rows || !table.data) return null;
   if (table.data.length === 0) return null;
@@ -137,47 +139,69 @@ function NacWeatherDataTable({ table }: { table: NacWeatherTable }) {
   );
 }
 
-// Render AVG (Avalanche Weather Guidance) product
-function AvgProductSection({ products }: { products: AvgProduct[] }) {
-  const [expanded, setExpanded] = useState(false);
+// ─── Expandable Section ──────────────────────────────────────────────────────
 
-  if (!products || products.length === 0) return null;
-
-  // Use the first (most recent) product
-  const product = products[0];
-  const previewLines = product.text.split('\n').slice(0, 15).join('\n');
-  const isLong = product.text.split('\n').length > 15;
+function ExpandableSection({
+  title,
+  icon,
+  children,
+  defaultOpen = false,
+  badge,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  badge?: string;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div>
-      <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2 flex items-center gap-1.5">
-        <FileText className="h-3.5 w-3.5 text-blue-500" />
-        NWS Avalanche Weather Guidance
-        <span className="text-[10px] text-muted-foreground/60 font-normal ml-1">
-          (WFO: {product.wfo})
-        </span>
-      </div>
-      <pre className="text-[11px] text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono overflow-x-auto max-h-[600px] overflow-y-auto">
-        {expanded ? product.text : previewLines}
-      </pre>
-      {isLong && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-xs text-primary hover:underline mt-1"
-        >
-          {expanded ? 'Show less' : 'Show full AVG product...'}
-        </button>
-      )}
-      {product.issuedTime && (
-        <p className="text-[10px] text-muted-foreground/60 mt-1">
-          Issued: {new Date(product.issuedTime).toLocaleString()}
-        </p>
+    <div className="border border-border/40 rounded-lg">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/30 rounded-lg transition-colors"
+      >
+        {open ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
+        {icon}
+        {title}
+        {badge && (
+          <span className="text-[10px] text-muted-foreground/60 font-normal ml-auto">{badge}</span>
+        )}
+      </button>
+      {open && (
+        <div className="px-3 pb-3">
+          {children}
+        </div>
       )}
     </div>
   );
 }
 
-export default function WeatherForecastCard({ nacWeather, nwsForecast, avgProducts, isLoading }: WeatherForecastCardProps) {
+// ─── AVG Location Table ──────────────────────────────────────────────────────
+
+function AvgLocationTable({ location }: { location: AvgLocation }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-medium text-foreground">
+        {location.name} {location.elevationBand}
+      </div>
+      <pre className="text-[10px] text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono overflow-x-auto">
+        {location.tableText}
+      </pre>
+    </div>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
+
+export default function WeatherForecastCard({
+  nacWeather,
+  nwsForecast,
+  avgDiscussion,
+  avgLocations,
+  isLoading,
+}: WeatherForecastCardProps) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -187,29 +211,53 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, avgProduc
     );
   }
 
-  if (!nacWeather && !nwsForecast && (!avgProducts || avgProducts.length === 0)) return null;
+  if (!nacWeather && !nwsForecast && !avgDiscussion && (!avgLocations || avgLocations.length === 0)) return null;
 
   const hasDiscussion = nacWeather?.discussion;
   const hasTables = nacWeather?.tables && nacWeather.tables.length > 0;
   const hasNwsPeriods = nwsForecast?.periods && nwsForecast.periods.length > 0;
-  const hasAvg = avgProducts && avgProducts.length > 0;
+  const hasAvgDiscussion = avgDiscussion?.discussion;
+  const hasAvgLocations = avgLocations && avgLocations.length > 0;
 
-  // Build headline: prefer NAC discussion, fall back to NOAA
-  const headline = hasDiscussion
-    ? extractHeadline(nacWeather!.discussion)
-    : hasNwsPeriods
-      ? buildNwsHeadline(nwsForecast!.periods)
-      : null;
+  // ── Build the best headline ──
+  // Priority: AVG forecaster discussion > NAC discussion > NWS first period
+  const headline = hasAvgDiscussion
+    ? extractHeadline(avgDiscussion!.discussion)
+    : hasDiscussion
+      ? extractHeadline(nacWeather!.discussion)
+      : hasNwsPeriods
+        ? buildNwsHeadline(nwsForecast!.periods)
+        : null;
+
+  // Split NWS periods: first 2 always visible, rest expandable
+  const visiblePeriods = nwsForecast?.periods?.slice(0, 2) || [];
+  const extraPeriods = nwsForecast?.periods?.slice(2) || [];
 
   return (
-    <div className="space-y-4">
-      {/* Headline */}
+    <div className="space-y-3">
+      {/* ── Summary Headline ── */}
       {headline && (
         <p className="text-sm text-foreground leading-relaxed">{headline}</p>
       )}
 
-      {/* Forecaster Weather Discussion (NAC) */}
-      {hasDiscussion && (
+      {/* ── AVG Forecaster Discussion (most valuable narrative) ── */}
+      {hasAvgDiscussion && (
+        <div>
+          <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2 flex items-center gap-1.5">
+            <FileText className="h-3.5 w-3.5 text-blue-500" />
+            Mountain Weather Discussion
+          </div>
+          <div className="text-sm text-muted-foreground leading-relaxed">
+            {avgDiscussion!.discussion}
+          </div>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            NWS {avgDiscussion!.wfo} — {new Date(avgDiscussion!.issuedTime).toLocaleString()}
+          </p>
+        </div>
+      )}
+
+      {/* ── NAC Weather Discussion (if different from AVG) ── */}
+      {hasDiscussion && !hasAvgDiscussion && (
         <div>
           <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2">
             Weather Discussion
@@ -225,17 +273,32 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, avgProduc
         </div>
       )}
 
-      {/* NWS Mountain Zone Forecast (NOAA) */}
+      {/* ── NWS Zone Forecast (first 2 periods visible, rest expandable) ── */}
       {hasNwsPeriods && (
         <div>
           <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2">
             NWS Mountain Forecast
           </div>
           <div className="space-y-2">
-            {nwsForecast!.periods.map((period, idx) => (
+            {visiblePeriods.map((period, idx) => (
               <NwsPeriodRow key={idx} period={period} />
             ))}
           </div>
+
+          {/* Expandable extra periods */}
+          {extraPeriods.length > 0 && (
+            <ExpandableSection
+              title={`${extraPeriods.length} more forecast periods`}
+              defaultOpen={false}
+            >
+              <div className="space-y-2">
+                {extraPeriods.map((period, idx) => (
+                  <NwsPeriodRow key={idx} period={period} />
+                ))}
+              </div>
+            </ExpandableSection>
+          )}
+
           <div className="flex items-center justify-between mt-2">
             <p className="text-[10px] text-muted-foreground/60">
               NWS Zone: {nwsForecast!.gridpoint}
@@ -254,21 +317,51 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, avgProduc
         </div>
       )}
 
-      {/* AVG (Avalanche Weather Guidance) */}
-      {hasAvg && <AvgProductSection products={avgProducts!} />}
-
-      {/* Station Forecast Data Table (NAC) */}
-      {hasTables && (
-        <div>
-          <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2">
-            Station Forecast Data
+      {/* ── AVG Zone-Specific Location Data (progressive disclosure) ── */}
+      {hasAvgLocations && (
+        <ExpandableSection
+          title={`Detailed AVG Forecast — ${avgLocations!.length} elevation bands`}
+          icon={<FileText className="h-3.5 w-3.5 text-blue-500" />}
+          badge={avgDiscussion ? `WFO: ${avgDiscussion.wfo}` : undefined}
+          defaultOpen={false}
+        >
+          <div className="space-y-4">
+            {avgLocations!.map((loc, idx) => (
+              <AvgLocationTable key={idx} location={loc} />
+            ))}
           </div>
+        </ExpandableSection>
+      )}
+
+      {/* ── NAC Discussion (when AVG discussion is also present) ── */}
+      {hasDiscussion && hasAvgDiscussion && (
+        <ExpandableSection
+          title="Avalanche Center Weather Discussion"
+          defaultOpen={false}
+        >
+          <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            {nacWeather!.discussion}
+          </div>
+          {nacWeather!.publishedTime && (
+            <p className="text-[10px] text-muted-foreground/60 mt-2">
+              Published: {new Date(nacWeather!.publishedTime).toLocaleString()}
+            </p>
+          )}
+        </ExpandableSection>
+      )}
+
+      {/* ── Station Forecast Data Table (NAC) ── */}
+      {hasTables && (
+        <ExpandableSection
+          title="Station Forecast Data"
+          defaultOpen={false}
+        >
           <div className="space-y-4">
             {nacWeather!.tables.map((table, idx) => (
               <NacWeatherDataTable key={idx} table={table} />
             ))}
           </div>
-        </div>
+        </ExpandableSection>
       )}
     </div>
   );

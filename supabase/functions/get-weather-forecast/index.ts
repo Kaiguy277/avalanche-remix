@@ -339,9 +339,86 @@ async function fetchNwsZoneForecast(forecastZone: string): Promise<{
 
 // ─── NWS AVG (Avalanche Weather Guidance) ────────────────────────────────────
 
+/** Parse AVG product text into structured parts */
+function parseAvgProduct(text: string): {
+  discussion: string | null;
+  locations: Array<{ name: string; elevationBand: string; tableText: string }>;
+} {
+  // Extract the .DISCUSSION... section
+  let discussion: string | null = null;
+  const discussionMatch = text.match(/\.DISCUSSION\.\.\.\s*\n([\s\S]*?)(?=\n\s*\n\s*\.\.\.)/);
+  if (discussionMatch) {
+    discussion = discussionMatch[1].replace(/\s+/g, ' ').trim();
+  }
+
+  // Extract location sections: ...Location Name (elevation)...
+  const locations: Array<{ name: string; elevationBand: string; tableText: string }> = [];
+  const sectionRegex = /\.\.\.([^.]+?)(\([^)]+\))?\.\.\.\s*\n([\s\S]*?)(?=\n\s*\.\.\.|$)/g;
+  let match;
+  while ((match = sectionRegex.exec(text)) !== null) {
+    const rawName = match[1].trim();
+    const elevationBand = match[2]?.trim() || '';
+    const tableText = match[3].trim();
+
+    // Skip the DISCUSSION section
+    if (rawName === 'DISCUSSION') continue;
+
+    locations.push({
+      name: rawName,
+      elevationBand,
+      tableText,
+    });
+  }
+
+  return { discussion, locations };
+}
+
+/** Map AVG location names to avalanche zone IDs.
+ * Returns all locations whose name matches keywords for a given zone. */
+const AVG_ZONE_KEYWORDS: Record<string, string[]> = {
+  // Alaska - CNFAIC
+  'turnagain-girdwood': ['Turnagain', 'Girdwood', 'Penguin Ridge', 'Portage Valley', 'Placer Valley'],
+  'summit': ['Summit Lake', 'Grandview'],
+  'seward': ['Lost Lake', 'Seward Area', 'Eastern Kenai'],
+  'chugach-state-park': ['Chugach Front Range', 'Indian'],
+  // Alaska - HPAC
+  'hatcher-pass': ['Hatcher Pass'],
+  // Alaska - VAC
+  'valdez-maritime': ['Valdez Coastal'],
+  'valdez-intermountain': ['Thompson Pass Mid', 'Thompson Pass Low Elev', 'Thompson Pass Upper Elev'],
+  'valdez-continental': ['Thompson Pass.*Continental'],
+  // Alaska - CAC
+  'cordova': ['Cordova'],
+  // Alaska - EARAC
+  'earac-north': ['Northern Chugach'],
+  'earac-south': ['Northern Chugach'],
+};
+
+function getAvgLocationsForZone(
+  zoneId: string,
+  locations: Array<{ name: string; elevationBand: string; tableText: string }>
+): Array<{ name: string; elevationBand: string; tableText: string }> {
+  const keywords = AVG_ZONE_KEYWORDS[zoneId];
+  if (!keywords) return [];
+
+  return locations.filter(loc => {
+    const fullName = loc.name + ' ' + loc.elevationBand;
+    return keywords.some(kw => {
+      if (kw.includes('*')) {
+        // Regex-style matching
+        const regex = new RegExp(kw, 'i');
+        return regex.test(fullName);
+      }
+      return fullName.toLowerCase().includes(kw.toLowerCase());
+    });
+  });
+}
+
 /** Fetch the most recent AVG product from a WFO */
 async function fetchAvgProduct(wfo: string): Promise<{
-  text: string;
+  discussion: string | null;
+  locations: Array<{ name: string; elevationBand: string; tableText: string }>;
+  fullText: string;
   issuedTime: string;
   wfo: string;
 } | null> {
@@ -389,7 +466,16 @@ async function fetchAvgProduct(wfo: string): Promise<{
       return null;
     }
 
-    return { text, issuedTime, wfo };
+    const parsed = parseAvgProduct(text);
+    console.log(`Parsed AVG for ${wfo}: discussion=${!!parsed.discussion}, locations=${parsed.locations.length}`);
+
+    return {
+      discussion: parsed.discussion,
+      locations: parsed.locations,
+      fullText: text,
+      issuedTime,
+      wfo,
+    };
   } catch (error) {
     console.error(`Error fetching AVG for WFO ${wfo}:`, error);
     return null;
@@ -494,7 +580,9 @@ serve(async (req) => {
     await Promise.all(nwsPromises);
 
     // ── Phase 3: Fetch AVG products for relevant WFOs ───────────────────
-    const centerAvgProducts: Record<string, any> = {};
+    // AVG products are parsed into: discussion (shared summary) + per-zone locations
+    const centerAvgDiscussions: Record<string, { discussion: string; issuedTime: string; wfo: string }> = {};
+    const zoneAvgLocations: Record<string, Array<{ name: string; elevationBand: string; tableText: string }>> = {};
 
     // Collect unique WFOs needed
     const wfosNeeded = new Set<string>();
@@ -514,7 +602,7 @@ serve(async (req) => {
       })
     );
 
-    // Map AVG products back to centers
+    // Map AVG products back to centers and zones
     const wfoToAvg = new Map<string, any>();
     for (const { wfo, product } of avgResults) {
       if (product) {
@@ -524,23 +612,40 @@ serve(async (req) => {
 
     for (const centerId of centerIds) {
       const wfos = getAvgWfos(centerId);
-      const products = wfos
-        .map(wfo => wfoToAvg.get(wfo))
-        .filter(Boolean);
 
-      if (products.length > 0) {
-        centerAvgProducts[centerId] = products;
+      for (const wfo of wfos) {
+        const avgData = wfoToAvg.get(wfo);
+        if (!avgData) continue;
+
+        // Store the discussion once per center (first WFO with a discussion wins)
+        if (avgData.discussion && !centerAvgDiscussions[centerId]) {
+          centerAvgDiscussions[centerId] = {
+            discussion: avgData.discussion,
+            issuedTime: avgData.issuedTime,
+            wfo: avgData.wfo,
+          };
+        }
+
+        // Extract per-zone AVG location sections
+        const zonesForCenter = centerZones.get(centerId) || [];
+        for (const zoneId of zonesForCenter) {
+          const zoneLocations = getAvgLocationsForZone(zoneId, avgData.locations);
+          if (zoneLocations.length > 0) {
+            zoneAvgLocations[zoneId] = zoneLocations;
+          }
+        }
       }
     }
 
-    console.log(`Weather fetch complete. NAC: ${centersWithNacWeather.size} centers, NWS zones: ${Object.keys(zoneNwsForecasts).length}, AVG: ${Object.keys(centerAvgProducts).length} centers`);
+    console.log(`Weather fetch complete. NAC: ${centersWithNacWeather.size} centers, NWS zones: ${Object.keys(zoneNwsForecasts).length}, AVG discussions: ${Object.keys(centerAvgDiscussions).length}, AVG zone locations: ${Object.keys(zoneAvgLocations).length}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         centerWeather,
         zoneNwsForecasts,
-        centerAvgProducts,
+        centerAvgDiscussions,
+        zoneAvgLocations,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

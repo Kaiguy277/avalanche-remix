@@ -757,7 +757,7 @@ function ZoneCard({
           </AccordionItem>
 
           {/* Weather Outlook (forecast/what's coming) */}
-          {(weatherForecast?.nacWeather || weatherForecast?.nwsForecast || weatherForecast?.avgProducts || (isWeatherForecastLoading && !weatherForecast)) && (
+          {(weatherForecast?.nacWeather || weatherForecast?.nwsForecast || weatherForecast?.avgDiscussion || weatherForecast?.avgLocations || (isWeatherForecastLoading && !weatherForecast)) && (
             <AccordionItem value="weather-outlook" className="border rounded-lg border-sky-500/30 px-3">
               <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
                 <span className="flex items-center gap-2">
@@ -765,7 +765,7 @@ function ZoneCard({
                   Weather Outlook
                   {weatherForecast?.nacWeather && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">Avy Center</Badge>}
                   {weatherForecast?.nwsForecast && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">NWS Mountain</Badge>}
-                  {weatherForecast?.avgProducts && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">AVG</Badge>}
+                  {weatherForecast?.avgDiscussion && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">AVG</Badge>}
                 </span>
               </AccordionTrigger>
               <AccordionContent>
@@ -773,7 +773,8 @@ function ZoneCard({
                   <WeatherForecastCard
                     nacWeather={weatherForecast?.nacWeather}
                     nwsForecast={weatherForecast?.nwsForecast}
-                    avgProducts={weatherForecast?.avgProducts}
+                    avgDiscussion={weatherForecast?.avgDiscussion}
+                    avgLocations={weatherForecast?.avgLocations}
                     isLoading={isWeatherForecastLoading && !weatherForecast}
                   />
                 </div>
@@ -946,7 +947,8 @@ export default function AvalancheSummaryPage() {
   const [weatherForecastData, setWeatherForecastData] = useState<{
     centerWeather: Record<string, NacWeatherProduct>;
     zoneNwsForecasts: Record<string, NwsForecast>;
-    centerAvgProducts: Record<string, import('@/lib/api/avalanche').AvgProduct[]>;
+    centerAvgDiscussions: Record<string, import('@/lib/api/avalanche').AvgDiscussion>;
+    zoneAvgLocations: Record<string, import('@/lib/api/avalanche').AvgLocation[]>;
   } | null>(null);
   const [summary, setSummary] = useState<AvalancheSummaryType | null>(null);
   const [scrapedAt, setScrapedAt] = useState<string | null>(null);
@@ -1022,7 +1024,8 @@ export default function AvalancheSummaryPage() {
         setWeatherForecastData({
           centerWeather: response.centerWeather || {},
           zoneNwsForecasts: response.zoneNwsForecasts || {},
-          centerAvgProducts: response.centerAvgProducts || {},
+          centerAvgDiscussions: response.centerAvgDiscussions || {},
+          zoneAvgLocations: response.zoneAvgLocations || {},
         });
       }
     } catch (error) {
@@ -1038,9 +1041,10 @@ export default function AvalancheSummaryPage() {
     const centerId = ZONE_TO_CENTER[zoneId];
     const nacWeather = centerId ? weatherForecastData.centerWeather[centerId] : undefined;
     const nwsForecast = weatherForecastData.zoneNwsForecasts[zoneId];
-    const avgProducts = centerId ? weatherForecastData.centerAvgProducts[centerId] : undefined;
-    if (!nacWeather && !nwsForecast && !avgProducts) return undefined;
-    return { nacWeather, nwsForecast, avgProducts };
+    const avgDiscussion = centerId ? weatherForecastData.centerAvgDiscussions[centerId] : undefined;
+    const avgLocations = weatherForecastData.zoneAvgLocations[zoneId];
+    if (!nacWeather && !nwsForecast && !avgDiscussion && !avgLocations) return undefined;
+    return { nacWeather, nwsForecast, avgDiscussion, avgLocations };
   }, [weatherForecastData]);
 
   // Use a ref so generateQuickTake always reads the current value
