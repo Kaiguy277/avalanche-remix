@@ -1,0 +1,93 @@
+Center ID,Center Name,State,Zone ID,Zone Name,NAC Zone ID,NWS Forecast Zone,NWS Zone Description,NWS WFO,AVG WFOs,Mountain-Specific NWS Zone,Num Stations,Station STIDs
+CNFAIC,Chugach National Forest Avalanche Info Center,AK,turnagain-girdwood,Turnagain Pass / Girdwood,2815,AKZ727,Turnagain Pass,AFC,AFC,Yes,3,SNBA2; SERA2; TUGA2
+CNFAIC,Chugach National Forest Avalanche Info Center,AK,summit,Summit Lake,2816,AKZ725,Southern Kenai Mtns,AFC,AFC,Yes,3,SUUA2; TUGA2; TNCA2
+CNFAIC,Chugach National Forest Avalanche Info Center,AK,seward,Seward / Lost Lake,2817,AKZ725,Southern Kenai Mtns,AFC,AFC,Yes,2,EXGA2; PEDA2
+CNFAIC,Chugach National Forest Avalanche Info Center,AK,chugach-state-park,Chugach State Park,2818,AKZ702,Anchorage Hillside / Eagle River,AFC,AFC,No - city/borough zone,3,HILA2; MORA2; AYSA2
+HPAC,Hatcher Pass Avalanche Center,AK,hatcher-pass,Hatcher Pass,2152,AKZ712,Hatcher Pass,AFC,AFC,Yes,2,HATA2; FBBA2
+VAC,Valdez Avalanche Center,AK,valdez-maritime,Valdez - Maritime,1609,AKZ731,Valdez,AFC,AFC,No - city zone,3,NVSA2; UPPA2; RSCA2
+VAC,Valdez Avalanche Center,AK,valdez-intermountain,Valdez - Intermountain,1610,AKZ732,Thompson Pass,AFC,AFC,Yes,3,NVSA2; UPPA2; RSCA2
+VAC,Valdez Avalanche Center,AK,valdez-continental,Valdez - Continental,1611,AKZ732,Thompson Pass,AFC,AFC,Yes,3,NVSA2; UPPA2; RSCA2
+EARAC,Eastern Alaska Range Avalanche Center,AK,earac-north,Eastern AK Range - North (Castner-Canwell),3002,AKZ850,Eastern AK Range South of Trims Camp,AFG,AFG,Yes,3,AGW01; LESA2; FLDA2
+EARAC,Eastern Alaska Range Avalanche Center,AK,earac-south,Eastern AK Range - South (Summit),3003,AKZ850,Eastern AK Range South of Trims Camp,AFG,AFG,Yes,3,AGW01; LESA2; FLDA2
+CAAC,Coastal Alaska Avalanche Center,AK,douglas-island,Douglas Island,2165,AKZ325,City and Borough of Juneau,AJK,AJK,No - city/borough zone,3,PPSA2; DCSA2; JTMA2
+CAAC,Coastal Alaska Avalanche Center,AK,juneau-mainland,Juneau Mainland,2164,AKZ325,City and Borough of Juneau,AJK,AJK,No - city/borough zone,3,PPSA2; DCSA2; JTMA2
+HAC,Haines Avalanche Center,AK,haines-lutak,Haines - Lutak,3005,AKZ319,Haines Borough and Klukwan,AJK,AJK,No - borough zone,3,TKHA2; RRWA2; FLOA2
+HAC,Haines Avalanche Center,AK,haines-transitional,Haines - Transitional,3006,AKZ319,Haines Borough and Klukwan,AJK,AJK,No - borough zone,3,TKHA2; RRWA2; FLOA2
+HAC,Haines Avalanche Center,AK,haines-chilkat-pass,Haines - Chilkat Pass,3007,AKZ319,Haines Borough and Klukwan,AJK,AJK,No - borough zone,3,TKHA2; RRWA2; FLOA2
+CAC,Cordova Avalanche Center,AK,cordova,Cordova,1421,AKZ735,Cordova,AFC,AFC,No - city zone,3,
+NWAC,Northwest Avalanche Center,WA,olympics,Olympics,1645,WAZ328,Olympics,SEW,"SEW; OTX; PQR",Yes,3,HUR53; WHSW1; BKHW1
+NWAC,Northwest Avalanche Center,WA,west-slopes-north,West Slopes North,1646,WAZ301,Cascades of Whatcom and Skagit Counties,SEW,"SEW; OTX; PQR",Yes,3,MTB50; MNOW1; WCSW1
+NWAC,Northwest Avalanche Center,WA,west-slopes-central,West Slopes Central,1647,WAZ305,West Slopes Central Cascades,SEW,"SEW; OTX; PQR",Yes,3,KUSW1; EPSW1; STS48
+NWAC,Northwest Avalanche Center,WA,west-slopes-south,West Slopes South,1648,WAZ304,Cascades of Pierce and Lewis Counties,SEW,"SEW; OTX; PQR",Yes,3,CMT69; PVC54; WPS58
+NWAC,Northwest Avalanche Center,WA,stevens-pass,Stevens Pass,1649,WAZ302,Cascades of Snohomish/King Counties,SEW,"SEW; OTX; PQR",Yes,3,STS40; STS52; STS48
+NWAC,Northwest Avalanche Center,WA,snoqualmie-pass,Snoqualmie Pass,1653,WAZ303,Cascades of Southern King County,SEW,"SEW; OTX; PQR",Yes,3,ALP44; SNO30; MTW43
+NWAC,Northwest Avalanche Center,WA,east-slopes-north,East Slopes North,1654,WAZ049,Western Okanogan County,OTX,"SEW; OTX; PQR",No - county zone,3,HRPW1; WAP55; SWSW1
+NWAC,Northwest Avalanche Center,WA,east-slopes-central,East Slopes Central,1655,WAZ047,Central Chelan County,OTX,"SEW; OTX; PQR",No - county zone,3,MSR52; TRGW1; GRCW1
+NWAC,Northwest Avalanche Center,WA,east-slopes-south,East Slopes South,1656,WAZ522,Upper Slopes Eastern WA Cascades Crest,OTX,"SEW; OTX; PQR",Yes,3,WPS58; LOHW1; CHP55
+NWAC,Northwest Avalanche Center,OR,mt-hood,Mt Hood,1657,ORZ126,North Oregon Cascades,PQR,"SEW; OTX; PQR",Yes,3,MTHO3; GVT50; FFMO3
+COAA,Central Oregon Avalanche Association,OR,central-cascades,Central Cascades,2470,ORZ509,East Slopes Oregon Cascades,PDT,PQR,No - general zone,3,BEDO3; TCMO3; RORO3
+COAA,Central Oregon Avalanche Association,OR,newberry,Newberry,2471,ORZ509,East Slopes Oregon Cascades,PDT,PQR,No - general zone,3,BEDO3; TCMO3; CSTO3
+WAC,Wallowa Avalanche Center,OR,northern-wallowas,Northern Wallowas,2982,ORZ050,Wallowa County,PDT,PDT,No - county zone,3,TYLO3; MHWO3; ANRO3
+WAC,Wallowa Avalanche Center,OR,southern-wallowas,Southern Wallowas,2983,ORZ050,Wallowa County,PDT,PDT,No - county zone,3,TYLO3; ANRO3; BORO3
+WAC,Wallowa Avalanche Center,OR,blues,Blues,2985,ORZ502,Northern Blue Mountains of Oregon,PDT,PDT,Yes,3,BLPO3; BORO3; GLDO3
+WAC,Wallowa Avalanche Center,OR,elkhorns,Elkhorns,2984,ORZ502,Northern Blue Mountains of Oregon,PDT,PDT,Yes,3,BORO3; WFCO3; EIMO3
+SOAIX,Southern Oregon Avalanche Info Exchange,OR,southern-oregon,Southern Oregon,1369,ORZ028,Siskiyou Mountains and Southern Oregon Cascades,MFR,MFR,Yes,3,SWNO3; SSSO3; BCDO3
+MSAC,Mount Shasta Avalanche Center,CA,mount-shasta,Mount Shasta,1833,CAZ083,North Central/SE Siskiyou County,MFR,MFR,No - county zone,3,MSGRB; MSSKI; SDFC1
+SAC,Sierra Avalanche Center,CA,central-sierra-nevada,Central Sierra Nevada,2458,CAZ069,West Slope Northern Sierra Nevada,STO,"STO; REV",Yes - elevation-specific,3,ILKC1; LLSC1; SQWC1
+ESAC,Eastern Sierra Avalanche Center,CA,eastside-region,Eastside Region,128,CAZ073,Mono County,REV,REV,No - county zone,3,TIRC1; RCKC1; XMPC1
+BAC,Bridgeport Avalanche Center,CA,bridgeport,Bridgeport,3004,CAZ069,West Slope Northern Sierra Nevada,STO,REV,Yes - elevation-specific,3,XMPC1; MNPC1; LVTC1
+SNFAC,Sawtooth National Forest Avalanche Center,ID,banner-summit,Banner Summit,2907,IDZ013,Boise Mountains,BOI,"BOI; PIH",No - general zone,3,BNRI1; BASI1; JKPI1
+SNFAC,Sawtooth National Forest Avalanche Center,ID,galena-summit-eastern-mtns,Galena Summit & Eastern Mtns,2904,IDZ073,Sun Valley Region,PIH,"BOI; PIH",No - general zone,3,GLSI1; LWDI1; VNNI1
+SNFAC,Sawtooth National Forest Avalanche Center,ID,sawtooth-western-smoky-mtns,Sawtooth & Western Smoky Mtns,2906,IDZ072,Sawtooth/Stanley Basin,PIH,"BOI; PIH",Yes,3,VNNI1; GLSI1; ATAI1
+SNFAC,Sawtooth National Forest Avalanche Center,ID,soldier-wood-river-valley-mtns,Soldier & Wood River Valley Mtns,2905,IDZ073,Sun Valley Region,PIH,"BOI; PIH",No - general zone,3,DHDI1; HYNI1; VNNI1
+PAC,Payette Avalanche Center,ID,salmon-river-mountains,Salmon River Mountains,2897,IDZ011,West Central Mountains,BOI,BOI,Yes,3,BKSI1; DDSI1; BNRI1
+PAC,Payette Avalanche Center,ID,west-mountains,West Mountains,2898,IDZ011,West Central Mountains,BOI,BOI,Yes,3,BRRI1; BKSI1; ITD69
+IPAC,Idaho Panhandle Avalanche Center,ID,selkirk-mountains,Selkirk Mountains,1899,IDZ001,Northern Panhandle,OTX,"MSO; OTX",No - general zone,3,STZI1; HDLI1; BRMI1
+IPAC,Idaho Panhandle Avalanche Center,ID,west-cabinet-mountains,West Cabinet Mountains,1900,IDZ004,Central Panhandle Mountains,OTX,"MSO; OTX",Yes,3,CHIM8; BRMI1; MOQI1
+IPAC,Idaho Panhandle Avalanche Center,ID,east-cabinet-mountains,East Cabinet Mountains,1901,MTZ001,Kootenai/Cabinet Region,MSO,"MSO; OTX",No - general zone,3,CHIM8; PMNM8; BANM8
+IPAC,Idaho Panhandle Avalanche Center,ID,silver-valley-bitterroot-mountains,Silver Valley & Bitterroot Mtns,1902,IDZ004,Central Panhandle Mountains,OTX,"MSO; OTX",Yes,3,LKTI1; SNSI1; HUGI1
+IPAC,Idaho Panhandle Avalanche Center,MT,purcell-mountains,Purcell Mountains,1903,MTZ001,Kootenai/Cabinet Region,MSO,"MSO; OTX",No - general zone,3,BANM8; HAWM8; STAM8
+GNFAC,Gallatin National Forest Avalanche Center,MT,bridger-range,Bridger Range,2819,MTZ320,Big Belt Bridger and Castle Mountains,TFX,"TFX; BYZ",Yes,3,BRCM8; SAJM8; SFSM8
+GNFAC,Gallatin National Forest Avalanche Center,MT,northern-gallatin-range,Northern Gallatin Range,2821,MTZ330,Gallatin/Madison County Mountains,TFX,"TFX; BYZ",Yes,3,SHFM8; LCKM8; BRCM8
+GNFAC,Gallatin National Forest Avalanche Center,MT,southern-gallatin-range,Southern Gallatin Range,2824,MTZ330,Gallatin/Madison County Mountains,TFX,"TFX; BYZ",Yes,3,SHFM8; LCKM8; CRRM8
+GNFAC,Gallatin National Forest Avalanche Center,MT,northern-madison-range,Northern Madison Range,2822,MTZ330,Gallatin/Madison County Mountains,TFX,"TFX; BYZ",Yes,3,BSKM8; YCTIM; YCAND
+GNFAC,Gallatin National Forest Avalanche Center,MT,southern-madison-range,Southern Madison Range,2823,MTZ330,Gallatin/Madison County Mountains,TFX,"TFX; BYZ",Yes,3,CRRM8; BEVM8; WYSM8
+GNFAC,Gallatin National Forest Avalanche Center,MT,lionhead-area,Lionhead Area,2825,MTZ330,Gallatin/Madison County Mountains,TFX,"TFX; BYZ",Yes,3,MPLM8; WYSM8; WSKM8
+GNFAC,Gallatin National Forest Avalanche Center,ID,island-park,Island Park,2826,IDZ066,Centennial Mountains / Island Park,PIH,"TFX; BYZ",Yes,3,WHEI1; BLBM8; ISPI1
+GNFAC,Gallatin National Forest Avalanche Center,MT,cooke-city,Cooke City,2827,MTZ067,Absaroka/Beartooth Mountains,BYZ,"TFX; BYZ",Yes,3,FSHM8; MNPM8; WHTM8
+FAC,Flathead Avalanche Center,MT,whitefish-range,Whitefish Range,1733,MTZ002,West Glacier Region,MSO,MSO,Yes,3,LKMMT; BIGMS; FTMM8
+FAC,Flathead Avalanche Center,MT,swan-range,Swan Range,1734,MTZ002,West Glacier Region,MSO,MSO,Yes,3,NOIM8; MSPM8; NFJM8
+FAC,Flathead Avalanche Center,MT,flathead-range-glacier-np,Flathead Range & Glacier NP,1735,MTZ002,West Glacier Region,MSO,MSO,Yes,3,S11MT; FTMM8; PICM8
+WCMAC,West Central Montana Avalanche Center,MT,seeley-lake,Seeley Lake,1722,MTZ043,Potomac/Seeley Lake Region,MSO,MSO,No - general zone,3,STTM8; NFJM8; MSPM8
+WCMAC,West Central Montana Avalanche Center,MT,rattlesnake,Rattlesnake,1723,MTZ043,Potomac/Seeley Lake Region,MSO,MSO,No - general zone,3,STTM8; NFJM8; NOIM8
+WCMAC,West Central Montana Avalanche Center,MT,bitterroot,Bitterroot,1724,MTZ006,Bitterroot/Sapphire Mountains,MSO,MSO,Yes,3,SDMM8; LPSI1; TWLM8
+BTAC,Bridger-Teton Avalanche Center,WY,tetons,Tetons,2855,WYZ012,Teton and Gros Ventre Mountains,RIW,RIW,Yes,3,JHR; GTHW4; PHBW4
+BTAC,Bridger-Teton Avalanche Center,WY,togwotee-pass,Togwotee Pass,2852,WYZ012,Teton and Gros Ventre Mountains,RIW,RIW,Yes,3,TOGW4; LTWW4; TOPW4
+BTAC,Bridger-Teton Avalanche Center,WY,snake-river-range,Snake River Range,2860,WYZ012,Teton and Gros Ventre Mountains,RIW,RIW,Yes,3,PHBW4; GTHW4; INCW4
+BTAC,Bridger-Teton Avalanche Center,WY,salt-river-wyoming-ranges,Salt River and Wyoming Ranges,2856,WYZ024,Salt River and Wyoming Ranges,RIW,RIW,Yes,3,SCDW4; BBSW4; TRPW4
+EWYAIX,Eastern Wyoming Avalanche Info Exchange,WY,big-horns,Big Horns,2841,WYZ198,Northeast Bighorn Mountains,BYZ,"BYZ; CYS",Yes,3,CPKW4; BGEW4; SCRW4
+EWYAIX,Eastern Wyoming Avalanche Info Exchange,WY,snowy-range,Snowy Range,2842,WYZ114,Snowy Range,CYS,"BYZ; CYS",Yes,3,BKLW4; MBSW4; WBSW4
+EWYAIX,Eastern Wyoming Avalanche Info Exchange,WY,sierra-madre,Sierra Madre,2843,WYZ112,Sierra Madre Range,CYS,"BYZ; CYS",Yes,3,BLHW4; C3RED; OLDW4
+UAC,Utah Avalanche Center,UT,logan,Logan,1736,UTZ110,Wasatch Mountains I-80 North,SLC,SLC,Yes - mountain zone,3,CRDUT; PSINK; WSUBC
+UAC,Utah Avalanche Center,UT,ogden,Ogden,1737,UTZ110,Wasatch Mountains I-80 North,SLC,SLC,Yes - mountain zone,3,UTPWD; CKRU1; BLPU1
+UAC,Utah Avalanche Center,UT,salt-lake,Salt Lake,1738,UTZ111,Wasatch Mountains South of I-80,SLC,SLC,Yes - mountain zone,3,IFF; SOL; CLN
+UAC,Utah Avalanche Center,UT,provo,Provo,1739,UTZ111,Wasatch Mountains South of I-80,SLC,SLC,Yes - mountain zone,3,BUNUT; TIMU1; CAMU1
+UAC,Utah Avalanche Center,UT,uintas,Uintas,1740,UTZ112,Western Uinta Mountains,SLC,SLC,Yes - mountain zone,3,GSTPS; TRLU1; TPRUT
+UAC,Utah Avalanche Center,UT,skyline,Skyline,1741,UTZ113,Wasatch Plateau/Book Cliffs,SLC,SLC,Yes,3,SEEU1; SKY; ULAMB
+UAC,Utah Avalanche Center,UT,moab,Moab,1742,UTZ028,La Sal and Abajo Mountains,GJT,SLC,Yes - mountain zone,3,GOLDB; UTLSD; LSMU1
+UAC,Utah Avalanche Center,UT,abajos,Abajos,1744,UTZ028,La Sal and Abajo Mountains,GJT,SLC,Yes - mountain zone,3,ABAUT; BUCU1; CJSU1
+UAC,Utah Avalanche Center,UT,southwest,Southwest,1743,UTZ125,Southern Mountains,SLC,SLC,Yes - mountain zone,3,BHCU1; UT14S; MDVU1
+CAIC,Colorado Avalanche Information Center,CO,caic-front-range-north,Front Range & Never Summer Mtns,2712,COZ033,S/E Jackson/Larimer Above 9000 Ft,BOU,"BOU; GJT; PUB",Yes - elevation-banded,3,LKIC2; WPRC2; CACMP
+CAIC,Colorado Avalanche Information Center,CO,caic-front-range-boulder,Front Range (Boulder),2745,COZ034,Summit/Clear Creek/Boulder Above 9000 Ft,BOU,"BOU; GJT; PUB",Yes - elevation-banded,3,CABTP; BTSC2; LBAC2
+CAIC,Colorado Avalanche Information Center,CO,caic-front-range-south,Front Range South & Pikes Peak,2755,COZ082,Pikes Peak above 11000 Ft,PUB,"BOU; GJT; PUB",Yes - elevation-banded,3,GLNC2; ECLC2; BTSC2
+CAIC,Colorado Avalanche Information Center,CO,caic-vail-summit-county,Vail & Summit County,2730,COZ034,Summit County Above 9000 Ft,BOU,"BOU; GJT; PUB",Yes - elevation-banded,3,HOOC2; CPMC2; MIHC2
+CAIC,Colorado Avalanche Information Center,CO,caic-elk-mountains,Elk Mountains (Aspen),2751,COZ010,Gore and Elk Mountains,GJT,"BOU; GJT; PUB",Yes - mountain zone,3,IDPC2; SOSC2; ASEC2
+CAIC,Colorado Avalanche Information Center,CO,caic-sawatch-range,Sawatch Range,2754,COZ060,Eastern Sawatch Mtns above 11000 Ft,PUB,"BOU; GJT; PUB",Yes - elevation-banded,3,PRPC2; SGMC2; CAPC2
+CAIC,Colorado Avalanche Information Center,CO,caic-grand-mesa-west-elk,Grand Mesa & Flat Tops,2747,COZ012,West Elk and Sawatch Mountains,GJT,"BOU; GJT; PUB",Yes - mountain zone,3,CAELT; CAIRW; SOSC2
+CAIC,Colorado Avalanche Information Center,CO,caic-park-range,Park Range (Steamboat),2690,COZ004,Elkhead and Park Mountains,GJT,"BOU; GJT; PUB",Yes - mountain zone,3,ARPC2; STORM; TOWC2
+CAIC,Colorado Avalanche Information Center,CO,caic-northern-san-juan,Northern San Juan Mountains,2647,COZ018,Northwestern San Juan Mountains,GJT,"BOU; GJT; PUB",Yes - mountain zone,3,CATEL; RMPC2; SLMC2
+CAIC,Colorado Avalanche Information Center,CO,caic-southern-san-juan,Southern San Juan Mountains,2660,COZ068,Eastern San Juan Mtns Above 10000 Ft,PUB,"BOU; GJT; PUB",Yes - elevation-banded,3,WCSC2; GYBC2; URGC2
+CAIC,Colorado Avalanche Information Center,CO,caic-sangre-de-cristo,Sangre de Cristo Mountains,2651,COZ073,Northern Sangre de Cristo above 11000 Ft,PUB,"BOU; GJT; PUB",Yes - elevation-banded,3,SCYC2; UTCC2; HPAC2
+TAC,Taos Avalanche Center,NM,northern-new-mexico,Northern New Mexico,490,NMZ213,Northern Sangre de Cristo Mountains,ABQ,ABQ,Yes - mountain zone,3,TABN5; SHUN5; RRPN5
+KPAC,Kachina Peaks Avalanche Center,AZ,san-francisco-peaks,San Francisco Peaks,2990,AZZ015,Western Mogollon Rim,FGZ,FGZ,No - general zone,3,ASBTP; XSCA3; JE356
+MWAC,Mount Washington Avalanche Center,NH,presidential-range,Presidential Range,2355,NHZ002,Southern Coos,GYX,GYX,No - county zone,3,
