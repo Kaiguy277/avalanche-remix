@@ -1,6 +1,9 @@
 /**
  * Weather Station Configuration for Avalanche Zones
  * Maps Synoptic weather stations to avalanche forecast zones
+ *
+ * Updated 2026-03-15: Comprehensive review of all zone-station mappings
+ * against actual avalanche center weather station pages.
  */
 
 export interface WeatherStation {
@@ -19,37 +22,11 @@ export interface ZoneStationConfig {
 
 // Synoptic station mappings for each avalanche zone
 export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
+  // ===================================================================
+  // CNFAIC - Chugach National Forest Avalanche Information Center (AK)
+  // ===================================================================
   {
     zoneId: 'turnagain-girdwood',
-    stations: [
-      {
-        triplet: 'HILA2',
-        name: 'ANCHORAGE HILLSIDE',
-        elevation: 2080,
-        latitude: 61.11312,
-        longitude: -149.6835,
-        primary: true,
-      },
-      {
-        triplet: 'TUGA2',
-        name: 'TURNAGAIN PASS',
-        elevation: 1880,
-        latitude: 60.78043,
-        longitude: -149.18325,
-        primary: true,
-      },
-      {
-        triplet: 'SUUA2',
-        name: 'SUMMIT CREEK',
-        elevation: 1400,
-        latitude: 60.61713,
-        longitude: -149.53128,
-        primary: true,
-      }
-    ]
-  },
-  {
-    zoneId: 'summit',
     stations: [
       {
         triplet: 'TUGA2',
@@ -78,7 +55,7 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     ]
   },
   {
-    zoneId: 'seward',
+    zoneId: 'summit',
     stations: [
       {
         triplet: 'SUUA2',
@@ -86,43 +63,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         elevation: 1400,
         latitude: 60.61713,
         longitude: -149.53128,
-        primary: true,
-      },
-      {
-        triplet: 'PEDA2',
-        name: 'PEDERSEN LAGOON',
-        elevation: 625,
-        latitude: 59.8944,
-        longitude: -149.7307,
-        primary: true,
-      },
-      {
-        triplet: 'EXGA2',
-        name: 'EXIT GLACIER',
-        elevation: 400,
-        latitude: 60.19033,
-        longitude: -149.62117,
-        primary: true,
-      }
-    ]
-  },
-  {
-    zoneId: 'chugach-state-park',
-    stations: [
-      {
-        triplet: 'MORA2',
-        name: 'MORAINE',
-        elevation: 2100,
-        latitude: 61.37727,
-        longitude: -148.99917,
-        primary: true,
-      },
-      {
-        triplet: 'HILA2',
-        name: 'ANCHORAGE HILLSIDE',
-        elevation: 2080,
-        latitude: 61.11312,
-        longitude: -149.6835,
         primary: true,
       },
       {
@@ -135,6 +75,51 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
       }
     ]
   },
+  {
+    zoneId: 'seward',
+    stations: [
+      {
+        triplet: 'EXGA2',
+        name: 'EXIT GLACIER',
+        elevation: 400,
+        latitude: 60.19033,
+        longitude: -149.62117,
+        primary: true,
+      },
+      {
+        triplet: 'PEDA2',
+        name: 'PEDERSEN LAGOON',
+        elevation: 625,
+        latitude: 59.8944,
+        longitude: -149.7307,
+        primary: true,
+      }
+    ]
+  },
+  {
+    zoneId: 'chugach-state-park',
+    stations: [
+      {
+        triplet: 'HILA2',
+        name: 'ANCHORAGE HILLSIDE',
+        elevation: 2080,
+        latitude: 61.11312,
+        longitude: -149.6835,
+        primary: true,
+      },
+      {
+        triplet: 'MORA2',
+        name: 'MORAINE',
+        elevation: 2100,
+        latitude: 61.37727,
+        longitude: -148.99917,
+        primary: true,
+      }
+    ]
+  },
+  // ===================================================================
+  // HPAC - Hatcher Pass Avalanche Center (AK)
+  // ===================================================================
   {
     zoneId: 'hatcher-pass',
     stations: [
@@ -153,18 +138,12 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         latitude: 61.75,
         longitude: -149.27,
         primary: true,
-      },
-      {
-        triplet: 'MORA2',
-        name: 'MORAINE',
-        elevation: 2100,
-        latitude: 61.37727,
-        longitude: -148.99917,
-        primary: true,
       }
     ]
   },
-  // Valdez Avalanche Center Zones
+  // ===================================================================
+  // VAC - Valdez Avalanche Center (AK)
+  // ===================================================================
   {
     zoneId: 'valdez-maritime',
     stations: [
@@ -252,7 +231,9 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
       }
     ]
   },
-  // Eastern Alaska Range Avalanche Center
+  // ===================================================================
+  // EARAC - Eastern Alaska Range Avalanche Center (AK)
+  // ===================================================================
   {
     zoneId: 'earac-north',
     stations: [
@@ -311,7 +292,9 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
       }
     ]
   },
-  // Coastal Alaska Avalanche Center
+  // ===================================================================
+  // CAAC - Coastal Alaska Avalanche Center (Juneau)
+  // ===================================================================
   {
     zoneId: 'douglas-island',
     stations: [
@@ -370,7 +353,9 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
       }
     ]
   },
-  // Haines Avalanche Center
+  // ===================================================================
+  // HAC - Haines Avalanche Center (AK)
+  // ===================================================================
   {
     zoneId: 'haines-lutak',
     stations: [
@@ -494,11 +479,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'west-slopes-north',
     stations: [
       {
-        triplet: 'EPSW1',
-        name: 'EASY PASS',
-        elevation: 5270,
-        latitude: 48.85933,
-        longitude: -121.43895,
+        triplet: 'MTB50',
+        name: 'Mt. Baker - Pan Dome',
+        elevation: 5020,
+        latitude: 48.85305,
+        longitude: -121.67720,
         primary: true,
       },
       {
@@ -523,72 +508,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'west-slopes-central',
     stations: [
       {
-        triplet: 'MTNW1',
-        name: 'QUARTZ MOUNTAIN - SNOW NEAR CLE ELUM 11SW',
-        elevation: 5860,
-        latitude: 47.06722,
-        longitude: -121.07889,
-        primary: true,
-      },
-      {
-        triplet: 'SAWW1',
-        name: 'SAWMILL RIDGE',
-        elevation: 4640,
-        latitude: 47.15992,
-        longitude: -121.42172,
-        primary: true,
-      },
-      {
-        triplet: 'SASW1',
-        name: 'SASSE RIDGE',
-        elevation: 4340,
-        latitude: 47.38485,
-        longitude: -121.06323,
-        primary: true,
-      }
-    ]
-  },
-  {
-    zoneId: 'west-slopes-south',
-    stations: [
-      {
-        triplet: 'CAYW1',
-        name: 'CAYUSE PASS',
-        elevation: 5240,
-        latitude: 46.86954,
-        longitude: -121.5343,
-        primary: true,
-      },
-      {
-        triplet: 'LOHW1',
-        name: 'LOST HORSE',
-        elevation: 5120,
-        latitude: 46.3575,
-        longitude: -121.08095,
-        primary: true,
-      },
-      {
-        triplet: 'KCHW1',
-        name: 'ASSGN20190819',
-        elevation: 2326,
-        latitude: 46.72944,
-        longitude: -121.85639,
-        primary: true,
-      }
-    ]
-  },
-  {
-    zoneId: 'stevens-pass',
-    stations: [
-      {
-        triplet: 'SASW1',
-        name: 'SASSE RIDGE',
-        elevation: 4340,
-        latitude: 47.38485,
-        longitude: -121.06323,
-        primary: true,
-      },
-      {
         triplet: 'KUSW1',
         name: 'SKOOKUM CREEK',
         elevation: 3310,
@@ -597,11 +516,77 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'CPPW1',
-        name: 'COOPER PASS NEAR CLE ELUM 20NW',
-        elevation: 3278,
-        latitude: 47.46306,
-        longitude: -121.21083,
+        triplet: 'EPSW1',
+        name: 'EASY PASS',
+        elevation: 5270,
+        latitude: 48.85933,
+        longitude: -121.43895,
+        primary: true,
+      },
+      {
+        triplet: 'STS48',
+        name: 'Stevens Pass Grace Lakes',
+        elevation: 4800,
+        latitude: 47.75,
+        longitude: -121.09,
+        primary: true,
+      }
+    ]
+  },
+  {
+    zoneId: 'west-slopes-south',
+    stations: [
+      {
+        triplet: 'CMT69',
+        name: 'Crystal Summit',
+        elevation: 6830,
+        latitude: 46.93505,
+        longitude: -121.50043,
+        primary: true,
+      },
+      {
+        triplet: 'PVC54',
+        name: 'Paradise',
+        elevation: 5400,
+        latitude: 46.78622,
+        longitude: -121.74240,
+        primary: true,
+      },
+      {
+        triplet: 'WPS58',
+        name: 'White Pass Upper',
+        elevation: 5800,
+        latitude: 46.62077,
+        longitude: -121.38737,
+        primary: true,
+      }
+    ]
+  },
+  {
+    zoneId: 'stevens-pass',
+    stations: [
+      {
+        triplet: 'STS40',
+        name: 'Stevens Pass Schmidt Haus',
+        elevation: 3950,
+        latitude: 47.746,
+        longitude: -121.093,
+        primary: true,
+      },
+      {
+        triplet: 'STS52',
+        name: 'Stevens Pass Skyline',
+        elevation: 5200,
+        latitude: 47.75,
+        longitude: -121.09,
+        primary: true,
+      },
+      {
+        triplet: 'STS48',
+        name: 'Stevens Pass Grace Lakes',
+        elevation: 4800,
+        latitude: 47.75,
+        longitude: -121.09,
         primary: true,
       }
     ]
@@ -610,27 +595,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'snoqualmie-pass',
     stations: [
       {
-        triplet: 'MTNW1',
-        name: 'QUARTZ MOUNTAIN - SNOW NEAR CLE ELUM 11SW',
-        elevation: 5860,
-        latitude: 47.06722,
-        longitude: -121.07889,
+        triplet: 'ALP44',
+        name: 'Alpental Mid-Mountain',
+        elevation: 4400,
+        latitude: 47.44,
+        longitude: -121.43,
         primary: true,
       },
       {
-        triplet: 'SAWW1',
-        name: 'SAWMILL RIDGE',
-        elevation: 4640,
-        latitude: 47.15992,
-        longitude: -121.42172,
+        triplet: 'SNO30',
+        name: 'Snoqualmie Pass',
+        elevation: 3010,
+        latitude: 47.43,
+        longitude: -121.41,
         primary: true,
       },
       {
-        triplet: 'SASW1',
-        name: 'SASSE RIDGE',
-        elevation: 4340,
-        latitude: 47.38485,
-        longitude: -121.06323,
+        triplet: 'MTW43',
+        name: 'Mt Washington',
+        elevation: 4300,
+        latitude: 47.39,
+        longitude: -121.41,
         primary: true,
       }
     ]
@@ -647,19 +632,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
+        triplet: 'WAP55',
+        name: 'Washington Pass Base',
+        elevation: 5450,
+        latitude: 48.52578,
+        longitude: -120.65525,
+        primary: true,
+      },
+      {
         triplet: 'SWSW1',
         name: 'SWAMP CREEK',
         elevation: 3930,
         latitude: 48.57142,
         longitude: -120.78267,
-        primary: true,
-      },
-      {
-        triplet: 'NLM34',
-        name: 'Newhalem',
-        elevation: 3430,
-        latitude: 48.68561,
-        longitude: -121.25236,
         primary: true,
       }
     ]
@@ -668,11 +653,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'east-slopes-central',
     stations: [
       {
-        triplet: 'MTNW1',
-        name: 'QUARTZ MOUNTAIN - SNOW NEAR CLE ELUM 11SW',
-        elevation: 5860,
-        latitude: 47.06722,
-        longitude: -121.07889,
+        triplet: 'MSR52',
+        name: 'Mission Ridge Mid-Mountain',
+        elevation: 5160,
+        latitude: 47.28598,
+        longitude: -120.41082,
         primary: true,
       },
       {
@@ -713,11 +698,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'OHAW1',
-        name: 'OHANAPECOSH',
-        elevation: 1950,
-        latitude: 46.73111,
-        longitude: -121.57111,
+        triplet: 'CHP55',
+        name: 'Chinook Pass',
+        elevation: 5500,
+        latitude: 46.87,
+        longitude: -121.52,
         primary: true,
       }
     ]
@@ -726,11 +711,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'mt-hood',
     stations: [
       {
-        triplet: 'TIM59',
-        name: 'Timberline Lodge',
-        elevation: 5800,
-        latitude: 45.32997,
-        longitude: -121.71133,
+        triplet: 'MTHO3',
+        name: 'Mt Hood Test Site SNOTEL',
+        elevation: 5380,
+        latitude: 45.32,
+        longitude: -121.72,
         primary: true,
       },
       {
@@ -856,19 +841,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'MHWO3',
-        name: 'MT. HOWARD',
-        elevation: 7910,
-        latitude: 45.26522,
-        longitude: -117.17373,
-        primary: true,
-      },
-      {
         triplet: 'ANRO3',
         name: 'ANEROID LAKE #2',
         elevation: 7400,
         latitude: 45.21328,
         longitude: -117.19258,
+        primary: true,
+      },
+      {
+        triplet: 'BORO3',
+        name: 'BOURNE',
+        elevation: 5850,
+        latitude: 44.83052,
+        longitude: -118.18787,
         primary: true,
       }
     ]
@@ -1003,10 +988,18 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     stations: [
       {
         triplet: 'TIRC1',
-        name: 'TIOGA PASS ENTRY STATION NEAR TUOLUMNE MEADOWS 7ENE TES',
+        name: 'TIOGA PASS ENTRY STATION',
         elevation: 10000,
         latitude: 37.91083,
         longitude: -119.25861,
+        primary: true,
+      },
+      {
+        triplet: 'RCKC1',
+        name: 'ROCK CREEK LAKES',
+        elevation: 9744,
+        latitude: 37.458,
+        longitude: -118.735,
         primary: true,
       },
       {
@@ -1015,14 +1008,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         elevation: 9867,
         latitude: 38.39739,
         longitude: -119.52522,
-        primary: true,
-      },
-      {
-        triplet: 'TIOC1',
-        name: 'TIOGA PASS-DANA MEADOWS NEAR LEE VINING 9SW DAN',
-        elevation: 9816,
-        latitude: 37.89611,
-        longitude: -119.25722,
         primary: true,
       }
     ]
@@ -1034,14 +1019,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'bridgeport',
     stations: [
       {
-        triplet: 'TIRC1',
-        name: 'TIOGA PASS ENTRY STATION NEAR TUOLUMNE MEADOWS 7ENE TES',
-        elevation: 10000,
-        latitude: 37.91083,
-        longitude: -119.25861,
-        primary: true,
-      },
-      {
         triplet: 'XMPC1',
         name: 'MEAN PEAK',
         elevation: 9867,
@@ -1050,43 +1027,51 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'TIOC1',
-        name: 'TIOGA PASS-DANA MEADOWS NEAR LEE VINING 9SW DAN',
-        elevation: 9816,
-        latitude: 37.89611,
-        longitude: -119.25722,
+        triplet: 'MNPC1',
+        name: 'MONITOR PASS',
+        elevation: 8304,
+        latitude: 38.668,
+        longitude: -119.609,
+        primary: true,
+      },
+      {
+        triplet: 'LVTC1',
+        name: 'LEAVITT MEADOWS',
+        elevation: 7197,
+        latitude: 38.304,
+        longitude: -119.551,
         primary: true,
       }
     ]
   },
   // ===================================================================
-  // MSAC - Mount Shasta Avalanche Center (CA/OR)
+  // MSAC - Mount Shasta Avalanche Center (CA)
   // ===================================================================
   {
     zoneId: 'mount-shasta',
     stations: [
       {
-        triplet: 'BCDO3',
-        name: 'BILLIE CREEK DIVIDE',
-        elevation: 5280,
-        latitude: 42.40717,
-        longitude: -122.26617,
+        triplet: 'MSGRB',
+        name: 'Gray Butte',
+        elevation: 7958,
+        latitude: 41.345,
+        longitude: -122.196,
         primary: true,
       },
       {
-        triplet: 'BRMO3',
-        name: 'BIG RED MOUNTAIN',
-        elevation: 6050,
-        latitude: 42.05257,
-        longitude: -122.85487,
+        triplet: 'MSSKI',
+        name: 'Old Ski Bowl',
+        elevation: 7617,
+        latitude: 41.358,
+        longitude: -122.207,
         primary: true,
       },
       {
-        triplet: 'FRLO3',
-        name: 'FOURMILE LAKE',
-        elevation: 5970,
-        latitude: 42.43933,
-        longitude: -122.2288,
+        triplet: 'SDFC1',
+        name: 'Sand Flat',
+        elevation: 6811,
+        latitude: 41.349,
+        longitude: -122.246,
         primary: true,
       }
     ]
@@ -1098,19 +1083,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'banner-summit',
     stations: [
       {
-        triplet: 'ATAI1',
-        name: 'ATLANTA SUMMIT',
-        elevation: 7580,
-        latitude: 43.7569,
-        longitude: -115.23907,
-        primary: true,
-      },
-      {
         triplet: 'BNRI1',
         name: 'BANNER SUMMIT',
         elevation: 7100,
         latitude: 44.303333,
         longitude: -115.233333,
+        primary: true,
+      },
+      {
+        triplet: 'BASI1',
+        name: 'BANNER SUMMIT SNOTEL',
+        elevation: 7040,
+        latitude: 44.303,
+        longitude: -115.233,
         primary: true,
       },
       {
@@ -1127,27 +1112,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'galena-summit-eastern-mtns',
     stations: [
       {
+        triplet: 'GLSI1',
+        name: 'GALENA SUMMIT',
+        elevation: 8780,
+        latitude: 43.87497,
+        longitude: -114.71363,
+        primary: true,
+      },
+      {
+        triplet: 'LWDI1',
+        name: 'LOST-WOOD DIVIDE SNOTEL',
+        elevation: 7870,
+        latitude: 43.82,
+        longitude: -114.27,
+        primary: true,
+      },
+      {
         triplet: 'VNNI1',
         name: 'VIENNA MINE',
         elevation: 8960,
         latitude: 43.79942,
         longitude: -114.85273,
-        primary: true,
-      },
-      {
-        triplet: 'ATAI1',
-        name: 'ATLANTA SUMMIT',
-        elevation: 7580,
-        latitude: 43.7569,
-        longitude: -115.23907,
-        primary: true,
-      },
-      {
-        triplet: 'ITD42',
-        name: 'Smiley Creek Airport',
-        elevation: 7237,
-        latitude: 43.90958,
-        longitude: -114.79518,
         primary: true,
       }
     ]
@@ -1164,19 +1149,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
+        triplet: 'GLSI1',
+        name: 'GALENA SUMMIT',
+        elevation: 8780,
+        latitude: 43.87497,
+        longitude: -114.71363,
+        primary: true,
+      },
+      {
         triplet: 'ATAI1',
         name: 'ATLANTA SUMMIT',
         elevation: 7580,
         latitude: 43.7569,
         longitude: -115.23907,
-        primary: true,
-      },
-      {
-        triplet: 'ITD42',
-        name: 'Smiley Creek Airport',
-        elevation: 7237,
-        latitude: 43.90958,
-        longitude: -114.79518,
         primary: true,
       }
     ]
@@ -1185,27 +1170,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'soldier-wood-river-valley-mtns',
     stations: [
       {
+        triplet: 'DHDI1',
+        name: 'DOLLARHIDE SUMMIT SNOTEL',
+        elevation: 8390,
+        latitude: 43.60,
+        longitude: -114.67,
+        primary: true,
+      },
+      {
+        triplet: 'HYNI1',
+        name: 'HYNDMAN SNOTEL',
+        elevation: 7590,
+        latitude: 43.72,
+        longitude: -114.17,
+        primary: true,
+      },
+      {
         triplet: 'VNNI1',
         name: 'VIENNA MINE',
         elevation: 8960,
         latitude: 43.79942,
         longitude: -114.85273,
-        primary: true,
-      },
-      {
-        triplet: 'ATAI1',
-        name: 'ATLANTA SUMMIT',
-        elevation: 7580,
-        latitude: 43.7569,
-        longitude: -115.23907,
-        primary: true,
-      },
-      {
-        triplet: 'ITD42',
-        name: 'Smiley Creek Airport',
-        elevation: 7237,
-        latitude: 43.90958,
-        longitude: -114.79518,
         primary: true,
       }
     ]
@@ -1217,14 +1202,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'salmon-river-mountains',
     stations: [
       {
-        triplet: 'BNRI1',
-        name: 'BANNER SUMMIT',
-        elevation: 7100,
-        latitude: 44.303333,
-        longitude: -115.233333,
-        primary: true,
-      },
-      {
         triplet: 'BKSI1',
         name: 'BIG CREEK SUMMIT',
         elevation: 6580,
@@ -1233,11 +1210,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'ITD68',
-        name: 'Little Donner',
-        elevation: 5239,
-        latitude: 44.58028,
-        longitude: -116.03924,
+        triplet: 'DDSI1',
+        name: 'DEADWOOD SUMMIT SNOTEL',
+        elevation: 6990,
+        latitude: 44.55,
+        longitude: -115.57,
+        primary: true,
+      },
+      {
+        triplet: 'BNRI1',
+        name: 'BANNER SUMMIT',
+        elevation: 7100,
+        latitude: 44.303333,
+        longitude: -115.233333,
         primary: true,
       }
     ]
@@ -1245,6 +1230,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
   {
     zoneId: 'west-mountains',
     stations: [
+      {
+        triplet: 'BRRI1',
+        name: 'BRUNDAGE RESERVOIR SNOTEL',
+        elevation: 6280,
+        latitude: 45.05,
+        longitude: -116.13,
+        primary: true,
+      },
       {
         triplet: 'BKSI1',
         name: 'BIG CREEK SUMMIT',
@@ -1259,14 +1252,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         elevation: 5417,
         latitude: 44.92944,
         longitude: -116.1555,
-        primary: true,
-      },
-      {
-        triplet: 'ITD68',
-        name: 'Little Donner',
-        elevation: 5239,
-        latitude: 44.58028,
-        longitude: -116.03924,
         primary: true,
       }
     ]
@@ -1286,19 +1271,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
+        triplet: 'HDLI1',
+        name: 'HIDDEN LAKE',
+        elevation: 5000,
+        latitude: 48.894,
+        longitude: -116.757,
+        primary: true,
+      },
+      {
         triplet: 'BRMI1',
         name: 'BEAR MOUNTAIN',
         elevation: 5400,
         latitude: 48.30577,
         longitude: -116.07448,
-        primary: true,
-      },
-      {
-        triplet: 'MYRI1',
-        name: 'MYRTLE CREEK',
-        elevation: 3520,
-        latitude: 48.72263,
-        longitude: -116.46312,
         primary: true,
       }
     ]
@@ -1344,19 +1329,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'BRMI1',
-        name: 'BEAR MOUNTAIN',
-        elevation: 5400,
-        latitude: 48.30577,
-        longitude: -116.07448,
+        triplet: 'PMNM8',
+        name: 'POORMAN CREEK',
+        elevation: 5050,
+        latitude: 48.127,
+        longitude: -115.623,
         primary: true,
       },
       {
-        triplet: 'MOQI1',
-        name: 'MOSQUITO RIDGE',
-        elevation: 5200,
-        latitude: 48.05737,
-        longitude: -116.23052,
+        triplet: 'BANM8',
+        name: 'BANFIELD MOUNTAIN',
+        elevation: 5580,
+        latitude: 48.5712,
+        longitude: -115.44573,
         primary: true,
       }
     ]
@@ -1365,27 +1350,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'silver-valley-bitterroot-mountains',
     stations: [
       {
-        triplet: 'ITDA7',
-        name: 'Lookout Pass',
-        elevation: 4526,
-        latitude: 47.4611,
-        longitude: -115.6937,
+        triplet: 'LKTI1',
+        name: 'LOOKOUT SNOTEL',
+        elevation: 5180,
+        latitude: 47.458,
+        longitude: -115.706,
         primary: true,
       },
       {
-        triplet: 'ITD90',
-        name: 'Wallace Viaduct',
-        elevation: 2792,
-        latitude: 47.47432,
-        longitude: -115.90816,
+        triplet: 'SNSI1',
+        name: 'SUNSET',
+        elevation: 5570,
+        latitude: 47.555,
+        longitude: -115.824,
         primary: true,
       },
       {
-        triplet: 'ITDA6',
-        name: 'Cataldo',
-        elevation: 2175,
-        latitude: 47.5469,
-        longitude: -116.3307,
+        triplet: 'HUGI1',
+        name: 'HUMBOLDT GULCH',
+        elevation: 4260,
+        latitude: 47.533,
+        longitude: -115.783,
         primary: true,
       }
     ]
@@ -1394,27 +1379,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'purcell-mountains',
     stations: [
       {
-        triplet: 'CHIM8',
-        name: 'CHICAGO RIDGE',
-        elevation: 5800,
-        latitude: 48.06,
-        longitude: -115.7,
-        primary: true,
-      },
-      {
-        triplet: 'BRMI1',
-        name: 'BEAR MOUNTAIN',
-        elevation: 5400,
-        latitude: 48.30577,
-        longitude: -116.07448,
-        primary: true,
-      },
-      {
         triplet: 'BANM8',
         name: 'BANFIELD MOUNTAIN',
-        elevation: 5600,
+        elevation: 5580,
         latitude: 48.5712,
         longitude: -115.44573,
+        primary: true,
+      },
+      {
+        triplet: 'HAWM8',
+        name: 'HAWKINS LAKE',
+        elevation: 6460,
+        latitude: 48.967,
+        longitude: -115.950,
+        primary: true,
+      },
+      {
+        triplet: 'STAM8',
+        name: 'STAHL PEAK',
+        elevation: 6040,
+        latitude: 48.917,
+        longitude: -114.867,
         primary: true,
       }
     ]
@@ -1434,11 +1419,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'BZNM8',
-        name: 'Bozeman',
-        elevation: 4905,
-        latitude: 45.66341,
-        longitude: -111.07218,
+        triplet: 'SAJM8',
+        name: 'SACAJAWEA SNOTEL',
+        elevation: 6550,
+        latitude: 45.874,
+        longitude: -110.928,
         primary: true,
       },
       {
@@ -1455,27 +1440,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'northern-gallatin-range',
     stations: [
       {
-        triplet: 'YCTIM',
-        name: 'Yellowstone Club - Timber Station',
-        elevation: 9400,
-        latitude: 45.23114,
-        longitude: -111.45119,
+        triplet: 'SHFM8',
+        name: 'SHOWER FALLS SNOTEL',
+        elevation: 8060,
+        latitude: 45.401,
+        longitude: -110.958,
         primary: true,
       },
       {
-        triplet: 'YCAND',
-        name: 'Yellowstone Club - Andesite Mountain',
-        elevation: 8850,
-        latitude: 45.26281,
-        longitude: -111.40789,
+        triplet: 'LCKM8',
+        name: 'LICK CREEK SNOTEL',
+        elevation: 6860,
+        latitude: 45.504,
+        longitude: -110.966,
         primary: true,
       },
       {
-        triplet: 'YCBAS',
-        name: 'Yellowstone Club - Base Area',
-        elevation: 7200,
-        latitude: 45.23924,
-        longitude: -111.41476,
+        triplet: 'BRCM8',
+        name: 'BRACKETT CREEK',
+        elevation: 7320,
+        latitude: 45.89107,
+        longitude: -110.93851,
         primary: true,
       }
     ]
@@ -1484,27 +1469,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'southern-gallatin-range',
     stations: [
       {
-        triplet: 'YCTIM',
-        name: 'Yellowstone Club - Timber Station',
-        elevation: 9400,
-        latitude: 45.23114,
-        longitude: -111.45119,
+        triplet: 'SHFM8',
+        name: 'SHOWER FALLS SNOTEL',
+        elevation: 8060,
+        latitude: 45.401,
+        longitude: -110.958,
         primary: true,
       },
       {
-        triplet: 'YCAND',
-        name: 'Yellowstone Club - Andesite Mountain',
-        elevation: 8850,
-        latitude: 45.26281,
-        longitude: -111.40789,
+        triplet: 'LCKM8',
+        name: 'LICK CREEK SNOTEL',
+        elevation: 6860,
+        latitude: 45.504,
+        longitude: -110.966,
         primary: true,
       },
       {
-        triplet: 'YCBAS',
-        name: 'Yellowstone Club - Base Area',
-        elevation: 7200,
-        latitude: 45.23924,
-        longitude: -111.41476,
+        triplet: 'CRRM8',
+        name: 'CARROT BASIN SNOTEL',
+        elevation: 9000,
+        latitude: 44.962,
+        longitude: -111.294,
         primary: true,
       }
     ]
@@ -1513,6 +1498,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'northern-madison-range',
     stations: [
       {
+        triplet: 'BSKM8',
+        name: 'LONE MOUNTAIN SNOTEL',
+        elevation: 8880,
+        latitude: 45.274,
+        longitude: -111.427,
+        primary: true,
+      },
+      {
         triplet: 'YCTIM',
         name: 'Yellowstone Club - Timber Station',
         elevation: 9400,
@@ -1526,14 +1519,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         elevation: 8850,
         latitude: 45.26281,
         longitude: -111.40789,
-        primary: true,
-      },
-      {
-        triplet: 'YCBAS',
-        name: 'Yellowstone Club - Base Area',
-        elevation: 7200,
-        latitude: 45.23924,
-        longitude: -111.41476,
         primary: true,
       }
     ]
@@ -1542,19 +1527,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'southern-madison-range',
     stations: [
       {
-        triplet: 'YCTIM',
-        name: 'Yellowstone Club - Timber Station',
-        elevation: 9400,
-        latitude: 45.23114,
-        longitude: -111.45119,
+        triplet: 'CRRM8',
+        name: 'CARROT BASIN SNOTEL',
+        elevation: 9000,
+        latitude: 44.962,
+        longitude: -111.294,
         primary: true,
       },
       {
-        triplet: 'YCAND',
-        name: 'Yellowstone Club - Andesite Mountain',
-        elevation: 8850,
-        latitude: 45.26281,
-        longitude: -111.40789,
+        triplet: 'BEVM8',
+        name: 'BEAVER CREEK SNOTEL',
+        elevation: 7850,
+        latitude: 44.950,
+        longitude: -111.359,
         primary: true,
       },
       {
@@ -1571,11 +1556,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'lionhead-area',
     stations: [
       {
-        triplet: 'BLBM8',
-        name: 'BLACK BEAR',
-        elevation: 8170,
-        latitude: 44.51389,
-        longitude: -111.12803,
+        triplet: 'MPLM8',
+        name: 'MADISON PLATEAU SNOTEL',
+        elevation: 7750,
+        latitude: 44.583,
+        longitude: -111.117,
         primary: true,
       },
       {
@@ -1587,11 +1572,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'ITD55',
-        name: 'Henry\'s Lake',
-        elevation: 6617,
-        latitude: 44.61831,
-        longitude: -111.33548,
+        triplet: 'WSKM8',
+        name: 'WHISKEY CREEK SNOTEL',
+        elevation: 6800,
+        latitude: 44.611,
+        longitude: -111.150,
         primary: true,
       }
     ]
@@ -1600,6 +1585,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'island-park',
     stations: [
       {
+        triplet: 'WHEI1',
+        name: 'WHITE ELEPHANT SNOTEL',
+        elevation: 7710,
+        latitude: 44.533,
+        longitude: -111.411,
+        primary: true,
+      },
+      {
         triplet: 'BLBM8',
         name: 'BLACK BEAR',
         elevation: 8170,
@@ -1608,19 +1601,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'WYSM8',
-        name: 'WEST YELLOWSTONE',
-        elevation: 6700,
-        latitude: 44.65866,
-        longitude: -111.09199,
-        primary: true,
-      },
-      {
-        triplet: 'ITD55',
-        name: 'Henry\'s Lake',
-        elevation: 6617,
-        latitude: 44.61831,
-        longitude: -111.33548,
+        triplet: 'ISPI1',
+        name: 'ISLAND PARK SNOTEL',
+        elevation: 6290,
+        latitude: 44.420,
+        longitude: -111.385,
         primary: true,
       }
     ]
@@ -1629,27 +1614,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'cooke-city',
     stations: [
       {
-        triplet: 'PRKW4',
-        name: 'PARKER PEAK',
-        elevation: 9400,
-        latitude: 44.73396,
-        longitude: -109.91484,
+        triplet: 'FSHM8',
+        name: 'FISHER CREEK SNOTEL',
+        elevation: 9100,
+        latitude: 45.062,
+        longitude: -109.945,
         primary: true,
       },
       {
-        triplet: 'BLTW4',
-        name: 'BEARTOOTH LAKE',
-        elevation: 9360,
-        latitude: 44.94307,
-        longitude: -109.56743,
+        triplet: 'MNPM8',
+        name: 'MONUMENT PEAK SNOTEL',
+        elevation: 8850,
+        latitude: 45.218,
+        longitude: -110.237,
         primary: true,
       },
       {
-        triplet: 'EVNW4',
-        name: 'EVENING STAR',
-        elevation: 9200,
-        latitude: 44.65258,
-        longitude: -109.78422,
+        triplet: 'WHTM8',
+        name: 'WHITE MILL SNOTEL',
+        elevation: 8700,
+        latitude: 45.046,
+        longitude: -109.910,
         primary: true,
       }
     ]
@@ -1690,11 +1675,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'swan-range',
     stations: [
       {
-        triplet: 'MTM94',
-        name: 'CSKT Bison Range',
-        elevation: 2667,
-        latitude: 47.36645,
-        longitude: -114.25775,
+        triplet: 'NOIM8',
+        name: 'NOISY BASIN SNOTEL',
+        elevation: 6070,
+        latitude: 48.150,
+        longitude: -113.950,
         primary: true,
       },
       {
@@ -1751,19 +1736,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'seeley-lake',
     stations: [
       {
-        triplet: 'MTM94',
-        name: 'CSKT Bison Range',
-        elevation: 2667,
-        latitude: 47.36645,
-        longitude: -114.25775,
+        triplet: 'STTM8',
+        name: 'STUART MOUNTAIN',
+        elevation: 7270,
+        latitude: 46.99523,
+        longitude: -113.92664,
         primary: true,
       },
       {
-        triplet: 'STTM8',
-        name: 'STUART MOUNTAIN',
-        elevation: 7400,
-        latitude: 46.99523,
-        longitude: -113.92664,
+        triplet: 'NFJM8',
+        name: 'NORTH FORK JOCKO',
+        elevation: 6110,
+        latitude: 47.2726,
+        longitude: -113.75617,
         primary: true,
       },
       {
@@ -1780,17 +1765,9 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'rattlesnake',
     stations: [
       {
-        triplet: 'MTM94',
-        name: 'CSKT Bison Range',
-        elevation: 2667,
-        latitude: 47.36645,
-        longitude: -114.25775,
-        primary: true,
-      },
-      {
         triplet: 'STTM8',
         name: 'STUART MOUNTAIN',
-        elevation: 7400,
+        elevation: 7270,
         latitude: 46.99523,
         longitude: -113.92664,
         primary: true,
@@ -1798,9 +1775,17 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
       {
         triplet: 'NFJM8',
         name: 'NORTH FORK JOCKO',
-        elevation: 6330,
+        elevation: 6110,
         latitude: 47.2726,
         longitude: -113.75617,
+        primary: true,
+      },
+      {
+        triplet: 'NOIM8',
+        name: 'NOISY BASIN SNOTEL',
+        elevation: 6070,
+        latitude: 48.150,
+        longitude: -113.950,
         primary: true,
       }
     ]
@@ -1809,11 +1794,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'bitterroot',
     stations: [
       {
-        triplet: 'ITD28',
-        name: 'Lolo Pass',
-        elevation: 5262,
-        latitude: 46.63592,
-        longitude: -114.58037,
+        triplet: 'SDMM8',
+        name: 'SADDLE MTN SNOTEL',
+        elevation: 7890,
+        latitude: 45.700,
+        longitude: -113.967,
         primary: true,
       },
       {
@@ -1857,11 +1842,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'SNKWY',
-        name: 'SNOW KING',
-        elevation: 7808,
-        latitude: 43.463064,
-        longitude: -110.762552,
+        triplet: 'PHBW4',
+        name: 'PHILLIPS BENCH',
+        elevation: 8200,
+        latitude: 43.51948,
+        longitude: -110.91103,
         primary: true,
       }
     ]
@@ -1899,11 +1884,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'snake-river-range',
     stations: [
       {
-        triplet: 'JHR',
-        name: 'JACKSON HOLE-RAYMER',
-        elevation: 9657,
-        latitude: 43.603815,
-        longitude: -110.855884,
+        triplet: 'PHBW4',
+        name: 'PHILLIPS BENCH',
+        elevation: 8200,
+        latitude: 43.51948,
+        longitude: -110.91103,
         primary: true,
       },
       {
@@ -1915,11 +1900,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'ITD56',
-        name: 'Botts RWIS',
-        elevation: 6005,
-        latitude: 43.87822,
-        longitude: -111.3622,
+        triplet: 'INCW4',
+        name: 'INDIAN CREEK SNOTEL',
+        elevation: 9400,
+        latitude: 42.3,
+        longitude: -110.683,
         primary: true,
       }
     ]
@@ -1997,19 +1982,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'BLHW4',
-        name: 'BLACKHALL MTN',
-        elevation: 9820,
-        latitude: 41.05616,
-        longitude: -106.71384,
-        primary: true,
-      },
-      {
         triplet: 'MBSW4',
         name: 'MED BOW',
         elevation: 10500,
         latitude: 41.37833,
         longitude: -106.34681,
+        primary: true,
+      },
+      {
+        triplet: 'WBSW4',
+        name: 'WEBBER SPRINGS',
+        elevation: 9250,
+        latitude: 41.167,
+        longitude: -106.933,
         primary: true,
       }
     ]
@@ -2087,19 +2072,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'UTPW2',
-        name: 'Powder Mountain 2',
-        elevation: 8460,
-        latitude: 41.37428,
-        longitude: -111.76684,
-        primary: true,
-      },
-      {
         triplet: 'CKRU1',
         name: 'CHICKEN RIDGE',
         elevation: 7648,
         latitude: 41.33156,
         longitude: -111.30341,
+        primary: true,
+      },
+      {
+        triplet: 'BLPU1',
+        name: 'BEN LOMOND PEAK SNOTEL',
+        elevation: 7688,
+        latitude: 41.376,
+        longitude: -111.944,
         primary: true,
       }
     ]
@@ -2124,11 +2109,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'BUNUT',
-        name: 'Bunnells Ridge',
-        elevation: 8800,
-        latitude: 40.314757,
-        longitude: -111.563976,
+        triplet: 'CLN',
+        name: 'ALTA COLLINS',
+        elevation: 9662,
+        latitude: 40.576,
+        longitude: -111.638,
         primary: true,
       }
     ]
@@ -2137,27 +2122,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'provo',
     stations: [
       {
-        triplet: 'IFF',
-        name: 'CARDIFF PEAK',
-        elevation: 10059,
-        latitude: 40.595,
-        longitude: -111.6519,
-        primary: true,
-      },
-      {
-        triplet: 'SOL',
-        name: 'SOLITUDE POWDERHORN',
-        elevation: 9888,
-        latitude: 40.6083,
-        longitude: -111.6044,
-        primary: true,
-      },
-      {
         triplet: 'BUNUT',
         name: 'Bunnells Ridge',
         elevation: 8800,
         latitude: 40.314757,
         longitude: -111.563976,
+        primary: true,
+      },
+      {
+        triplet: 'TIMU1',
+        name: 'TIMPANOGOS DIVIDE SNOTEL',
+        elevation: 8170,
+        latitude: 40.428,
+        longitude: -111.617,
+        primary: true,
+      },
+      {
+        triplet: 'CAMU1',
+        name: 'CASCADE MOUNTAIN SNOTEL',
+        elevation: 7747,
+        latitude: 40.283,
+        longitude: -111.610,
         primary: true,
       }
     ]
@@ -2240,11 +2225,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'GDBU1',
-        name: 'GOLD BASIN',
-        elevation: 10076,
-        latitude: 38.47,
-        longitude: -109.26,
+        triplet: 'LSMU1',
+        name: 'LA SAL MOUNTAIN SNOTEL',
+        elevation: 9577,
+        latitude: 38.482,
+        longitude: -109.272,
         primary: true,
       }
     ]
@@ -2253,11 +2238,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'abajos',
     stations: [
       {
-        triplet: 'UTMPO',
-        name: 'US-491 at MP 2 Monticello POE',
-        elevation: 6821,
-        latitude: 37.873,
-        longitude: -109.3061,
+        triplet: 'ABAUT',
+        name: 'Abajo Peak',
+        elevation: 11330,
+        latitude: 37.841,
+        longitude: -109.462,
         primary: true,
       },
       {
@@ -2343,6 +2328,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'caic-front-range-boulder',
     stations: [
       {
+        triplet: 'CABTP',
+        name: 'BERTHOUD PASS (CAIC)',
+        elevation: 11861,
+        latitude: 39.80,
+        longitude: -105.77,
+        primary: true,
+      },
+      {
         triplet: 'BTSC2',
         name: 'BERTHOUD SUMMIT',
         elevation: 11300,
@@ -2351,19 +2344,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'LKIC2',
-        name: 'LAKE IRENE',
-        elevation: 10700,
-        latitude: 40.41432,
-        longitude: -105.8198,
-        primary: true,
-      },
-      {
-        triplet: 'WPRC2',
-        name: 'WILLOW PARK',
-        elevation: 10700,
-        latitude: 40.43254,
-        longitude: -105.73337,
+        triplet: 'LBAC2',
+        name: 'LOVELAND BASIN SNOTEL',
+        elevation: 11400,
+        latitude: 39.67,
+        longitude: -105.90,
         primary: true,
       }
     ]
@@ -2372,27 +2357,27 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'caic-front-range-south',
     stations: [
       {
-        triplet: 'KAFF',
-        name: 'Air Force Academy',
-        elevation: 6572,
-        latitude: 38.96667,
-        longitude: -104.81667,
+        triplet: 'GLNC2',
+        name: 'GLEN COVE (PIKES PEAK) SNOTEL',
+        elevation: 11460,
+        latitude: 38.876,
+        longitude: -105.074,
         primary: true,
       },
       {
-        triplet: 'KCOS',
-        name: 'City of Colorado Springs Municipal Airport',
-        elevation: 6186,
-        latitude: 38.80949,
-        longitude: -104.68873,
+        triplet: 'ECLC2',
+        name: 'ECHO LAKE SNOTEL',
+        elevation: 10600,
+        latitude: 39.66,
+        longitude: -105.59,
         primary: true,
       },
       {
-        triplet: 'KFCS',
-        name: 'Butts Army Airfield (Fort Carson)',
-        elevation: 5842,
-        latitude: 38.68312,
-        longitude: -104.75977,
+        triplet: 'BTSC2',
+        name: 'BERTHOUD SUMMIT',
+        elevation: 11300,
+        latitude: 39.80392,
+        longitude: -105.77789,
         primary: true,
       }
     ]
@@ -2409,11 +2394,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'BTSC2',
-        name: 'BERTHOUD SUMMIT',
-        elevation: 11300,
-        latitude: 39.80392,
-        longitude: -105.77789,
+        triplet: 'CPMC2',
+        name: 'COPPER MOUNTAIN SNOTEL',
+        elevation: 10550,
+        latitude: 39.49,
+        longitude: -106.17,
         primary: true,
       },
       {
@@ -2430,19 +2415,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'caic-elk-mountains',
     stations: [
       {
-        triplet: 'CAPC2',
-        name: 'CASTLE PEAK',
-        elevation: 11500,
-        latitude: 39.0,
-        longitude: -106.84,
-        primary: true,
-      },
-      {
-        triplet: 'ASEC2',
-        name: 'CASTLE CREEK NEAR ASPEN',
-        elevation: 11394,
-        latitude: 39.00778,
-        longitude: -106.79194,
+        triplet: 'IDPC2',
+        name: 'INDEPENDENCE PASS SNOTEL',
+        elevation: 10600,
+        latitude: 39.08,
+        longitude: -106.61,
         primary: true,
       },
       {
@@ -2452,19 +2429,6 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         latitude: 39.01522,
         longitude: -107.04877,
         primary: true,
-      }
-    ]
-  },
-  {
-    zoneId: 'caic-sawatch-range',
-    stations: [
-      {
-        triplet: 'CAPC2',
-        name: 'CASTLE PEAK',
-        elevation: 11500,
-        latitude: 39.0,
-        longitude: -106.84,
-        primary: true,
       },
       {
         triplet: 'ASEC2',
@@ -2473,13 +2437,34 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         latitude: 39.00778,
         longitude: -106.79194,
         primary: true,
-      },
+      }
+    ]
+  },
+  {
+    zoneId: 'caic-sawatch-range',
+    stations: [
       {
         triplet: 'PRPC2',
         name: 'PORPHYRY CREEK',
         elevation: 10760,
         latitude: 38.48884,
         longitude: -106.33965,
+        primary: true,
+      },
+      {
+        triplet: 'SGMC2',
+        name: 'SARGENTS MESA SNOTEL',
+        elevation: 11530,
+        latitude: 38.29,
+        longitude: -106.37,
+        primary: true,
+      },
+      {
+        triplet: 'CAPC2',
+        name: 'CASTLE PEAK',
+        elevation: 11500,
+        latitude: 39.0,
+        longitude: -106.84,
         primary: true,
       }
     ]
@@ -2496,19 +2481,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'SOSC2',
-        name: 'SCHOFIELD PASS',
-        elevation: 10700,
-        latitude: 39.01522,
-        longitude: -107.04877,
-        primary: true,
-      },
-      {
         triplet: 'CAIRW',
         name: 'IRWIN GUIDES STUDY PLOT',
         elevation: 10423,
         latitude: 38.88736,
         longitude: -107.1084,
+        primary: true,
+      },
+      {
+        triplet: 'SOSC2',
+        name: 'SCHOFIELD PASS',
+        elevation: 10700,
+        latitude: 39.01522,
+        longitude: -107.04877,
         primary: true,
       }
     ]
@@ -2554,19 +2539,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'SLMC2',
-        name: 'SLUMGULLION',
-        elevation: 11440,
-        latitude: 37.9908,
-        longitude: -107.20327,
-        primary: true,
-      },
-      {
         triplet: 'RMPC2',
         name: 'RED MOUNTAIN PASS',
         elevation: 11200,
         latitude: 37.8918,
         longitude: -107.71342,
+        primary: true,
+      },
+      {
+        triplet: 'SLMC2',
+        name: 'SLUMGULLION',
+        elevation: 11440,
+        latitude: 37.9908,
+        longitude: -107.20327,
         primary: true,
       }
     ]
@@ -2583,19 +2568,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'URGC2',
-        name: 'UPPER RIO GRANDE',
-        elevation: 9400,
-        latitude: 37.72194,
-        longitude: -107.26015,
-        primary: true,
-      },
-      {
         triplet: 'GYBC2',
         name: 'GRAYBACK',
         elevation: 11620,
         latitude: 37.47033,
         longitude: -106.53783,
+        primary: true,
+      },
+      {
+        triplet: 'URGC2',
+        name: 'UPPER RIO GRANDE',
+        elevation: 9400,
+        latitude: 37.72194,
+        longitude: -107.26015,
         primary: true,
       }
     ]
@@ -2620,11 +2605,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'CYNC2',
-        name: 'PSF3 CANON CITY QD',
-        elevation: 11569,
-        latitude: 38.0415,
-        longitude: -105.18589,
+        triplet: 'HPAC2',
+        name: 'HAYDEN PASS SNOTEL',
+        elevation: 10700,
+        latitude: 38.293,
+        longitude: -105.851,
         primary: true,
       }
     ]
@@ -2668,6 +2653,14 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'san-francisco-peaks',
     stations: [
       {
+        triplet: 'ASBTP',
+        name: 'AZ Snowbowl Top Patrol',
+        elevation: 11555,
+        latitude: 35.326,
+        longitude: -111.686,
+        primary: true,
+      },
+      {
         triplet: 'XSCA3',
         name: 'SNOWSLIDE CANYON',
         elevation: 9730,
@@ -2676,19 +2669,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
         primary: true,
       },
       {
-        triplet: 'MMNA3',
-        name: 'MORMON MTN SUMMIT',
-        elevation: 8500,
-        latitude: 34.96964,
-        longitude: -111.50922,
-        primary: true,
-      },
-      {
-        triplet: 'MRMA3',
-        name: 'MORMON MOUNTAIN',
-        elevation: 7500,
-        latitude: 34.94109,
-        longitude: -111.51849,
+        triplet: 'JE356',
+        name: 'Upper Weatherford',
+        elevation: 10025,
+        latitude: 35.320,
+        longitude: -111.641,
         primary: true,
       }
     ]
