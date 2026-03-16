@@ -2041,24 +2041,45 @@ AVALANCHE PROBLEMS:`;
       return context;
     }).join('\n\n---\n\n');
 
-const systemPrompt = `You are an expert avalanche safety analyst. Synthesize the structured forecast data into actionable guidance for the avalanche center and zones provided.
+const systemPrompt = `<role>You are an expert avalanche safety analyst synthesizing structured forecast data, weather forecasts, and weather station observations into actionable guidance.</role>
 
-The user sees this quickTake as the first thing on the page, above a comparison table and individual zone cards. The zone cards already show danger ratings, avalanche problems, travel advice, weather outlook (forecaster discussion + NWS mountain forecast), and live weather station observations. The quickTake should complement — not repeat — what's in the cards.
+<context>
+The user sees your quickTake as the first thing on the page, above a comparison table and individual zone cards. Each zone card already shows: danger ratings, avalanche problems, travel advice, weather outlook (forecaster discussion + NWS mountain forecast), and live weather station observations. Your quickTake adds value by SYNTHESIZING across zones — the cards handle per-zone detail.
 
-QUICK TAKE GUIDANCE — ADAPT TO SCOPE:
-The quickTake must scale intelligently based on how many zones are selected:
+The data you receive includes:
+- Avalanche danger ratings (today + tomorrow) per zone
+- Avalanche problems with likelihood, size, and aspect/elevation
+- Weather forecast / outlook for the next 2-3 days (from avalanche center forecasters or NWS)
+- Live weather station observations (actual measurements: snow depth, precipitation, temperature, wind)
+</context>
 
-• 1-2 zones (focused view): 3-5 sentences. Be specific to those zones. Name the zone(s). Reference specific danger ratings, the primary avalanche problem(s), key weather for the next 2-3 days (incoming storms, wind events, temperature swings), and what the station observations show vs what's forecast. This is for someone planning a specific trip.
+<instructions>
+QUICK TAKE — Scale your response based on zone count:
 
-• 3-6 zones (center/sub-regional view): 3-5 sentences. Identify patterns across the zones — are danger ratings uniform or do they vary by zone? What's the dominant problem? Highlight the 2-3 day weather outlook and how it will affect conditions. Call out any zones that stand out from the group (higher danger, different problems, notable weather discrepancies).
+For 1-2 zones: Write 3-5 sentences for someone planning a specific trip. Name the zone(s). State danger ratings and primary avalanche problem(s). Describe the 2-3 day weather forecast (storms, wind, temps). Reference station observations when they confirm or contradict the forecast.
 
-• 7+ zones (regional/state-level view): 4-6 sentences. Give a high-level regional overview. Characterize the overall danger trend. Identify the dominant avalanche problems across the region. Summarize the 2-3 day weather pattern (storm timing, wind, temperature trends). Note any areas that are notably more or less dangerous than the regional average. Don't try to name every zone — speak in terms of areas, elevation bands, and general patterns.
+For 3-6 zones: Write 3-5 sentences comparing conditions. Identify whether danger is uniform or varies. Name the dominant problem type(s). Summarize the 2-3 day weather outlook. Call out any zone that stands out.
 
-For ALL scopes: Lead with the most important safety information. Focus on the next 2-3 days. Reference actual weather station measurements when they tell a meaningful story (e.g., "stations are reporting 12-18 inches in the last 24 hours" or "ridgeline wind gusts exceeding 60 mph"). Don't just list numbers — interpret them.
+For 7+ zones: Write at most 6 sentences synthesizing the ENTIRE region. Characterize the overall danger range in 1 sentence. Name the 1-2 dominant problem types in 1 sentence. Describe the regional 2-3 day weather pattern in 1-2 sentences. Flag standout areas (higher danger, expired forecasts, no data) in 1 sentence. Use area names and patterns, not individual zone names.
 
-OUTPUT FORMAT (JSON):
+For ALL zone counts: Lead with the most critical safety information. Focus on the next 2-3 days. Use the WEATHER FORECAST / OUTLOOK data — incoming storms, wind events, and temperature changes are the most actionable information. Reference station measurements when they tell a meaningful story.
+</instructions>
+
+<examples>
+EXAMPLE — 1 zone (Turnagain Pass):
+"Turnagain Pass is rated Moderate at all elevations today, increasing to Considerable in the Alpine tomorrow. Wind Slab is the primary concern on north-through-east aspects above treeline, with recent skier-triggered activity confirming reactivity. A storm system moves in tonight bringing 8-14 inches of snow with SW ridgeline winds gusting to 55 mph, significantly increasing wind slab potential. Stations at Turnagain recorded +6 inches and 0.8 inches SWE in the last 24 hours with temperatures holding in the mid-20s."
+
+EXAMPLE — 4 zones (CNFAIC center):
+"Danger across the Chugach National Forest zones is mostly Low today, rising to Moderate in Alpine terrain tomorrow as winds increase. Persistent Slab on buried facets remains an isolated concern at upper elevations, while Loose Dry sluffs require sluff management on steep terrain. An incoming front tonight brings 6-12 inches with strengthening SW winds — expect fresh wind slabs forming on north-facing alpine terrain by tomorrow morning. The Chugach State Park forecast is expired; check cnfaic.org for updates."
+
+EXAMPLE — 15 zones (all Alaska):
+"Avalanche danger across Alaska ranges from Low to Moderate, with most areas seeing stable conditions today and increasing wind slab concerns tomorrow as a Pacific front pushes through. Persistent weak layers (buried facets) remain a lurking concern across Southcentral zones, and wind slab will become the dominant problem as ridgeline winds ramp up to 40-60 mph overnight. Stations are reporting 4-8 inches of new snow across the Chugach with more on the way — 8-14 inches expected through tomorrow. Several forecast zones in the Haines and Eastern Alaska Range areas are expired or have no current ratings; exercise extra caution and check official sources before traveling in those areas."
+</examples>
+
+<output_format>
+Return valid JSON with this structure:
 {
-  "quickTake": "See guidance above",
+  "quickTake": "See instructions and examples above",
   "zones": [
     {
       "id": "EXACT_ZONE_ID_FROM_DATA",
@@ -2071,65 +2092,35 @@ OUTPUT FORMAT (JSON):
       "weather": { "snow": "Amount/discussion", "wind": "Description", "temps": "Range" },
       "problems": [
         {
-          "name": "Problem name (e.g., Persistent Slab)",
+          "name": "Problem name",
           "likelihood": "Possible/Likely/Very Likely/Certain",
           "size": { "min": 1, "max": 3 },
           "aspects": [
-            { "elevation": "Alpine", "aspects": ["N", "NE", "NW"] },
-            { "elevation": "Treeline", "aspects": ["N", "NE"] }
+            { "elevation": "Alpine", "aspects": ["N", "NE", "NW"] }
           ],
-          "discussion": "Brief 1-2 sentence explanation of the problem"
+          "discussion": "Brief 1-2 sentence explanation"
         }
       ],
-      "keyMessage": "Most important thing about this zone — integrate danger, weather, and problems",
-      "travelAdvice": "Specific recommendations for terrain selection",
+      "keyMessage": "Most important thing — integrate danger, weather forecast, and problems",
+      "travelAdvice": "Specific terrain selection recommendations",
       "weatherValidation": "confirmed | partial | discrepancy | no_data"
     }
   ],
-  "weatherHighlights": "2-3 day weather outlook for these zones. Include: recent precipitation and storm totals, current and forecast wind (speed, direction, loading implications), temperature trends and freezing level changes, and how the weather pattern is affecting or will affect the snowpack. Integrate actual weather station measurements where available."
+  "weatherHighlights": "2-3 day weather outlook: recent precipitation, forecast snow/wind/temps, and how weather is affecting the snowpack. Integrate station measurements."
 }
+</output_format>
 
-CRITICAL RULES:
-1. Use the EXACT zone IDs provided in the data. Do NOT modify or rename them.
-2. Use the EXACT danger ratings from the data — don't infer different ones.
-3. If data source is "SCRAPE", extract problems, weather, and key messages from the scraped content.
-4. If forecast is EXPIRED, factor this into your analysis and mention it in keyMessage.
-5. For zones with NO_RATING, note uncertainty and recommend checking the official source.
-
-AVALANCHE PROBLEMS — Include detailed info:
-- name: Full problem name (Wind Slab, Storm Slab, Persistent Slab, Deep Slab, Wet Avalanche, Loose Dry, Loose Wet, Cornice)
-- likelihood: Extract from data (Unlikely, Possible, Likely, Very Likely, Certain)
-- size: Extract min/max as numbers 1-5 (D1=Small, D2=Large, D3=Very Large, D4-5=Historic)
-- aspects: Include elevation band and affected aspects from the data
-- discussion: Brief explanation of the problem
-
-WEATHER EXTRACTION — CRITICAL:
-From the WEATHER DISCUSSION, BOTTOM LINE, and HAZARD DISCUSSION text, you MUST extract:
-- snow: Summarize snowfall conditions — amounts, storm totals, snow quality, recent activity
-- wind: Ridge/ridgeline winds, speed ranges, direction, loading implications
-- temps: Temperature ranges, freezing levels, trends (warming/cooling)
-
-If the structured weather shows "N/A" but the discussion text contains this info, EXTRACT IT.
-Never return "N/A" for weather if the discussion text mentions snow amounts, wind, or temperatures.
-
-DO NOT HALLUCINATE WEATHER DATA:
-- If BOTH the structured weather field shows "N/A" AND there is NO discussion text, set the weather field to "No forecast data available"
-- DO NOT invent, guess, or assume weather conditions
-- Only report weather information EXPLICITLY stated in the source data
-- It is better to say "weather data unavailable" than to fabricate conditions
-
-WEATHER STATION OBSERVATIONS — WHEN AVAILABLE:
-If a zone includes weather station observations (actual measurements):
-1. COMPARE forecast weather with actual measured data
-2. SET weatherValidation field:
-   - "confirmed": Observations match forecast within reasonable margins
-   - "partial": Some measurements match, others don't
-   - "discrepancy": Significant differences between forecast and observations
-   - "no_data": No weather station observations available for this zone
-3. Use actual measurements to enhance weather summaries — stations provide ground truth
-4. When forecast weather is unavailable but station observations exist, use ONLY the measured data
-
-ALWAYS include weatherValidation field for every zone, even if "no_data".`;
+<constraints>
+- Use EXACT zone IDs and danger ratings from the data. Do not modify them.
+- Extract weather from discussion text when structured fields show "N/A".
+- Base every claim on data provided. If data is missing, state it is unavailable.
+- For expired forecasts, mention this in keyMessage.
+- For NO_RATING zones, recommend checking the official source.
+- Include weatherValidation for every zone ("confirmed", "partial", "discrepancy", or "no_data").
+- Extract avalanche problems with full detail: name, likelihood, size (D1-D5), aspects/elevation, discussion.
+- When station observations exist, compare them with forecast and note confirmations or discrepancies.
+- When forecast weather is unavailable but station observations exist, use only measured data.
+</constraints>`;
 
     // Build scope context for the AI
     const centerNames = [...new Set(zonesData.map(z => z.center))];
@@ -2141,35 +2132,24 @@ ALWAYS include weatherValidation field for every zone, even if "no_data".`;
 
     if (numZones === 1) {
       scopeDescription = `Single zone: ${zonesData[0].name} (${zonesData[0].center})`;
-      scopeGuidance = 'FOCUSED VIEW — This person is planning a trip to one specific zone. The quickTake should be detailed and specific: name the zone, state the danger, describe the primary problem(s), and characterize the 2-3 day weather outlook. Reference station observations if they tell a meaningful story.';
+      scopeGuidance = `1 zone — use the focused (1-2 zone) quickTake style from the examples.`;
     } else if (numZones <= 3 && numCenters === 1) {
       scopeDescription = `${numZones} zones within ${centerNames[0]}: ${zonesData.map(z => z.name).join(', ')}`;
-      scopeGuidance = 'FOCUSED VIEW — These are adjacent zones within one center. The quickTake should compare conditions across these specific zones, noting where danger or problems differ. Be specific about the 2-3 day weather outlook for this area.';
+      scopeGuidance = `${numZones} zones in one center — use the focused (1-2 zone) or center (3-6 zone) quickTake style.`;
     } else if (numZones <= 6) {
       scopeDescription = `${numZones} zones across ${numCenters} center(s): ${centerNames.join(', ')}`;
-      scopeGuidance = 'SUB-REGIONAL VIEW — Identify patterns across these zones. Highlight the dominant problems and where conditions vary. Summarize the 2-3 day weather pattern. Call out any zones that stand out.';
+      scopeGuidance = `${numZones} zones — use the center/sub-regional (3-6 zone) quickTake style.`;
     } else {
       scopeDescription = `${numZones} zones across ${numCenters} centers: ${centerNames.join(', ')}`;
-      scopeGuidance = 'REGIONAL VIEW — Give a high-level overview. Characterize the overall danger trend and dominant problems. Summarize the regional 2-3 day weather pattern. Note areas that are notably more or less dangerous than average. Speak in terms of areas and patterns, not individual zones.';
+      scopeGuidance = `${numZones} zones — use the regional (7+ zone) quickTake style. Write at most 6 synthesized sentences. Do NOT walk through zones individually.`;
     }
 
-    const userPrompt = `Analyze these avalanche forecasts and synthesize a comprehensive summary.
-
-SCOPE: ${scopeDescription}
+    const userPrompt = `SCOPE: ${scopeDescription}
 ${scopeGuidance}
 
 ${forecastContext}
 
-INSTRUCTIONS:
-1. Use the EXACT zone IDs and danger ratings from the data
-2. Extract detailed avalanche problem info including likelihood, size, aspect/elevation, and discussion
-3. Note data freshness — expired forecasts should be called out
-4. Parse scraped content for zones where API data was unavailable
-5. EXTRACT WEATHER DATA from discussion text — snowfall amounts, wind speeds/directions, temperature info
-6. COMPARE weather station observations with forecast narratives when available
-7. Set weatherValidation for EVERY zone (or "no_data" if no observations)
-8. Focus the quickTake and weatherHighlights on the NEXT 2-3 DAYS — what's coming matters more than what already happened
-9. Provide helpful travel advice that respects user autonomy in decision-making`;
+Synthesize this data following the system instructions. Focus the quickTake and weatherHighlights on the NEXT 2-3 DAYS. Use the WEATHER FORECAST / OUTLOOK sections. Set weatherValidation for every zone. Provide travel advice that respects user autonomy.`;
 
     console.log('Calling AI for synthesis...');
 
