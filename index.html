@@ -3,20 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Avalanche Forecast Comparison Tool</title>
-    <meta name="description" content="View forecasts side by side with live conditions for each zone">
+    <title>Alaska Avalanche Summary — Live Forecasts & Conditions</title>
+    <meta name="description" content="Compare avalanche forecasts side by side with live SNOTEL, weather station data, and NWS outlooks for Turnagain Pass, Hatcher Pass, Valdez, and more." />
     <meta name="author" content="Kai Myers" />
-    <meta name="keywords" content="Alaska avalanche forecast, avalanche conditions, SNOTEL, backcountry safety, Turnagain Pass, Hatcher Pass, Valdez, avalanche danger" />
+    <meta name="keywords" content="Alaska avalanche forecast, avalanche danger rating, SNOTEL data, backcountry safety, Turnagain Pass avalanche, Hatcher Pass conditions, Valdez backcountry, avalanche center forecast, snow safety, avalanche problems, weather stations Alaska" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0c4a6e" />
 
-    
-    
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/4OLmNyz2gjf8FTMxhSBej9f0Je62/social-images/social-1773630258363-Screenshot_2026-03-15_18-40-38.webp">
+    <meta property="og:site_name" content="Alaska Avalanche Summary" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/4OLmNyz2gjf8FTMxhSBej9f0Je62/social-images/social-1773630258363-Screenshot_2026-03-15_18-40-38.webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Alaska Avalanche Summary dashboard showing forecasts and live conditions" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    
-    
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/4OLmNyz2gjf8FTMxhSBej9f0Je62/social-images/social-1773630258363-Screenshot_2026-03-15_18-40-38.webp">
+    <meta name="twitter:site" content="@kaimyers" />
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/4OLmNyz2gjf8FTMxhSBej9f0Je62/social-images/social-1773630258363-Screenshot_2026-03-15_18-40-38.webp" />
+    <meta name="twitter:image:alt" content="Alaska Avalanche Summary dashboard showing forecasts and live conditions" />
 
     <script>
       !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init ts ns yi rs os Qr es capture Hi calculateEventProperties hs register register_once register_for_session unregister unregister_for_session fs getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty vs us createPersonProfile cs Yr ps opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing ls debug O ds getPageViewId captureTraceFeedback captureTraceMetric Vr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -42,10 +49,39 @@
   
   
   
-  <meta property="og:title" content="Avalanche Forecast Comparison Tool">
-  <meta name="twitter:title" content="Avalanche Forecast Comparison Tool">
-  <meta property="og:description" content="View forecasts side by side with live conditions for each zone">
-  <meta name="twitter:description" content="View forecasts side by side with live conditions for each zone">
+  <meta property="og:title" content="Alaska Avalanche Summary — Live Forecasts & Conditions">
+  <meta name="twitter:title" content="Alaska Avalanche Summary — Live Forecasts & Conditions">
+  <meta property="og:description" content="Compare avalanche forecasts side by side with live SNOTEL, weather station data, and NWS outlooks for Alaska zones.">
+  <meta name="twitter:description" content="Compare avalanche forecasts side by side with live SNOTEL, weather station data, and NWS outlooks for Alaska zones.">
+  <meta property="og:url" content="https://avalanchecomparison.lovable.app" />
+  <link rel="canonical" href="https://avalanchecomparison.lovable.app" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Alaska Avalanche Summary",
+    "url": "https://avalanchecomparison.lovable.app",
+    "description": "Compare avalanche forecasts side by side with live weather station data, SNOTEL observations, and NWS outlooks across Alaska and beyond.",
+    "applicationCategory": "WeatherApplication",
+    "operatingSystem": "Web",
+    "author": {
+      "@type": "Person",
+      "name": "Kai Myers"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "about": {
+      "@type": "Thing",
+      "name": "Avalanche Safety",
+      "description": "Avalanche forecast comparison and live backcountry conditions"
+    }
+  }
+  </script>
 </head>
 
   <body>

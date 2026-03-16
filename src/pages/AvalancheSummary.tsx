@@ -1245,7 +1245,7 @@ export default function AvalancheSummaryPage() {
     }
   };
   return <Layout>
-      <SEO title="Avalanche Conditions Summary" description="Side-by-side avalanche forecasts, weather outlooks, and live weather station data from across the United States." url="https://kaiconsulting.ai/tools/avalanche" />
+      <SEO title="Alaska Avalanche Summary — Live Forecasts & Conditions" description="Compare avalanche forecasts side by side with live SNOTEL snow data, weather station observations, and NWS outlooks for Turnagain Pass, Hatcher Pass, Valdez, and more." url="https://avalanchecomparison.lovable.app" />
       {/* Hero Section */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-sky-50 via-background to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
