@@ -179,9 +179,16 @@ export interface NwsForecast {
   forecastPageUrl: string;
 }
 
+export interface AvgProduct {
+  text: string;
+  issuedTime: string;
+  wfo: string;
+}
+
 export interface ZoneWeatherForecast {
   nacWeather?: NacWeatherProduct;
   nwsForecast?: NwsForecast;
+  avgProducts?: AvgProduct[];
 }
 
 export interface QuickTakeResponse {
@@ -195,6 +202,7 @@ export interface WeatherForecastResponse {
   success: boolean;
   centerWeather?: Record<string, NacWeatherProduct>;
   zoneNwsForecasts?: Record<string, NwsForecast>;
+  centerAvgProducts?: Record<string, AvgProduct[]>;
   error?: string;
 }
 

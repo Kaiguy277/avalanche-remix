@@ -757,14 +757,15 @@ function ZoneCard({
           </AccordionItem>
 
           {/* Weather Outlook (forecast/what's coming) */}
-          {(weatherForecast?.nacWeather || weatherForecast?.nwsForecast || (isWeatherForecastLoading && !weatherForecast)) && (
+          {(weatherForecast?.nacWeather || weatherForecast?.nwsForecast || weatherForecast?.avgProducts || (isWeatherForecastLoading && !weatherForecast)) && (
             <AccordionItem value="weather-outlook" className="border rounded-lg border-sky-500/30 px-3">
               <AccordionTrigger className="text-sm font-medium py-2 hover:no-underline">
                 <span className="flex items-center gap-2">
                   <CloudSnow className="h-4 w-4 text-sky-500" />
                   Weather Outlook
                   {weatherForecast?.nacWeather && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">Avy Center</Badge>}
-                  {weatherForecast?.nwsForecast && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">NWS</Badge>}
+                  {weatherForecast?.nwsForecast && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">NWS Mountain</Badge>}
+                  {weatherForecast?.avgProducts && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">AVG</Badge>}
                 </span>
               </AccordionTrigger>
               <AccordionContent>
@@ -772,6 +773,7 @@ function ZoneCard({
                   <WeatherForecastCard
                     nacWeather={weatherForecast?.nacWeather}
                     nwsForecast={weatherForecast?.nwsForecast}
+                    avgProducts={weatherForecast?.avgProducts}
                     isLoading={isWeatherForecastLoading && !weatherForecast}
                   />
                 </div>
@@ -944,6 +946,7 @@ export default function AvalancheSummaryPage() {
   const [weatherForecastData, setWeatherForecastData] = useState<{
     centerWeather: Record<string, NacWeatherProduct>;
     zoneNwsForecasts: Record<string, NwsForecast>;
+    centerAvgProducts: Record<string, import('@/lib/api/avalanche').AvgProduct[]>;
   } | null>(null);
   const [summary, setSummary] = useState<AvalancheSummaryType | null>(null);
   const [scrapedAt, setScrapedAt] = useState<string | null>(null);
@@ -1019,6 +1022,7 @@ export default function AvalancheSummaryPage() {
         setWeatherForecastData({
           centerWeather: response.centerWeather || {},
           zoneNwsForecasts: response.zoneNwsForecasts || {},
+          centerAvgProducts: response.centerAvgProducts || {},
         });
       }
     } catch (error) {
@@ -1034,8 +1038,9 @@ export default function AvalancheSummaryPage() {
     const centerId = ZONE_TO_CENTER[zoneId];
     const nacWeather = centerId ? weatherForecastData.centerWeather[centerId] : undefined;
     const nwsForecast = weatherForecastData.zoneNwsForecasts[zoneId];
-    if (!nacWeather && !nwsForecast) return undefined;
-    return { nacWeather, nwsForecast };
+    const avgProducts = centerId ? weatherForecastData.centerAvgProducts[centerId] : undefined;
+    if (!nacWeather && !nwsForecast && !avgProducts) return undefined;
+    return { nacWeather, nwsForecast, avgProducts };
   }, [weatherForecastData]);
 
   // Use a ref so generateQuickTake always reads the current value

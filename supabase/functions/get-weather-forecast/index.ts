@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getStationsForZone } from '../_shared/weather-station-config.ts';
+import { getNwsZoneMapping, getAvgWfos } from '../_shared/nws-zone-config.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -170,7 +170,62 @@ function stripHtmlPreserveBreaks(html: string | null | undefined): string | null
     .trim() || null;
 }
 
-// Fetch NAC weather product for a center
+// ─── Text Parsing Helpers ────────────────────────────────────────────────────
+
+/** Parse temperature from zone forecast text. Returns first number from "Highs 35 to 47" or "Lows 13 to 23" */
+function parseTemperature(text: string): number | null {
+  // Match "Highs 35 to 47", "Lows around 23", "Highs in the lower 30s", etc.
+  const rangeMatch = text.match(/(?:highs?|lows?)\s+(?:around\s+|near\s+)?(\d+)/i);
+  if (rangeMatch) return parseInt(rangeMatch[1], 10);
+  // Match "Highs in the lower/mid/upper 30s"
+  const approxMatch = text.match(/(?:highs?|lows?)\s+in the\s+(?:lower|mid|upper)\s+(\d+)s/i);
+  if (approxMatch) {
+    const base = parseInt(approxMatch[1], 10);
+    const qualifier = text.match(/(?:lower|mid|upper)/i)?.[0]?.toLowerCase();
+    if (qualifier === 'lower') return base + 2;
+    if (qualifier === 'mid') return base + 5;
+    if (qualifier === 'upper') return base + 8;
+    return base + 5;
+  }
+  return null;
+}
+
+/** Parse wind from zone forecast text. Returns { direction, speed } */
+function parseWind(text: string): { direction: string; speed: string } | null {
+  // Match "Northwest winds 10 to 15 mph" or "West winds around 10 mph"
+  const windMatch = text.match(/(north|south|east|west|northwest|northeast|southwest|southeast|n|s|e|w|nw|ne|sw|se)\w*\s+winds?\s+([\d][\w\s]+?mph)/i);
+  if (windMatch) {
+    const dirMap: Record<string, string> = {
+      'north': 'N', 'south': 'S', 'east': 'E', 'west': 'W',
+      'northwest': 'NW', 'northeast': 'NE', 'southwest': 'SW', 'southeast': 'SE',
+      'northwesterly': 'NW', 'northeasterly': 'NE', 'southwesterly': 'SW', 'southeasterly': 'SE',
+    };
+    const rawDir = windMatch[1].toLowerCase();
+    const direction = dirMap[rawDir] || rawDir.toUpperCase().slice(0, 2);
+    return { direction, speed: windMatch[2].trim() };
+  }
+  // Match "winds 10 to 15 mph" without direction
+  const speedOnly = text.match(/winds?\s+([\d][\w\s]+?mph)/i);
+  if (speedOnly) {
+    return { direction: '', speed: speedOnly[1].trim() };
+  }
+  return null;
+}
+
+/** Extract first sentence as short forecast */
+function extractShortForecast(text: string): string {
+  const firstSentence = text.match(/^([^.!]+[.!])/);
+  return firstSentence ? firstSentence[1].trim() : text.slice(0, 60);
+}
+
+/** Determine if a period name represents daytime */
+function isDaytimePeriod(name: string): boolean {
+  const lower = name.toLowerCase();
+  return !lower.includes('night') && !lower.includes('tonight') && !lower.includes('overnight');
+}
+
+// ─── NAC Weather ─────────────────────────────────────────────────────────────
+
 async function fetchNacWeather(centerId: string): Promise<{
   discussion: string | null;
   tables: any[];
@@ -188,7 +243,6 @@ async function fetchNacWeather(centerId: string): Promise<{
 
     const data = await response.json();
 
-    // Some centers return a valid response but with all null fields
     if (!data.weather_discussion && (!data.weather_data || data.weather_data.length === 0)) {
       console.log(`No weather data in response for ${centerId}`);
       return null;
@@ -205,8 +259,10 @@ async function fetchNacWeather(centerId: string): Promise<{
   }
 }
 
-// Fetch NOAA NWS text forecast for a geographic point
-async function fetchNwsForecast(lat: number, lon: number): Promise<{
+// ─── NWS Zone Forecast ───────────────────────────────────────────────────────
+
+/** Fetch NWS zone forecast — returns mountain-specific weather for a named forecast zone */
+async function fetchNwsZoneForecast(forecastZone: string): Promise<{
   periods: Array<{
     name: string;
     temperature: number;
@@ -217,78 +273,130 @@ async function fetchNwsForecast(lat: number, lon: number): Promise<{
     detailedForecast: string;
     isDaytime: boolean;
   }>;
-  gridpoint: string;
-  forecastZone: string | null;
+  forecastZone: string;
+  forecastZoneName: string | null;
   forecastPageUrl: string;
 } | null> {
   try {
-    // Step 1: Look up NWS grid coordinates for this point
-    const pointsUrl = `${NWS_API_BASE}/points/${lat.toFixed(4)},${lon.toFixed(4)}`;
-    console.log(`Fetching NWS points: ${pointsUrl}`);
-    const pointsResp = await fetch(pointsUrl, { headers: nwsHeaders });
+    const url = `${NWS_API_BASE}/zones/forecast/${forecastZone}/forecast`;
+    console.log(`Fetching NWS zone forecast: ${url}`);
+    const resp = await fetch(url, { headers: nwsHeaders });
 
-    if (!pointsResp.ok) {
-      console.log(`NWS /points returned ${pointsResp.status} for ${lat},${lon}`);
+    if (!resp.ok) {
+      console.log(`NWS zone forecast returned ${resp.status} for ${forecastZone}`);
       return null;
     }
 
-    const pointsData = await pointsResp.json();
-    const props = pointsData.properties;
-    const wfo = props.gridId;
-    const gridX = props.gridX;
-    const gridY = props.gridY;
-    const forecastZoneUrl = props.forecastZone || null;
-    const gridpoint = `${wfo}/${gridX},${gridY}`;
+    const data = await resp.json();
+    const rawPeriods = data.properties?.periods || [];
 
-    // Step 2: Get human-readable forecast periods
-    const forecastUrl = `${NWS_API_BASE}/gridpoints/${wfo}/${gridX},${gridY}/forecast?units=us`;
-    console.log(`Fetching NWS forecast: ${forecastUrl}`);
-    const forecastResp = await fetch(forecastUrl, { headers: nwsHeaders });
+    // Parse structured fields from the text-only zone forecast
+    const periods = rawPeriods.slice(0, 8).map((p: any) => {
+      const text = p.detailedForecast || '';
+      const temp = parseTemperature(text);
+      const wind = parseWind(text);
+      const daytime = isDaytimePeriod(p.name || '');
 
-    if (!forecastResp.ok) {
-      console.log(`NWS /forecast returned ${forecastResp.status} for ${gridpoint}`);
-      return null;
+      return {
+        name: p.name,
+        temperature: temp ?? 0,
+        temperatureUnit: 'F',
+        windSpeed: wind?.speed || '',
+        windDirection: wind?.direction || '',
+        shortForecast: extractShortForecast(text),
+        detailedForecast: text,
+        isDaytime: daytime,
+      };
+    });
+
+    // Get zone name from the zone metadata
+    let forecastZoneName: string | null = null;
+    try {
+      const zoneUrl = `${NWS_API_BASE}/zones/forecast/${forecastZone}`;
+      const zoneResp = await fetch(zoneUrl, { headers: nwsHeaders });
+      if (zoneResp.ok) {
+        const zoneData = await zoneResp.json();
+        forecastZoneName = zoneData.properties?.name || null;
+      }
+    } catch {
+      // Non-critical, just log
+      console.log(`Could not fetch zone name for ${forecastZone}`);
     }
 
-    const forecastData = await forecastResp.json();
-
-    // Extract up to 8 periods (4 days of day/night)
-    const periods = (forecastData.properties?.periods || []).slice(0, 8).map((p: any) => ({
-      name: p.name,
-      temperature: p.temperature,
-      temperatureUnit: p.temperatureUnit,
-      windSpeed: p.windSpeed,
-      windDirection: p.windDirection,
-      shortForecast: p.shortForecast,
-      detailedForecast: p.detailedForecast,
-      isDaytime: p.isDaytime,
-    }));
-
-    // Build human-readable forecast page URL
-    const forecastPageUrl = `https://forecast.weather.gov/MapClick.php?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
+    const forecastPageUrl = `https://forecast.weather.gov/MapClick.php?zoneid=${forecastZone}`;
 
     return {
       periods,
-      gridpoint,
-      forecastZone: forecastZoneUrl ? forecastZoneUrl.split('/').pop() || null : null,
+      forecastZone,
+      forecastZoneName,
       forecastPageUrl,
     };
   } catch (error) {
-    console.error(`Error fetching NWS forecast for ${lat},${lon}:`, error);
+    console.error(`Error fetching NWS zone forecast for ${forecastZone}:`, error);
     return null;
   }
 }
 
-// Get a representative lat/lon for a center by checking its zones' weather stations
-function getRepresentativePoint(zoneIds: string[]): { lat: number; lon: number } | null {
-  for (const zoneId of zoneIds) {
-    const stations = getStationsForZone(zoneId);
-    if (stations.length > 0) {
-      return { lat: stations[0].latitude, lon: stations[0].longitude };
+// ─── NWS AVG (Avalanche Weather Guidance) ────────────────────────────────────
+
+/** Fetch the most recent AVG product from a WFO */
+async function fetchAvgProduct(wfo: string): Promise<{
+  text: string;
+  issuedTime: string;
+  wfo: string;
+} | null> {
+  try {
+    // Step 1: Get list of recent AVG products for this WFO
+    const listUrl = `${NWS_API_BASE}/products/types/AVG/locations/${wfo}`;
+    console.log(`Fetching AVG product list: ${listUrl}`);
+    const listResp = await fetch(listUrl, { headers: nwsHeaders });
+
+    if (!listResp.ok) {
+      console.log(`AVG product list returned ${listResp.status} for ${wfo}`);
+      return null;
     }
+
+    const listData = await listResp.json();
+    const products = listData['@graph'] || [];
+
+    if (products.length === 0) {
+      console.log(`No AVG products available for WFO ${wfo}`);
+      return null;
+    }
+
+    // Step 2: Fetch the most recent product
+    const latestId = products[0].id || products[0]['@id']?.split('/').pop();
+    if (!latestId) {
+      console.log(`Could not extract AVG product ID for ${wfo}`);
+      return null;
+    }
+
+    const productUrl = `${NWS_API_BASE}/products/${latestId}`;
+    console.log(`Fetching AVG product: ${productUrl}`);
+    const productResp = await fetch(productUrl, { headers: nwsHeaders });
+
+    if (!productResp.ok) {
+      console.log(`AVG product returned ${productResp.status} for ${latestId}`);
+      return null;
+    }
+
+    const productData = await productResp.json();
+    const text = productData.productText || '';
+    const issuedTime = productData.issuanceTime || products[0].issuanceTime || '';
+
+    if (!text) {
+      console.log(`Empty AVG product text for ${wfo}`);
+      return null;
+    }
+
+    return { text, issuedTime, wfo };
+  } catch (error) {
+    console.error(`Error fetching AVG for WFO ${wfo}:`, error);
+    return null;
   }
-  return null;
 }
+
+// ─── Main Handler ────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -323,7 +431,7 @@ serve(async (req) => {
     const centerIds = Array.from(centerZones.keys());
     console.log(`Unique centers: ${centerIds.join(', ')}`);
 
-    // Phase 1: Fetch NAC weather products for all centers in parallel
+    // ── Phase 1: Fetch NAC weather products for all centers in parallel ──
     const nacResults = await Promise.all(
       centerIds.map(async (centerId) => {
         const data = await fetchNacWeather(centerId);
@@ -331,7 +439,6 @@ serve(async (req) => {
       })
     );
 
-    // Build centerWeather response and identify centers without NAC data
     const centerWeather: Record<string, any> = {};
     const centersWithNacWeather = new Set<string>();
 
@@ -344,42 +451,96 @@ serve(async (req) => {
 
     console.log(`NAC weather available for: ${Array.from(centersWithNacWeather).join(', ') || 'none'}`);
 
-    // Phase 2: Fetch NOAA NWS forecasts for centers WITHOUT NAC weather
+    // ── Phase 2: Fetch NWS zone forecasts for ALL zones ─────────────────
+    // Zone forecasts are always fetched (mountain-specific, per-zone) regardless
+    // of NAC availability. NAC provides the forecaster discussion; NWS provides
+    // the actual mountain weather forecast for the specific NWS zone.
     const zoneNwsForecasts: Record<string, any> = {};
-    const centersNeedingNoaa = centerIds.filter(id => !centersWithNacWeather.has(id));
 
-    if (centersNeedingNoaa.length > 0) {
-      console.log(`Fetching NOAA for centers without NAC weather: ${centersNeedingNoaa.join(', ')}`);
-
-      const noaaPromises = centersNeedingNoaa.map(async (centerId) => {
-        const zoneIdsForCenter = centerZones.get(centerId) || [];
-        const point = getRepresentativePoint(zoneIdsForCenter);
-
-        if (!point) {
-          console.log(`No stations found for center ${centerId}, skipping NOAA`);
-          return;
+    // Deduplicate NWS zone IDs — multiple avy zones may map to the same NWS zone
+    const nwsZoneToAvyZones = new Map<string, string[]>();
+    for (const zoneId of zoneIds) {
+      const mapping = getNwsZoneMapping(zoneId);
+      if (mapping) {
+        if (!nwsZoneToAvyZones.has(mapping.forecastZone)) {
+          nwsZoneToAvyZones.set(mapping.forecastZone, []);
         }
-
-        const nwsData = await fetchNwsForecast(point.lat, point.lon);
-        if (nwsData) {
-          // Apply the same NOAA forecast to all zones in this center
-          for (const zoneId of zoneIdsForCenter) {
-            zoneNwsForecasts[zoneId] = nwsData;
-          }
-          console.log(`NOAA forecast retrieved for ${centerId} (${nwsData.periods.length} periods)`);
-        }
-      });
-
-      await Promise.all(noaaPromises);
+        nwsZoneToAvyZones.get(mapping.forecastZone)!.push(zoneId);
+      } else {
+        console.log(`No NWS zone mapping for: ${zoneId}`);
+      }
     }
 
-    console.log(`Weather fetch complete. NAC: ${centersWithNacWeather.size} centers, NOAA: ${Object.keys(zoneNwsForecasts).length} zones`);
+    console.log(`Fetching NWS zone forecasts for ${nwsZoneToAvyZones.size} unique NWS zones`);
+
+    const nwsPromises = Array.from(nwsZoneToAvyZones.entries()).map(
+      async ([nwsZone, avyZoneIds]) => {
+        const forecast = await fetchNwsZoneForecast(nwsZone);
+        if (forecast) {
+          for (const avyZoneId of avyZoneIds) {
+            zoneNwsForecasts[avyZoneId] = {
+              periods: forecast.periods,
+              // Keep 'gridpoint' field name for backward compat, but now shows zone info
+              gridpoint: `${forecast.forecastZone}${forecast.forecastZoneName ? ` — ${forecast.forecastZoneName}` : ''}`,
+              forecastZone: forecast.forecastZone,
+              forecastPageUrl: forecast.forecastPageUrl,
+            };
+          }
+          console.log(`NWS zone forecast for ${nwsZone}: ${forecast.periods.length} periods → ${avyZoneIds.join(', ')}`);
+        }
+      }
+    );
+
+    await Promise.all(nwsPromises);
+
+    // ── Phase 3: Fetch AVG products for relevant WFOs ───────────────────
+    const centerAvgProducts: Record<string, any> = {};
+
+    // Collect unique WFOs needed
+    const wfosNeeded = new Set<string>();
+    for (const centerId of centerIds) {
+      const wfos = getAvgWfos(centerId);
+      for (const wfo of wfos) {
+        wfosNeeded.add(wfo);
+      }
+    }
+
+    console.log(`Fetching AVG products from ${wfosNeeded.size} WFOs: ${Array.from(wfosNeeded).join(', ')}`);
+
+    const avgResults = await Promise.all(
+      Array.from(wfosNeeded).map(async (wfo) => {
+        const product = await fetchAvgProduct(wfo);
+        return { wfo, product };
+      })
+    );
+
+    // Map AVG products back to centers
+    const wfoToAvg = new Map<string, any>();
+    for (const { wfo, product } of avgResults) {
+      if (product) {
+        wfoToAvg.set(wfo, product);
+      }
+    }
+
+    for (const centerId of centerIds) {
+      const wfos = getAvgWfos(centerId);
+      const products = wfos
+        .map(wfo => wfoToAvg.get(wfo))
+        .filter(Boolean);
+
+      if (products.length > 0) {
+        centerAvgProducts[centerId] = products;
+      }
+    }
+
+    console.log(`Weather fetch complete. NAC: ${centersWithNacWeather.size} centers, NWS zones: ${Object.keys(zoneNwsForecasts).length}, AVG: ${Object.keys(centerAvgProducts).length} centers`);
 
     return new Response(
       JSON.stringify({
         success: true,
         centerWeather,
         zoneNwsForecasts,
+        centerAvgProducts,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

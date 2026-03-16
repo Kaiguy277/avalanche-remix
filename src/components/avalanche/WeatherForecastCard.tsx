@@ -1,9 +1,11 @@
-import { Sun, Wind, Thermometer, Loader2, ExternalLink, Cloud } from "lucide-react";
-import type { NacWeatherProduct, NwsForecast, NwsForecastPeriod, NacWeatherTable } from "@/lib/api/avalanche";
+import { Sun, Wind, Thermometer, Loader2, ExternalLink, Cloud, FileText } from "lucide-react";
+import type { NacWeatherProduct, NwsForecast, NwsForecastPeriod, NacWeatherTable, AvgProduct } from "@/lib/api/avalanche";
+import { useState } from "react";
 
 interface WeatherForecastCardProps {
   nacWeather?: NacWeatherProduct;
   nwsForecast?: NwsForecast;
+  avgProducts?: AvgProduct[];
   isLoading?: boolean;
 }
 
@@ -25,9 +27,17 @@ function buildNwsHeadline(periods: NwsForecastPeriod[]): string | null {
   const today = periods[0];
   const tonight = periods.find(p => !p.isDaytime);
   const parts: string[] = [];
-  parts.push(`${today.name}: ${today.shortForecast}, ${today.temperature}°${today.temperatureUnit}.`);
+  if (today.temperature) {
+    parts.push(`${today.name}: ${today.shortForecast}, ${today.temperature}°${today.temperatureUnit}.`);
+  } else {
+    parts.push(`${today.name}: ${today.shortForecast}`);
+  }
   if (tonight) {
-    parts.push(`${tonight.name}: ${tonight.shortForecast}, ${tonight.temperature}°${tonight.temperatureUnit}.`);
+    if (tonight.temperature) {
+      parts.push(`${tonight.name}: ${tonight.shortForecast}, ${tonight.temperature}°${tonight.temperatureUnit}.`);
+    } else {
+      parts.push(`${tonight.name}: ${tonight.shortForecast}`);
+    }
   }
   return parts.join(' ');
 }
@@ -39,14 +49,18 @@ function NwsPeriodRow({ period }: { period: NwsForecastPeriod }) {
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-semibold text-foreground">{period.name}</span>
         <div className="flex items-center gap-3 text-sm">
-          <span className="flex items-center gap-1">
-            <Thermometer className="h-3.5 w-3.5 text-red-400" />
-            <span className="font-semibold">{period.temperature}°{period.temperatureUnit}</span>
-          </span>
-          <span className="flex items-center gap-1 text-muted-foreground">
-            <Wind className="h-3.5 w-3.5 text-teal-500" />
-            {period.windDirection} {period.windSpeed}
-          </span>
+          {period.temperature !== 0 && (
+            <span className="flex items-center gap-1">
+              <Thermometer className="h-3.5 w-3.5 text-red-400" />
+              <span className="font-semibold">{period.temperature}°{period.temperatureUnit}</span>
+            </span>
+          )}
+          {period.windDirection && (
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Wind className="h-3.5 w-3.5 text-teal-500" />
+              {period.windDirection} {period.windSpeed}
+            </span>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-1.5 mb-1">
@@ -123,7 +137,47 @@ function NacWeatherDataTable({ table }: { table: NacWeatherTable }) {
   );
 }
 
-export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading }: WeatherForecastCardProps) {
+// Render AVG (Avalanche Weather Guidance) product
+function AvgProductSection({ products }: { products: AvgProduct[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!products || products.length === 0) return null;
+
+  // Use the first (most recent) product
+  const product = products[0];
+  const previewLines = product.text.split('\n').slice(0, 15).join('\n');
+  const isLong = product.text.split('\n').length > 15;
+
+  return (
+    <div>
+      <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2 flex items-center gap-1.5">
+        <FileText className="h-3.5 w-3.5 text-blue-500" />
+        NWS Avalanche Weather Guidance
+        <span className="text-[10px] text-muted-foreground/60 font-normal ml-1">
+          (WFO: {product.wfo})
+        </span>
+      </div>
+      <pre className="text-[11px] text-muted-foreground leading-relaxed whitespace-pre-wrap font-mono overflow-x-auto max-h-[600px] overflow-y-auto">
+        {expanded ? product.text : previewLines}
+      </pre>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-primary hover:underline mt-1"
+        >
+          {expanded ? 'Show less' : 'Show full AVG product...'}
+        </button>
+      )}
+      {product.issuedTime && (
+        <p className="text-[10px] text-muted-foreground/60 mt-1">
+          Issued: {new Date(product.issuedTime).toLocaleString()}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export default function WeatherForecastCard({ nacWeather, nwsForecast, avgProducts, isLoading }: WeatherForecastCardProps) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -133,11 +187,12 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading
     );
   }
 
-  if (!nacWeather && !nwsForecast) return null;
+  if (!nacWeather && !nwsForecast && (!avgProducts || avgProducts.length === 0)) return null;
 
   const hasDiscussion = nacWeather?.discussion;
   const hasTables = nacWeather?.tables && nacWeather.tables.length > 0;
   const hasNwsPeriods = nwsForecast?.periods && nwsForecast.periods.length > 0;
+  const hasAvg = avgProducts && avgProducts.length > 0;
 
   // Build headline: prefer NAC discussion, fall back to NOAA
   const headline = hasDiscussion
@@ -170,7 +225,7 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading
         </div>
       )}
 
-      {/* NWS Mountain Forecast (NOAA) */}
+      {/* NWS Mountain Zone Forecast (NOAA) */}
       {hasNwsPeriods && (
         <div>
           <div className="text-xs font-semibold text-foreground border-b border-border pb-1 mb-2">
@@ -183,7 +238,7 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading
           </div>
           <div className="flex items-center justify-between mt-2">
             <p className="text-[10px] text-muted-foreground/60">
-              NWS Gridpoint: {nwsForecast!.gridpoint}
+              NWS Zone: {nwsForecast!.gridpoint}
             </p>
             {nwsForecast!.forecastPageUrl && (
               <a
@@ -198,6 +253,9 @@ export default function WeatherForecastCard({ nacWeather, nwsForecast, isLoading
           </div>
         </div>
       )}
+
+      {/* AVG (Avalanche Weather Guidance) */}
+      {hasAvg && <AvgProductSection products={avgProducts!} />}
 
       {/* Station Forecast Data Table (NAC) */}
       {hasTables && (
