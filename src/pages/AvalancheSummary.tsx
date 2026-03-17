@@ -1245,7 +1245,6 @@ export default function AvalancheSummaryPage() {
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               <Mountain className="h-4 w-4" />
-              United States
             </div>
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Avalanche Conditions Summary
