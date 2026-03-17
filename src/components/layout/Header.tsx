@@ -9,7 +9,7 @@ const Header = () => {
           <Link to="/" className="flex items-center gap-3">
             <Mountain className="h-7 w-7 text-primary" />
             <span className="font-display text-lg font-semibold text-foreground">
-              Avalanche Summary
+              Chugach Powder Guides — Conditions Dashboard
             </span>
           </Link>
         </div>

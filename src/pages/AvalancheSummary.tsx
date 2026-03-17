@@ -949,7 +949,7 @@ export default function AvalancheSummaryPage() {
   const [loadSource, setLoadSource] = useState<'cached' | 'live' | null>(null);
 
   // Default to CNFAIC zones only
-  const DEFAULT_ZONE_IDS = AVAILABLE_ZONES.filter(z => z.center === 'CNFAIC').map(z => z.id);
+  const DEFAULT_ZONE_IDS = AVAILABLE_ZONES.filter(z => ['VAC', 'CNFAIC'].includes(z.center)).map(z => z.id);
   
   // Zone selection state - load from localStorage or default to CNFAIC zones
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>(() => {
@@ -1238,7 +1238,7 @@ export default function AvalancheSummaryPage() {
     }
   };
   return <Layout>
-      <SEO title="Alaska Avalanche Summary — Live Forecasts & Conditions" description="Compare avalanche forecasts side by side with live SNOTEL snow data, weather station observations, and NWS outlooks for Turnagain Pass, Hatcher Pass, Valdez, and more." url="https://avalanchecomparison.lovable.app" />
+      <SEO title="Chugach Powder Guides — Daily Conditions Dashboard" description="Avalanche forecasts, mountain weather, and live weather station observations for the Chugach Range. Powered by the National Avalanche Center, NOAA/NWS, and Synoptic." url="https://avalanchecomparison.lovable.app" />
       {/* Hero Section */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-sky-50 via-background to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -1247,9 +1247,9 @@ export default function AvalancheSummaryPage() {
               <Mountain className="h-4 w-4" />
             </div>
             <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Avalanche Conditions Summary
+              Chugach Powder Guides
             </h1>
-            <p className="text-muted-foreground text-lg mb-8">Avalanche forecasts, mountain weather outlooks, and live weather station observations side by side across the United States</p>
+            <p className="text-muted-foreground text-lg mb-8">Daily conditions dashboard — avalanche forecasts, mountain weather, and live station observations for the Chugach Range</p>
 
             {/* Zone Selection */}
             <Card className="mb-8 max-w-3xl mx-auto text-left">
