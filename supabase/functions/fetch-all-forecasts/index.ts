@@ -9,6 +9,7 @@ const corsHeaders = {
 // This function calls the existing avalanche-summary endpoint for each center grouping,
 // then stores the synthesized results in avalanche_daily_forecasts.
 // It's designed to be called by a daily cron job.
+// Centers are processed in parallel batches of BATCH_SIZE to avoid timeouts.
 
 const ZONE_GROUPS: { centerId: string; zoneIds: string[] }[] = [
   // Alaska
@@ -51,6 +52,103 @@ const ZONE_GROUPS: { centerId: string; zoneIds: string[] }[] = [
   { centerId: 'MWAC', zoneIds: ['presidential-range'] },
 ];
 
+const BATCH_SIZE = 6; // Process 6 centers in parallel at a time
+
+async function processCenter(
+  group: { centerId: string; zoneIds: string[] },
+  supabaseUrl: string,
+  supabaseServiceKey: string,
+  supabase: any,
+  forecastDate: string,
+): Promise<{ centerId: string; success: boolean; zonesStored: number; error?: string }> {
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/avalanche-summary`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ zoneIds: group.zoneIds }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed for ${group.centerId}: ${response.status} ${errorText}`);
+      return { centerId: group.centerId, success: false, zonesStored: 0, error: `HTTP ${response.status}` };
+    }
+
+    const data = await response.json();
+
+    if (!data.success || !data.summary?.zones) {
+      console.error(`No summary data for ${group.centerId}`);
+      return { centerId: group.centerId, success: false, zonesStored: 0, error: data.error || 'No summary' };
+    }
+
+    // Store each zone's synthesized data
+    let zonesStored = 0;
+    for (const zone of data.summary.zones) {
+      const zoneScrapedInfo = data.zonesScraped?.find((z: any) => z.id === zone.id);
+
+      const { error: upsertError } = await supabase
+        .from('avalanche_daily_forecasts')
+        .upsert({
+          zone_id: zone.id,
+          center_id: group.centerId,
+          forecast_date: forecastDate,
+          published_time: zoneScrapedInfo?.freshness?.issueDate ? new Date(zoneScrapedInfo.freshness.issueDate).toISOString() : null,
+          expires_time: zoneScrapedInfo?.freshness?.expiresDate ? new Date(zoneScrapedInfo.freshness.expiresDate).toISOString() : null,
+          synthesized_data: {
+            id: zone.id,
+            name: zone.name,
+            forecastUrl: zone.forecastUrl,
+            forecast: zone.forecast,
+            weather: zone.weather,
+            problems: zone.problems,
+            keyMessage: zone.keyMessage,
+            travelAdvice: zone.travelAdvice,
+            freshness: zone.freshness,
+            weatherValidation: zone.weatherValidation,
+          },
+        }, {
+          onConflict: 'zone_id,forecast_date',
+        });
+
+      if (upsertError) {
+        console.error(`Failed to store ${zone.id}:`, upsertError);
+      } else {
+        zonesStored++;
+      }
+    }
+
+    // Store summary-level data
+    const { error: summaryError } = await supabase
+      .from('avalanche_daily_forecasts')
+      .upsert({
+        zone_id: `_summary_${group.centerId}`,
+        center_id: group.centerId,
+        forecast_date: forecastDate,
+        synthesized_data: {
+          quickTake: data.summary.quickTake,
+          weatherHighlights: data.summary.weatherHighlights,
+          bottomLine: data.summary.bottomLine,
+        },
+      }, {
+        onConflict: 'zone_id,forecast_date',
+      });
+
+    if (summaryError) {
+      console.error(`Failed to store summary for ${group.centerId}:`, summaryError);
+    }
+
+    console.log(`✅ ${group.centerId}: stored ${zonesStored} zones`);
+    return { centerId: group.centerId, success: true, zonesStored };
+
+  } catch (error) {
+    console.error(`Error processing ${group.centerId}:`, error);
+    return { centerId: group.centerId, success: false, zonesStored: 0, error: String(error) };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -61,117 +159,36 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get today's date in Alaska time (latest US timezone — if it's "today" in AK, it's today everywhere)
+    // Get today's date in Alaska time
     const now = new Date();
     const akTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Anchorage' }));
     const forecastDate = akTime.toISOString().split('T')[0];
 
-    console.log(`=== DAILY FORECAST FETCH: ${forecastDate} ===`);
+    console.log(`=== DAILY FORECAST FETCH: ${forecastDate} (${ZONE_GROUPS.length} centers, batch size ${BATCH_SIZE}) ===`);
 
-    // Process each center group by calling the existing avalanche-summary endpoint
-    // This reuses all existing logic (NAC API, Firecrawl fallback, AI synthesis)
     const results: { centerId: string; success: boolean; zonesStored: number; error?: string }[] = [];
 
-    for (const group of ZONE_GROUPS) {
-      console.log(`\nProcessing ${group.centerId}: ${group.zoneIds.length} zones...`);
-      
-      try {
-        // Call the existing avalanche-summary function
-        const response = await fetch(`${supabaseUrl}/functions/v1/avalanche-summary`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseServiceKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ zoneIds: group.zoneIds }),
-        });
+    // Process centers in parallel batches
+    for (let i = 0; i < ZONE_GROUPS.length; i += BATCH_SIZE) {
+      const batch = ZONE_GROUPS.slice(i, i + BATCH_SIZE);
+      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+      const totalBatches = Math.ceil(ZONE_GROUPS.length / BATCH_SIZE);
+      console.log(`\n--- Batch ${batchNum}/${totalBatches}: ${batch.map(g => g.centerId).join(', ')} ---`);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Failed for ${group.centerId}: ${response.status} ${errorText}`);
-          results.push({ centerId: group.centerId, success: false, zonesStored: 0, error: `HTTP ${response.status}` });
-          continue;
-        }
-
-        const data = await response.json();
-
-        if (!data.success || !data.summary?.zones) {
-          console.error(`No summary data for ${group.centerId}`);
-          results.push({ centerId: group.centerId, success: false, zonesStored: 0, error: data.error || 'No summary' });
-          continue;
-        }
-
-        // Store each zone's synthesized data
-        let zonesStored = 0;
-        for (const zone of data.summary.zones) {
-          const zoneScrapedInfo = data.zonesScraped?.find((z: any) => z.id === zone.id);
-          
-          const { error: upsertError } = await supabase
-            .from('avalanche_daily_forecasts')
-            .upsert({
-              zone_id: zone.id,
-              center_id: group.centerId,
-              forecast_date: forecastDate,
-              published_time: zoneScrapedInfo?.freshness?.issueDate ? new Date(zoneScrapedInfo.freshness.issueDate).toISOString() : null,
-              expires_time: zoneScrapedInfo?.freshness?.expiresDate ? new Date(zoneScrapedInfo.freshness.expiresDate).toISOString() : null,
-              synthesized_data: {
-                id: zone.id,
-                name: zone.name,
-                forecastUrl: zone.forecastUrl,
-                forecast: zone.forecast,
-                weather: zone.weather,
-                problems: zone.problems,
-                keyMessage: zone.keyMessage,
-                travelAdvice: zone.travelAdvice,
-                freshness: zone.freshness,
-                weatherValidation: zone.weatherValidation,
-              },
-            }, {
-              onConflict: 'zone_id,forecast_date',
-            });
-
-          if (upsertError) {
-            console.error(`Failed to store ${zone.id}:`, upsertError);
-          } else {
-            zonesStored++;
-            console.log(`Stored: ${zone.id}`);
-          }
-        }
-
-        // Also store the summary-level data (quickTake, bottomLine, weatherHighlights) 
-        // under a special "_summary" zone for this center
-        const { error: summaryError } = await supabase
-          .from('avalanche_daily_forecasts')
-          .upsert({
-            zone_id: `_summary_${group.centerId}`,
-            center_id: group.centerId,
-            forecast_date: forecastDate,
-            synthesized_data: {
-              quickTake: data.summary.quickTake,
-              weatherHighlights: data.summary.weatherHighlights,
-              bottomLine: data.summary.bottomLine,
-            },
-          }, {
-            onConflict: 'zone_id,forecast_date',
-          });
-
-        if (summaryError) {
-          console.error(`Failed to store summary for ${group.centerId}:`, summaryError);
-        }
-
-        results.push({ centerId: group.centerId, success: true, zonesStored });
-        console.log(`${group.centerId}: stored ${zonesStored} zones`);
-
-      } catch (error) {
-        console.error(`Error processing ${group.centerId}:`, error);
-        results.push({ centerId: group.centerId, success: false, zonesStored: 0, error: String(error) });
-      }
+      const batchResults = await Promise.all(
+        batch.map(group => processCenter(group, supabaseUrl, supabaseServiceKey, supabase, forecastDate))
+      );
+      results.push(...batchResults);
     }
 
     const totalStored = results.reduce((sum, r) => sum + r.zonesStored, 0);
     const totalSuccess = results.filter(r => r.success).length;
+    const failures = results.filter(r => !r.success);
 
     console.log(`\n=== COMPLETE: ${totalStored} zones stored from ${totalSuccess}/${ZONE_GROUPS.length} centers ===`);
+    if (failures.length > 0) {
+      console.log(`⚠️ Failed centers: ${failures.map(f => `${f.centerId} (${f.error})`).join(', ')}`);
+    }
 
     return new Response(
       JSON.stringify({
@@ -180,6 +197,7 @@ serve(async (req) => {
         results,
         totalZonesStored: totalStored,
         totalCentersProcessed: totalSuccess,
+        totalCentersFailed: failures.length,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
