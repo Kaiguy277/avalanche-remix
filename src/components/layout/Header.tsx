@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mountain } from "lucide-react";
+import ChangelogModal from "./ChangelogModal";
+import FeedbackButton from "./FeedbackButton";
 
 const Header = () => {
   return (
@@ -12,6 +14,10 @@ const Header = () => {
               Avalanche Summary
             </span>
           </Link>
+          <div className="flex items-center gap-4">
+            <ChangelogModal />
+            <FeedbackButton />
+          </div>
         </div>
       </div>
     </header>
