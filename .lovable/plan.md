@@ -1,28 +1,29 @@
 
-# Proactive Forecast Caching - IMPLEMENTED
 
-## Architecture
+# Fix: Catch Late-Published Forecasts
 
-```text
-Morning cron (16:30 UTC / 7:30 AM AKST) → fetch-all-forecasts → avalanche_daily_forecasts table
+## Problem
+The cron job runs once at 7:30 AM AKST (16:30 UTC). Many avalanche centers publish forecasts later in the morning or update them throughout the day. Any forecast published after the cron run is missed until the next day.
 
-User visit → get-cached-forecasts (~1s) → Show forecasts immediately
-          → get-snotel-observations (~2-3s) → Append weather stations progressively
-          → Falls back to avalanche-summary if no cache
-```
+## Solution: Add a Second Cron Run
 
-## Components
+Add a second daily cron job in the afternoon — around **1:00 PM AKST (22:00 UTC)**. This catches:
+- Centers that publish forecasts mid-morning or early afternoon
+- Updated/revised forecasts issued after the initial morning run
 
-| Component | Status | Description |
-|-----------|--------|-------------|
-| `avalanche_daily_forecasts` table | ✅ | Stores synthesized zone data per day |
-| `get-cached-forecasts` edge function | ✅ | Fast DB read for today's forecasts |
-| `get-snotel-observations` edge function | ✅ | Standalone SNOTEL fetcher |
-| `fetch-all-forecasts` edge function | ✅ | Cron job that calls avalanche-summary per center |
-| Frontend two-phase loading | ✅ | Phase 1 cached, Phase 2 SNOTEL progressive |
-| Cron schedule (pg_cron) | ✅ | Daily at 16:30 UTC |
+The existing `fetch-all-forecasts` function already uses `upsert` with `onConflict: 'zone_id,forecast_date'`, so a second run will simply overwrite any stale data with fresher forecasts — no code changes needed to the edge function itself.
 
-## Notes
-- RLS: Public read, service role write (intentional for safety-critical data)
-- The `avalanche_forecast_cache` table (raw NAC data) still exists for the cron job's underlying calls
-- Summary-level data (quickTake, bottomLine) stored under `_summary_{centerId}` zone entries
+## Implementation
+
+1. **Add a second pg_cron schedule** via SQL query:
+   - Schedule: `0 22 * * *` (10:00 PM UTC = 1:00 PM AKST)
+   - Same function call as the existing job
+   - Job name: `fetch-afternoon-avalanche-forecasts`
+
+That's it — one SQL insert. No edge function or frontend changes required.
+
+## Why Not More Runs?
+- Each full run processes 28 centers × scraping + AI synthesis = significant API cost (Firecrawl, Perplexity)
+- Two runs covers the realistic publishing window (early morning + late morning/midday)
+- A third run could be added later if needed
+
