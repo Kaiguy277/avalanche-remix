@@ -966,20 +966,13 @@ export default function AvalancheSummaryPage() {
     return DEFAULT_ZONE_IDS;
   });
 
-  // Reveal results once data is loaded — skip video wait for cached data
+  // Reveal results once both data is loaded and video has played once
   const tryRevealResults = useCallback(() => {
-    if (!dataReadyRef.current) return;
-    // If data came from cache, show results after a brief delay (no need to wait for full video)
-    if (loadSource === 'cached') {
-      setTimeout(() => {
-        setShowVideo(false);
-        setShowResults(true);
-      }, 800); // brief animation so it doesn't feel jarring
-    } else if (videoPlayedRef.current) {
+    if (dataReadyRef.current && videoPlayedRef.current) {
       setShowVideo(false);
       setShowResults(true);
     }
-  }, [loadSource]);
+  }, []);
 
   // Save zone selection to localStorage whenever it changes
   const updateSelectedZones = (zoneIds: string[]) => {
