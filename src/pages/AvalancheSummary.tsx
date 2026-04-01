@@ -1397,8 +1397,8 @@ export default function AvalancheSummaryPage() {
                           <span className="text-xs text-muted-foreground">Mountain weather forecasts</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <a href="https://synopticdata.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
-                            Synoptic Data (MesoWest) <ExternalLink className="h-3 w-3" />
+                          <a href="https://www.nrcs.usda.gov/wps/portal/wcc/home/snowClimateMonitoring/snowpack/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                            USDA SNOTEL <ExternalLink className="h-3 w-3" />
                           </a>
                           <span className="text-xs text-muted-foreground">Weather station observations</span>
                         </div>
@@ -1419,7 +1419,7 @@ export default function AvalancheSummaryPage() {
             <div className="mt-8 p-4 rounded-lg bg-muted/50 border border-border">
               <div className="text-sm text-muted-foreground">
                 <p>
-                  Data sourced from the National Avalanche Center, NOAA/NWS, and the Synoptic weather station network.
+                  Data sourced from the National Avalanche Center, NOAA/NWS, and SNOTEL weather stations.
                   Always read the <strong>original forecasts</strong> from your local avalanche center before making
                   travel decisions.
                 </p>

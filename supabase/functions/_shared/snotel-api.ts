@@ -52,6 +52,7 @@ export interface StationObservation {
     hourly72hr: TempDataPoint[];       // hourly temps for last 72hr (for sparkline)
   };
   wind: {
+    speedCurrent: number | null;       // most recent speed (mph)
     speedAvg24hr: number | null;       // 24hr average (mph)
     speedMax24hr: number | null;       // 24hr max (mph)
     speedAvg72hr: number | null;       // 72hr average (mph)
@@ -176,18 +177,24 @@ function parseCSVToAWDB(csvText: string, stationTriplet: string): AWDBResponse {
   const snwdData: AWDBDataPoint[] = [];
   const precData: AWDBDataPoint[] = [];
   const wteqData: AWDBDataPoint[] = [];
+  const wspdData: AWDBDataPoint[] = [];
+  const wspdxData: AWDBDataPoint[] = [];
+  const wdirData: AWDBDataPoint[] = [];
 
   // Parse each data row
-  // Format: YYYY-MM-DD HH:MM,TOBS,SNWD,PREC,WTEQ
+  // Format: YYYY-MM-DD HH:MM,TOBS,SNWD,PREC,WTEQ,WSPD,WSPDX,WDIR
   for (const line of lines) {
     const parts = line.split(',');
-    if (parts.length !== 5) continue; // Skip invalid lines
+    if (parts.length < 5) continue; // Skip invalid lines
 
     const timestamp = parts[0].trim();
     const tobs = parseFloat(parts[1]);
     const snwd = parseFloat(parts[2]);
     const prec = parseFloat(parts[3]);
     const wteq = parseFloat(parts[4]);
+    const wspd = parts.length > 5 ? parseFloat(parts[5]) : NaN;
+    const wspdx = parts.length > 6 ? parseFloat(parts[6]) : NaN;
+    const wdir = parts.length > 7 ? parseFloat(parts[7]) : NaN;
 
     // Convert timestamp to ISO 8601 format
     const isoTimestamp = timestamp.replace(' ', 'T') + ':00.000Z';
@@ -197,6 +204,9 @@ function parseCSVToAWDB(csvText: string, stationTriplet: string): AWDBResponse {
     if (!isNaN(snwd)) snwdData.push({ date: isoTimestamp, value: snwd });
     if (!isNaN(prec)) precData.push({ date: isoTimestamp, value: prec });
     if (!isNaN(wteq)) wteqData.push({ date: isoTimestamp, value: wteq });
+    if (!isNaN(wspd)) wspdData.push({ date: isoTimestamp, value: wspd });
+    if (!isNaN(wspdx)) wspdxData.push({ date: isoTimestamp, value: wspdx });
+    if (!isNaN(wdir)) wdirData.push({ date: isoTimestamp, value: wdir });
   }
 
   // Return in AWDB-compatible format
@@ -218,6 +228,18 @@ function parseCSVToAWDB(csvText: string, stationTriplet: string): AWDBResponse {
       {
         stationElement: { elementCode: 'WTEQ', storedUnitCode: 'in' },
         values: wteqData,
+      },
+      {
+        stationElement: { elementCode: 'WSPD', storedUnitCode: 'mph' },
+        values: wspdData,
+      },
+      {
+        stationElement: { elementCode: 'WSPDX', storedUnitCode: 'mph' },
+        values: wspdxData,
+      },
+      {
+        stationElement: { elementCode: 'WDIR', storedUnitCode: 'deg' },
+        values: wdirData,
       },
     ],
   };
@@ -387,6 +409,7 @@ function parseAWDBResponse(
       hourly72hr: getHourlyData(tobsValues, 72),
     },
     wind: hasWindData ? {
+      speedCurrent: getLatestValue(wspdValues),
       speedAvg24hr: getAvg(wspdValues, 24),
       speedMax24hr: getMax(wspdxValues, 24),
       speedAvg72hr: getAvg(wspdValues, 72),

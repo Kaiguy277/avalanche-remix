@@ -27,7 +27,8 @@ export default function WeatherStationCard({ observations, note }: WeatherStatio
       </CardHeader>
       <CardContent className="space-y-4">
         {observations.map((obs, idx) => {
-          const stationUrl = `https://mesowest.utah.edu/cgi-bin/droman/meso_base_dyn.cgi?stn=${obs.stationTriplet}`;
+          const snotelId = obs.stationTriplet.split(':')[0];
+          const stationUrl = `https://wcc.sc.egov.usda.gov/nwcc/site?sitenum=${snotelId}`;
           const lastUpdated = obs.timestamp ? new Date(obs.timestamp).toLocaleString() : null;
           const hasWind = obs.wind !== null && obs.wind !== undefined;
 

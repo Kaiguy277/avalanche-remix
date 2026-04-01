@@ -17,7 +17,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
           </p>
         </div>
         <p className="text-background/60 text-sm text-center">
-          © {currentYear} Avalanche Summary Tool. Data from the National Avalanche Center, NOAA/NWS, and the Synoptic weather station network.
+          © {currentYear} Avalanche Summary Tool. Data from the National Avalanche Center, NOAA/NWS, and SNOTEL weather stations.
         </p>
       </div>
     </footer>

@@ -1,13 +1,10 @@
 /**
  * Weather Station Configuration for Avalanche Zones
- * Maps Synoptic weather stations to avalanche forecast zones
- *
- * Updated 2026-03-15: Comprehensive review of all zone-station mappings
- * against actual avalanche center weather station pages.
+ * Maps SNOTEL stations to avalanche forecast zones
  */
 
 export interface WeatherStation {
-  triplet: string;      // Synoptic STID (station identifier)
+  triplet: string;      // SNOTEL triplet format: stationId:state:network
   name: string;
   elevation: number;    // feet
   latitude: number;
@@ -20,36 +17,25 @@ export interface ZoneStationConfig {
   stations: WeatherStation[];
 }
 
-// Synoptic station mappings for each avalanche zone
+// SNOTEL station mappings for each avalanche zone
 export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
-  // ===================================================================
-  // CNFAIC - Chugach National Forest Avalanche Information Center (AK)
-  // ===================================================================
   {
     zoneId: 'turnagain-girdwood',
     stations: [
       {
-        triplet: 'SNBA2',
-        name: 'SUNBURST',
-        elevation: 3799,
-        latitude: 60.7583,
-        longitude: -149.1789,
-        primary: true,
-      },
-      {
-        triplet: 'SERA2',
-        name: 'SEATTLE RIDGE',
-        elevation: 2400,
-        latitude: 60.8332,
-        longitude: -149.1602,
-        primary: true,
-      },
-      {
-        triplet: 'TUGA2',
-        name: 'TURNAGAIN PASS',
-        elevation: 1880,
+        triplet: '954:AK:SNTL',
+        name: 'Turnagain Pass SNOTEL',
+        elevation: 1860,
         latitude: 60.78043,
         longitude: -149.18325,
+        primary: true,
+      },
+      {
+        triplet: '1103:AK:SNTL',
+        name: 'Mt. Alyeska SNOTEL',
+        elevation: 1500,
+        latitude: 60.95842,
+        longitude: -149.08858,
         primary: true,
       }
     ]
@@ -58,27 +44,11 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'summit',
     stations: [
       {
-        triplet: 'SUUA2',
-        name: 'SUMMIT CREEK',
-        elevation: 1400,
-        latitude: 60.61713,
-        longitude: -149.53128,
-        primary: true,
-      },
-      {
-        triplet: 'TUGA2',
-        name: 'TURNAGAIN PASS',
-        elevation: 1880,
-        latitude: 60.78043,
-        longitude: -149.18325,
-        primary: true,
-      },
-      {
-        triplet: 'TNCA2',
-        name: 'TINCAN SNOLITE',
-        elevation: 3370,
-        latitude: 60.75,
-        longitude: -149.13,
+        triplet: '955:AK:SNTL',
+        name: 'Summit Creek SNOTEL',
+        elevation: 1340,
+        latitude: 60.62,
+        longitude: -149.53,
         primary: true,
       }
     ]
@@ -87,19 +57,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'seward',
     stations: [
       {
-        triplet: 'EXGA2',
-        name: 'EXIT GLACIER',
-        elevation: 400,
-        latitude: 60.19033,
-        longitude: -149.62117,
+        triplet: '1092:AK:SNTL',
+        name: 'Exit Glacier SNOTEL',
+        elevation: 360,
+        latitude: 60.19,
+        longitude: -149.62,
         primary: true,
       },
       {
-        triplet: 'PEDA2',
-        name: 'PEDERSEN LAGOON',
-        elevation: 625,
-        latitude: 59.8944,
-        longitude: -149.7307,
+        triplet: '959:AK:SNTL',
+        name: 'Cooper Lake SNOTEL',
+        elevation: 1150,
+        latitude: 60.39,
+        longitude: -149.69,
         primary: true,
       }
     ]
@@ -108,83 +78,54 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'chugach-state-park',
     stations: [
       {
-        triplet: 'HILA2',
-        name: 'ANCHORAGE HILLSIDE',
-        elevation: 2080,
-        latitude: 61.11312,
-        longitude: -149.6835,
+        triplet: '946:AK:SNTL',
+        name: 'Indian Pass SNOTEL',
+        elevation: 2400,
+        latitude: 61.07,
+        longitude: -149.49,
         primary: true,
       },
       {
-        triplet: 'MORA2',
-        name: 'MORAINE',
-        elevation: 2100,
-        latitude: 61.37727,
-        longitude: -148.99917,
-        primary: true,
-      },
-      {
-        triplet: 'AYSA2',
-        name: 'ALYESKA SUMMIT',
-        elevation: 3664,
-        latitude: 60.9563,
-        longitude: -149.0632,
+        triplet: '1070:AK:SNTL',
+        name: 'Anchorage Hillside SNOTEL',
+        elevation: 1910,
+        latitude: 61.11,
+        longitude: -149.68,
         primary: true,
       }
     ]
   },
-  // ===================================================================
-  // HPAC - Hatcher Pass Avalanche Center (AK)
-  // ===================================================================
   {
     zoneId: 'hatcher-pass',
     stations: [
       {
-        triplet: 'HATA2',
-        name: 'INDEPENDENCE MINE',
-        elevation: 3550,
-        latitude: 61.79117,
-        longitude: -149.27967,
-        primary: true,
-      },
-      {
-        triplet: 'FBBA2',
-        name: 'FROSTBITE BOTTOM',
-        elevation: 2700,
-        latitude: 61.75,
-        longitude: -149.27,
+        triplet: '1091:AK:SNTL',
+        name: 'Independence Mine SNOTEL',
+        elevation: 3450,
+        latitude: 61.78,
+        longitude: -149.28,
         primary: true,
       }
     ]
   },
-  // ===================================================================
-  // VAC - Valdez Avalanche Center (AK)
-  // ===================================================================
+  // Valdez Avalanche Center Zones
   {
     zoneId: 'valdez-maritime',
     stations: [
       {
-        triplet: 'NVSA2',
-        name: 'Nicks Valley',
-        elevation: 4280,
-        latitude: 61.16371,
-        longitude: -145.64091,
+        triplet: '1095:AK:SNTL',
+        name: 'Sugarloaf Mtn',
+        elevation: 530,
+        latitude: 61.0833,
+        longitude: -146.3,
         primary: true,
       },
       {
-        triplet: 'UPPA2',
-        name: 'UPPER TSAINA RIVER',
-        elevation: 1750,
-        latitude: 61.19112,
-        longitude: -145.64807,
-        primary: true,
-      },
-      {
-        triplet: 'RSCA2',
-        name: 'Richardson Highway @ Stuart Creek MP 45',
-        elevation: 1217,
-        latitude: 61.26066,
-        longitude: -145.2838,
+        triplet: '1055:AK:SNTL',
+        name: 'Upper Tsaina River',
+        elevation: 1730,
+        latitude: 61.18333,
+        longitude: -145.65,
         primary: true,
       }
     ]
@@ -193,27 +134,19 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'valdez-intermountain',
     stations: [
       {
-        triplet: 'NVSA2',
-        name: 'Nicks Valley',
-        elevation: 4280,
-        latitude: 61.16371,
-        longitude: -145.64091,
+        triplet: '1055:AK:SNTL',
+        name: 'Upper Tsaina River',
+        elevation: 1730,
+        latitude: 61.18333,
+        longitude: -145.65,
         primary: true,
       },
       {
-        triplet: 'UPPA2',
-        name: 'UPPER TSAINA RIVER',
-        elevation: 1750,
-        latitude: 61.19112,
-        longitude: -145.64807,
-        primary: true,
-      },
-      {
-        triplet: 'RSCA2',
-        name: 'Richardson Highway @ Stuart Creek MP 45',
-        elevation: 1217,
-        latitude: 61.26066,
-        longitude: -145.2838,
+        triplet: '1095:AK:SNTL',
+        name: 'Sugarloaf Mtn',
+        elevation: 530,
+        latitude: 61.0833,
+        longitude: -146.3,
         primary: true,
       }
     ]
@@ -222,243 +155,170 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'valdez-continental',
     stations: [
       {
-        triplet: 'NVSA2',
-        name: 'Nicks Valley',
-        elevation: 4280,
-        latitude: 61.16371,
-        longitude: -145.64091,
-        primary: true,
-      },
-      {
-        triplet: 'UPPA2',
-        name: 'UPPER TSAINA RIVER',
-        elevation: 1750,
-        latitude: 61.19112,
-        longitude: -145.64807,
-        primary: true,
-      },
-      {
-        triplet: 'RSCA2',
-        name: 'Richardson Highway @ Stuart Creek MP 45',
-        elevation: 1217,
-        latitude: 61.26066,
-        longitude: -145.2838,
+        triplet: '1055:AK:SNTL',
+        name: 'Upper Tsaina River',
+        elevation: 1730,
+        latitude: 61.18333,
+        longitude: -145.65,
         primary: true,
       }
     ]
   },
-  // ===================================================================
-  // EARAC - Eastern Alaska Range Avalanche Center (AK)
-  // ===================================================================
+  // Eastern Alaska Range - North Zone (Castner-Canwell)
   {
     zoneId: 'earac-north',
     stations: [
       {
-        triplet: 'AGW01',
-        name: 'Gulkana Glacier',
-        elevation: 5906,
-        latitude: 63.3,
-        longitude: -145.4,
-        primary: true,
-      },
-      {
-        triplet: 'LESA2',
-        name: 'LOOK EYRIE',
+        triplet: '768:AK:SNTL',
+        name: 'Look Eyrie',
         elevation: 5040,
-        latitude: 63.32192,
-        longitude: -145.59656,
+        latitude: 63.32,
+        longitude: -145.60,
         primary: true,
       },
       {
-        triplet: 'FLDA2',
-        name: 'FIELDING LAKE',
+        triplet: '1268:AK:SNTL',
+        name: 'Fielding Lake',
         elevation: 3000,
-        latitude: 63.20267,
-        longitude: -145.6305,
+        latitude: 63.20,
+        longitude: -145.63,
         primary: true,
-      }
+      },
     ]
   },
+  // Eastern Alaska Range - South Zone (Summit)
   {
     zoneId: 'earac-south',
     stations: [
       {
-        triplet: 'AGW01',
-        name: 'Gulkana Glacier',
-        elevation: 5906,
-        latitude: 63.3,
-        longitude: -145.4,
-        primary: true,
-      },
-      {
-        triplet: 'LESA2',
-        name: 'LOOK EYRIE',
+        triplet: '768:AK:SNTL',
+        name: 'Look Eyrie',
         elevation: 5040,
-        latitude: 63.32192,
-        longitude: -145.59656,
+        latitude: 63.32,
+        longitude: -145.60,
         primary: true,
       },
       {
-        triplet: 'FLDA2',
-        name: 'FIELDING LAKE',
+        triplet: '1268:AK:SNTL',
+        name: 'Fielding Lake',
         elevation: 3000,
-        latitude: 63.20267,
-        longitude: -145.6305,
+        latitude: 63.20,
+        longitude: -145.63,
         primary: true,
-      }
+      },
     ]
   },
-  // ===================================================================
-  // CAAC - Coastal Alaska Avalanche Center (Juneau)
-  // ===================================================================
+  // Coastal Alaska Avalanche Center - Douglas Island
   {
     zoneId: 'douglas-island',
     stations: [
       {
-        triplet: 'PPSA2',
-        name: 'POWDER PATCH EAGLEREST',
-        elevation: 2198,
-        latitude: 58.262,
-        longitude: -134.517,
+        triplet: '1270:AK:SNTL',
+        name: 'Heen Latinee',
+        elevation: 2100,
+        latitude: 58.70,
+        longitude: -134.867,
         primary: true,
       },
       {
-        triplet: 'DCSA2',
-        name: 'DAVIES CREEK',
-        elevation: 2065,
-        latitude: 58.7,
-        longitude: -134.86,
+        triplet: '1001:AK:SNTL',
+        name: 'Long Lake',
+        elevation: 840,
+        latitude: 58.183,
+        longitude: -133.833,
         primary: true,
       },
-      {
-        triplet: 'JTMA2',
-        name: 'Mount Roberts Tram - Juneau',
-        elevation: 1736,
-        latitude: 58.2971,
-        longitude: -134.386,
-        primary: true,
-      }
     ]
   },
+  // Coastal Alaska Avalanche Center - Juneau Mainland
   {
     zoneId: 'juneau-mainland',
     stations: [
       {
-        triplet: 'PPSA2',
-        name: 'POWDER PATCH EAGLEREST',
-        elevation: 2198,
-        latitude: 58.262,
-        longitude: -134.517,
+        triplet: '1270:AK:SNTL',
+        name: 'Heen Latinee',
+        elevation: 2100,
+        latitude: 58.70,
+        longitude: -134.867,
         primary: true,
       },
       {
-        triplet: 'DCSA2',
-        name: 'DAVIES CREEK',
-        elevation: 2065,
-        latitude: 58.7,
-        longitude: -134.86,
+        triplet: '1001:AK:SNTL',
+        name: 'Long Lake',
+        elevation: 840,
+        latitude: 58.183,
+        longitude: -133.833,
         primary: true,
       },
-      {
-        triplet: 'JTMA2',
-        name: 'Mount Roberts Tram - Juneau',
-        elevation: 1736,
-        latitude: 58.2971,
-        longitude: -134.386,
-        primary: true,
-      }
     ]
   },
-  // ===================================================================
-  // HAC - Haines Avalanche Center (AK)
-  // ===================================================================
+  // Haines Avalanche Center - Lutak
   {
     zoneId: 'haines-lutak',
     stations: [
       {
-        triplet: 'TKHA2',
-        name: 'Takshanuk Mountains',
-        elevation: 4364,
-        latitude: 59.3935,
-        longitude: -135.80955,
+        triplet: '1176:AK:SNTL',
+        name: 'Moore Creek Bridge',
+        elevation: 2250,
+        latitude: 59.59,
+        longitude: -135.19,
         primary: true,
       },
       {
-        triplet: 'RRWA2',
-        name: 'RIPINSKI RIDGE WEATHER STATION',
-        elevation: 2600,
-        latitude: 59.2596,
-        longitude: -135.4942,
+        triplet: '1285:AK:SNTL',
+        name: 'Flower Mountain',
+        elevation: 2540,
+        latitude: 59.40,
+        longitude: -136.28,
         primary: true,
       },
-      {
-        triplet: 'FLOA2',
-        name: 'FLOWER MOUNTAIN',
-        elevation: 2500,
-        latitude: 59.4,
-        longitude: -136.2833,
-        primary: true,
-      }
     ]
   },
+  // Haines Avalanche Center - Transitional
   {
     zoneId: 'haines-transitional',
     stations: [
       {
-        triplet: 'TKHA2',
-        name: 'Takshanuk Mountains',
-        elevation: 4364,
-        latitude: 59.3935,
-        longitude: -135.80955,
+        triplet: '1176:AK:SNTL',
+        name: 'Moore Creek Bridge',
+        elevation: 2250,
+        latitude: 59.59,
+        longitude: -135.19,
         primary: true,
       },
       {
-        triplet: 'RRWA2',
-        name: 'RIPINSKI RIDGE WEATHER STATION',
-        elevation: 2600,
-        latitude: 59.2596,
-        longitude: -135.4942,
+        triplet: '1285:AK:SNTL',
+        name: 'Flower Mountain',
+        elevation: 2540,
+        latitude: 59.40,
+        longitude: -136.28,
         primary: true,
       },
-      {
-        triplet: 'FLOA2',
-        name: 'FLOWER MOUNTAIN',
-        elevation: 2500,
-        latitude: 59.4,
-        longitude: -136.2833,
-        primary: true,
-      }
     ]
   },
+  // Haines Avalanche Center - Chilkat Pass
   {
     zoneId: 'haines-chilkat-pass',
     stations: [
       {
-        triplet: 'TKHA2',
-        name: 'Takshanuk Mountains',
-        elevation: 4364,
-        latitude: 59.3935,
-        longitude: -135.80955,
+        triplet: '1176:AK:SNTL',
+        name: 'Moore Creek Bridge',
+        elevation: 2250,
+        latitude: 59.59,
+        longitude: -135.19,
         primary: true,
       },
       {
-        triplet: 'RRWA2',
-        name: 'RIPINSKI RIDGE WEATHER STATION',
-        elevation: 2600,
-        latitude: 59.2596,
-        longitude: -135.4942,
+        triplet: '1285:AK:SNTL',
+        name: 'Flower Mountain',
+        elevation: 2540,
+        latitude: 59.40,
+        longitude: -136.28,
         primary: true,
       },
-      {
-        triplet: 'FLOA2',
-        name: 'FLOWER MOUNTAIN',
-        elevation: 2500,
-        latitude: 59.4,
-        longitude: -136.2833,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // NWAC - Northwest Avalanche Center (WA/OR)
   // ===================================================================
@@ -466,292 +326,213 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'olympics',
     stations: [
       {
-        triplet: 'HUR53',
-        name: 'Hurricane Ridge',
-        elevation: 5250,
-        latitude: 47.9704,
-        longitude: -123.49933,
+        triplet: '1107:WA:SNTL',
+        name: 'Buckinghorse',
+        elevation: 4850,
+        latitude: 47.7086,
+        longitude: -123.45747,
         primary: true,
       },
       {
-        triplet: 'WHSW1',
-        name: 'WATERHOLE',
+        triplet: '974:WA:SNTL',
+        name: 'Waterhole',
         elevation: 5010,
         latitude: 47.94485,
         longitude: -123.42594,
         primary: true,
       },
-      {
-        triplet: 'BKHW1',
-        name: 'BUCKINGHORSE',
-        elevation: 4870,
-        latitude: 47.7086,
-        longitude: -123.45747,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'west-slopes-north',
     stations: [
       {
-        triplet: 'MTB50',
-        name: 'Mt. Baker - Pan Dome',
-        elevation: 5020,
-        latitude: 48.85305,
-        longitude: -121.67720,
+        triplet: '1319:WA:SNTL',
+        name: 'Decline Creek',
+        elevation: 4480,
+        latitude: 48.23594,
+        longitude: -121.455,
         primary: true,
       },
       {
-        triplet: 'MNOW1',
-        name: 'MF NOOKSACK',
-        elevation: 4970,
-        latitude: 48.82453,
-        longitude: -121.92951,
+        triplet: '999:WA:SNTL',
+        name: 'Marten Ridge',
+        elevation: 3520,
+        latitude: 48.76292,
+        longitude: -121.69823,
         primary: true,
       },
-      {
-        triplet: 'WCSW1',
-        name: 'WELLS CREEK',
-        elevation: 4030,
-        latitude: 48.8661,
-        longitude: -121.78976,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'west-slopes-central',
     stations: [
       {
-        triplet: 'KUSW1',
-        name: 'SKOOKUM CREEK',
-        elevation: 3310,
-        latitude: 47.68433,
-        longitude: -121.61007,
+        triplet: '672:WA:SNTL',
+        name: 'Olallie Meadows',
+        elevation: 4010,
+        latitude: 47.37406,
+        longitude: -121.44213,
         primary: true,
       },
       {
-        triplet: 'EPSW1',
-        name: 'EASY PASS',
-        elevation: 5270,
-        latitude: 48.85933,
-        longitude: -121.43895,
+        triplet: '898:WA:SNTL',
+        name: 'Mount Gardner',
+        elevation: 2930,
+        latitude: 47.35768,
+        longitude: -121.56812,
         primary: true,
       },
-      {
-        triplet: 'STS48',
-        name: 'Stevens Pass Grace Lakes',
-        elevation: 4800,
-        latitude: 47.75,
-        longitude: -121.09,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'west-slopes-south',
     stations: [
       {
-        triplet: 'CMT69',
-        name: 'Crystal Summit',
-        elevation: 6830,
-        latitude: 46.93505,
-        longitude: -121.50043,
-        primary: true,
-      },
-      {
-        triplet: 'PVC54',
-        name: 'Paradise',
-        elevation: 5400,
-        latitude: 46.78622,
-        longitude: -121.74240,
-        primary: true,
-      },
-      {
-        triplet: 'WPS58',
-        name: 'White Pass Upper',
+        triplet: '692:WA:SNTL',
+        name: 'Pigtail Peak',
         elevation: 5800,
-        latitude: 46.62077,
-        longitude: -121.38737,
+        latitude: 46.62153,
+        longitude: -121.38643,
         primary: true,
-      }
+      },
+      {
+        triplet: '863:WA:SNTL',
+        name: 'White Pass E.S.',
+        elevation: 4440,
+        latitude: 46.64142,
+        longitude: -121.38153,
+        primary: true,
+      },
     ]
   },
   {
     zoneId: 'stevens-pass',
     stations: [
       {
-        triplet: 'STS40',
-        name: 'Stevens Pass Schmidt Haus',
-        elevation: 3950,
-        latitude: 47.746,
-        longitude: -121.093,
+        triplet: '791:WA:SNTL',
+        name: 'Stevens Pass',
+        elevation: 3940,
+        latitude: 47.74607,
+        longitude: -121.09288,
         primary: true,
       },
       {
-        triplet: 'STS52',
-        name: 'Stevens Pass Skyline',
-        elevation: 5200,
-        latitude: 47.75,
-        longitude: -121.09,
+        triplet: '478:WA:SNTL',
+        name: 'Fish Lake',
+        elevation: 3440,
+        latitude: 47.53565,
+        longitude: -121.08553,
         primary: true,
       },
-      {
-        triplet: 'STS48',
-        name: 'Stevens Pass Grace Lakes',
-        elevation: 4800,
-        latitude: 47.75,
-        longitude: -121.09,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'snoqualmie-pass',
     stations: [
       {
-        triplet: 'ALP44',
-        name: 'Alpental Mid-Mountain',
-        elevation: 4400,
-        latitude: 47.44,
-        longitude: -121.43,
+        triplet: '672:WA:SNTL',
+        name: 'Olallie Meadows',
+        elevation: 4010,
+        latitude: 47.37406,
+        longitude: -121.44213,
         primary: true,
       },
       {
-        triplet: 'SNO30',
-        name: 'Snoqualmie Pass',
-        elevation: 3010,
-        latitude: 47.43,
-        longitude: -121.41,
+        triplet: '788:WA:SNTL',
+        name: 'Stampede Pass',
+        elevation: 3850,
+        latitude: 47.27427,
+        longitude: -121.34162,
         primary: true,
       },
-      {
-        triplet: 'MTW43',
-        name: 'Mt Washington',
-        elevation: 4300,
-        latitude: 47.39,
-        longitude: -121.41,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'east-slopes-north',
     stations: [
       {
-        triplet: 'HRPW1',
-        name: 'HARTS PASS',
+        triplet: '711:WA:SNTL',
+        name: 'Rainy Pass',
+        elevation: 4880,
+        latitude: 48.51865,
+        longitude: -120.7358,
+        primary: true,
+      },
+      {
+        triplet: '515:WA:SNTL',
+        name: 'Harts Pass',
         elevation: 6490,
-        latitude: 48.71047,
+        latitude: 48.72047,
         longitude: -120.6586,
         primary: true,
       },
-      {
-        triplet: 'WAP55',
-        name: 'Washington Pass Base',
-        elevation: 5450,
-        latitude: 48.52578,
-        longitude: -120.65525,
-        primary: true,
-      },
-      {
-        triplet: 'SWSW1',
-        name: 'SWAMP CREEK',
-        elevation: 3930,
-        latitude: 48.57142,
-        longitude: -120.78267,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'east-slopes-central',
     stations: [
       {
-        triplet: 'MSR52',
-        name: 'Mission Ridge Mid-Mountain',
-        elevation: 5160,
-        latitude: 47.28598,
-        longitude: -120.41082,
+        triplet: '352:WA:SNTL',
+        name: 'Blewett Pass',
+        elevation: 4240,
+        latitude: 47.35037,
+        longitude: -120.6796,
         primary: true,
       },
       {
-        triplet: 'TRGW1',
-        name: 'TROUGH',
-        elevation: 5480,
-        latitude: 47.23328,
-        longitude: -120.29412,
-        primary: true,
-      },
-      {
-        triplet: 'GRCW1',
-        name: 'GROUSE CAMP',
+        triplet: '507:WA:SNTL',
+        name: 'Grouse Camp',
         elevation: 5390,
         latitude: 47.28107,
         longitude: -120.48771,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'east-slopes-south',
     stations: [
       {
-        triplet: 'WPS58',
-        name: 'White Pass Upper',
-        elevation: 5800,
-        latitude: 46.62077,
-        longitude: -121.38737,
+        triplet: '502:WA:SNTL',
+        name: 'Green Lake',
+        elevation: 5920,
+        latitude: 46.54741,
+        longitude: -121.17093,
         primary: true,
       },
       {
-        triplet: 'LOHW1',
-        name: 'LOST HORSE',
-        elevation: 5120,
-        latitude: 46.3575,
-        longitude: -121.08095,
+        triplet: '599:WA:SNTL',
+        name: 'Lost Horse',
+        elevation: 5100,
+        latitude: 46.35754,
+        longitude: -121.0809,
         primary: true,
       },
-      {
-        triplet: 'CHP55',
-        name: 'Chinook Pass',
-        elevation: 5500,
-        latitude: 46.87,
-        longitude: -121.52,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'mt-hood',
     stations: [
       {
-        triplet: 'MTHO3',
-        name: 'Mt Hood Test Site SNOTEL',
+        triplet: '651:OR:SNTL',
+        name: 'Mt Hood Test Site',
         elevation: 5380,
-        latitude: 45.32,
-        longitude: -121.72,
+        latitude: 45.32097,
+        longitude: -121.7158,
         primary: true,
       },
       {
-        triplet: 'GVT50',
-        name: 'Skibowl Summit',
-        elevation: 5010,
-        latitude: 45.28857,
-        longitude: -121.78275,
+        triplet: '712:OR:SNTL',
+        name: 'Red Hill',
+        elevation: 4410,
+        latitude: 45.4643,
+        longitude: -121.70428,
         primary: true,
       },
-      {
-        triplet: 'FFMO3',
-        name: 'FIFTEENMILE',
-        elevation: 5970,
-        latitude: 45.35,
-        longitude: -121.53,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // COAA - Central Oregon Avalanche Association (OR)
   // ===================================================================
@@ -759,60 +540,45 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'central-cascades',
     stations: [
       {
-        triplet: 'BEDO3',
-        name: 'IRISH TAYLOR',
-        elevation: 5540,
-        latitude: 43.80368,
-        longitude: -121.94793,
-        primary: true,
-      },
-      {
-        triplet: 'TCMO3',
-        name: 'THREE CREEKS MEADOW',
-        elevation: 5690,
+        triplet: '815:OR:SNTL',
+        name: 'Three Creeks Meadow',
+        elevation: 5680,
         latitude: 44.14425,
         longitude: -121.64095,
         primary: true,
       },
       {
-        triplet: 'RORO3',
-        name: 'ROARING RIVER',
-        elevation: 4950,
-        latitude: 43.90098,
-        longitude: -122.03063,
+        triplet: '619:OR:SNTL',
+        name: 'Mckenzie',
+        elevation: 4770,
+        latitude: 44.2103,
+        longitude: -121.87292,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'newberry',
     stations: [
       {
-        triplet: 'BEDO3',
-        name: 'IRISH TAYLOR',
-        elevation: 5540,
-        latitude: 43.80368,
-        longitude: -121.94793,
-        primary: true,
-      },
-      {
-        triplet: 'TCMO3',
-        name: 'THREE CREEKS MEADOW',
-        elevation: 5690,
+        triplet: '815:OR:SNTL',
+        name: 'Three Creeks Meadow',
+        elevation: 5680,
         latitude: 44.14425,
         longitude: -121.64095,
         primary: true,
       },
       {
-        triplet: 'CSTO3',
-        name: 'CASCADE SUMMIT',
-        elevation: 5100,
-        latitude: 43.59042,
-        longitude: -122.0601,
+        triplet: '545:OR:SNTL',
+        name: 'Irish Taylor',
+        elevation: 5540,
+        latitude: 43.80368,
+        longitude: -121.94793,
         primary: true,
-      }
+      },
     ]
   },
+
   // ===================================================================
   // WAC - Wallowa Avalanche Center (OR)
   // ===================================================================
@@ -820,118 +586,87 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'northern-wallowas',
     stations: [
       {
-        triplet: 'TYLO3',
-        name: 'TAYLOR GREEN',
-        elevation: 5740,
-        latitude: 45.07707,
-        longitude: -117.55067,
+        triplet: '653:OR:SNTL',
+        name: 'Mt. Howard',
+        elevation: 7840,
+        latitude: 45.26514,
+        longitude: -117.17377,
         primary: true,
       },
       {
-        triplet: 'MHWO3',
-        name: 'MT. HOWARD',
-        elevation: 7910,
-        latitude: 45.26522,
-        longitude: -117.17373,
+        triplet: '302:OR:SNTL',
+        name: 'Aneroid Lake #2',
+        elevation: 7430,
+        latitude: 45.21332,
+        longitude: -117.19255,
         primary: true,
       },
-      {
-        triplet: 'ANRO3',
-        name: 'ANEROID LAKE #2',
-        elevation: 7400,
-        latitude: 45.21328,
-        longitude: -117.19258,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'southern-wallowas',
     stations: [
       {
-        triplet: 'TYLO3',
-        name: 'TAYLOR GREEN',
-        elevation: 5740,
+        triplet: '736:OR:SNTL',
+        name: 'Schneider Meadows',
+        elevation: 5400,
+        latitude: 45.00107,
+        longitude: -117.16522,
+        primary: true,
+      },
+      {
+        triplet: '812:OR:SNTL',
+        name: 'Taylor Green',
+        elevation: 5730,
         latitude: 45.07707,
         longitude: -117.55067,
         primary: true,
       },
-      {
-        triplet: 'ANRO3',
-        name: 'ANEROID LAKE #2',
-        elevation: 7400,
-        latitude: 45.21328,
-        longitude: -117.19258,
-        primary: true,
-      },
-      {
-        triplet: 'BORO3',
-        name: 'BOURNE',
-        elevation: 5850,
-        latitude: 44.83052,
-        longitude: -118.18787,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'elkhorns',
     stations: [
       {
-        triplet: 'BORO3',
-        name: 'BOURNE',
+        triplet: '494:OR:SNTL',
+        name: 'Gold Center',
+        elevation: 5400,
+        latitude: 44.7638,
+        longitude: -118.3117,
+        primary: true,
+      },
+      {
+        triplet: '361:OR:SNTL',
+        name: 'Bourne',
         elevation: 5850,
         latitude: 44.83052,
         longitude: -118.18787,
         primary: true,
       },
-      {
-        triplet: 'WFCO3',
-        name: 'WOLF CREEK',
-        elevation: 5630,
-        latitude: 45.06703,
-        longitude: -118.15192,
-        primary: true,
-      },
-      {
-        triplet: 'EIMO3',
-        name: 'EILERTSON MEADOWS',
-        elevation: 5510,
-        latitude: 44.86887,
-        longitude: -118.11387,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'blues',
     stations: [
       {
-        triplet: 'BLPO3',
-        name: 'BLUE MOUNTAIN SPRING',
-        elevation: 5870,
+        triplet: '821:OR:SNTL',
+        name: 'Tipton',
+        elevation: 5150,
+        latitude: 44.65567,
+        longitude: -118.42617,
+        primary: true,
+      },
+      {
+        triplet: '357:OR:SNTL',
+        name: 'Blue Mountain Spring',
+        elevation: 5880,
         latitude: 44.24767,
         longitude: -118.51722,
         primary: true,
       },
-      {
-        triplet: 'BORO3',
-        name: 'BOURNE',
-        elevation: 5850,
-        latitude: 44.83052,
-        longitude: -118.18787,
-        primary: true,
-      },
-      {
-        triplet: 'GLDO3',
-        name: 'GOLD CENTER',
-        elevation: 5410,
-        latitude: 44.7638,
-        longitude: -118.3117,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // SOAIX - Southern Oregon Avalanche Information Exchange (OR)
   // ===================================================================
@@ -939,31 +674,24 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'southern-oregon',
     stations: [
       {
-        triplet: 'SWNO3',
-        name: 'SWAN LAKE MTN',
-        elevation: 6830,
-        latitude: 42.41323,
-        longitude: -121.68002,
+        triplet: '406:OR:SNTL',
+        name: 'Cold Springs Camp',
+        elevation: 5940,
+        latitude: 42.53305,
+        longitude: -122.17683,
         primary: true,
       },
       {
-        triplet: 'SSSO3',
-        name: 'SUN PASS',
-        elevation: 5400,
-        latitude: 42.78637,
-        longitude: -121.97715,
+        triplet: '483:OR:SNTL',
+        name: 'Fourmile Lake',
+        elevation: 5970,
+        latitude: 42.43933,
+        longitude: -122.2288,
         primary: true,
       },
-      {
-        triplet: 'BCDO3',
-        name: 'BILLIE CREEK DIVIDE',
-        elevation: 5280,
-        latitude: 42.40717,
-        longitude: -122.26617,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // SAC - Sierra Avalanche Center (CA)
   // ===================================================================
@@ -971,31 +699,32 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'central-sierra-nevada',
     stations: [
       {
-        triplet: 'ILKC1',
-        name: 'INDEPENDENCE LAKE',
-        elevation: 8337,
-        latitude: 39.42752,
-        longitude: -120.31342,
+        triplet: '428:CA:SNTL',
+        name: 'Css Lab',
+        elevation: 6890,
+        latitude: 39.32565,
+        longitude: -120.36807,
         primary: true,
       },
       {
-        triplet: 'LLSC1',
-        name: 'LAKE LOIS NEAR SOUTH LAKE TAHOE 10W LOS',
-        elevation: 8297,
-        latitude: 38.925,
-        longitude: -120.19694,
-        primary: true,
-      },
-      {
-        triplet: 'SQWC1',
+        triplet: '784:CA:SNTL',
         name: 'Palisades Tahoe',
         elevation: 8010,
         latitude: 39.18986,
         longitude: -120.26576,
         primary: true,
-      }
+      },
+      {
+        triplet: '541:CA:SNTL',
+        name: 'Independence Lake',
+        elevation: 8340,
+        latitude: 39.42752,
+        longitude: -120.31342,
+        primary: true,
+      },
     ]
   },
+
   // ===================================================================
   // ESAC - Eastern Sierra Avalanche Center (CA)
   // ===================================================================
@@ -1003,31 +732,24 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'eastside-region',
     stations: [
       {
-        triplet: 'TIRC1',
-        name: 'TIOGA PASS ENTRY STATION',
-        elevation: 10000,
-        latitude: 37.91083,
-        longitude: -119.25861,
+        triplet: '846:CA:SNTL',
+        name: 'Virginia Lakes Ridge',
+        elevation: 9400,
+        latitude: 38.07298,
+        longitude: -119.23433,
         primary: true,
       },
       {
-        triplet: 'RCKC1',
-        name: 'ROCK CREEK LAKES',
-        elevation: 9744,
-        latitude: 37.458,
-        longitude: -118.735,
+        triplet: '1317:CA:SNTL',
+        name: 'Willow Flat CA',
+        elevation: 8220,
+        latitude: 38.27203,
+        longitude: -119.45124,
         primary: true,
       },
-      {
-        triplet: 'XMPC1',
-        name: 'MEAN PEAK',
-        elevation: 9867,
-        latitude: 38.39739,
-        longitude: -119.52522,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // BAC - Bridgeport Avalanche Center (CA)
   // ===================================================================
@@ -1035,63 +757,50 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'bridgeport',
     stations: [
       {
-        triplet: 'XMPC1',
-        name: 'MEAN PEAK',
-        elevation: 9867,
-        latitude: 38.39739,
-        longitude: -119.52522,
+        triplet: '587:CA:SNTL',
+        name: 'Lobdell Lake',
+        elevation: 9260,
+        latitude: 38.43745,
+        longitude: -119.36572,
         primary: true,
       },
       {
-        triplet: 'MNPC1',
-        name: 'MONITOR PASS',
-        elevation: 8304,
-        latitude: 38.668,
-        longitude: -119.609,
+        triplet: '846:CA:SNTL',
+        name: 'Virginia Lakes Ridge',
+        elevation: 9400,
+        latitude: 38.07298,
+        longitude: -119.23433,
         primary: true,
       },
-      {
-        triplet: 'LVTC1',
-        name: 'LEAVITT MEADOWS',
-        elevation: 7197,
-        latitude: 38.304,
-        longitude: -119.551,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // MSAC - Mount Shasta Avalanche Center (CA)
+  // Note: No SNTL stations on Mt Shasta itself; using nearest OR stations
   // ===================================================================
   {
     zoneId: 'mount-shasta',
     stations: [
       {
-        triplet: 'MSGRB',
-        name: 'Gray Butte',
-        elevation: 7958,
-        latitude: 41.345,
-        longitude: -122.196,
+        triplet: '341:OR:SNTL',
+        name: 'Big Red Mountain',
+        elevation: 6060,
+        latitude: 42.05257,
+        longitude: -122.85487,
         primary: true,
       },
       {
-        triplet: 'MSSKI',
-        name: 'Old Ski Bowl',
-        elevation: 7617,
-        latitude: 41.358,
-        longitude: -122.207,
+        triplet: '1158:OR:SNTL',
+        name: 'Howard Prairie',
+        elevation: 4580,
+        latitude: 42.215,
+        longitude: -122.3713,
         primary: true,
       },
-      {
-        triplet: 'SDFC1',
-        name: 'Sand Flat',
-        elevation: 6811,
-        latitude: 41.349,
-        longitude: -122.246,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // SNFAC - Sawtooth National Forest Avalanche Center (ID)
   // ===================================================================
@@ -1099,118 +808,87 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'banner-summit',
     stations: [
       {
-        triplet: 'BNRI1',
-        name: 'BANNER SUMMIT',
-        elevation: 7100,
-        latitude: 44.303333,
-        longitude: -115.233333,
-        primary: true,
-      },
-      {
-        triplet: 'BASI1',
-        name: 'BANNER SUMMIT SNOTEL',
+        triplet: '312:ID:SNTL',
+        name: 'Banner Summit',
         elevation: 7040,
-        latitude: 44.303,
-        longitude: -115.233,
+        latitude: 44.30342,
+        longitude: -115.23447,
         primary: true,
       },
       {
-        triplet: 'JKPI1',
-        name: 'JACKSON PEAK',
-        elevation: 7070,
+        triplet: '550:ID:SNTL',
+        name: 'Jackson Peak',
+        elevation: 7060,
         latitude: 44.05092,
         longitude: -115.44322,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'galena-summit-eastern-mtns',
     stations: [
       {
-        triplet: 'GLSI1',
-        name: 'GALENA SUMMIT',
-        elevation: 8780,
+        triplet: '490:ID:SNTL',
+        name: 'Galena Summit',
+        elevation: 8790,
         latitude: 43.87497,
         longitude: -114.71363,
         primary: true,
       },
       {
-        triplet: 'LWDI1',
-        name: 'LOST-WOOD DIVIDE SNOTEL',
-        elevation: 7870,
-        latitude: 43.82,
-        longitude: -114.27,
+        triplet: '489:ID:SNTL',
+        name: 'Galena',
+        elevation: 7470,
+        latitude: 43.87722,
+        longitude: -114.6725,
         primary: true,
       },
-      {
-        triplet: 'VNNI1',
-        name: 'VIENNA MINE',
-        elevation: 8960,
-        latitude: 43.79942,
-        longitude: -114.85273,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'sawtooth-western-smoky-mtns',
     stations: [
       {
-        triplet: 'VNNI1',
-        name: 'VIENNA MINE',
-        elevation: 8960,
+        triplet: '845:ID:SNTL',
+        name: 'Vienna Mine',
+        elevation: 8930,
         latitude: 43.79942,
         longitude: -114.85273,
         primary: true,
       },
       {
-        triplet: 'GLSI1',
-        name: 'GALENA SUMMIT',
-        elevation: 8780,
-        latitude: 43.87497,
-        longitude: -114.71363,
-        primary: true,
-      },
-      {
-        triplet: 'ATAI1',
-        name: 'ATLANTA SUMMIT',
-        elevation: 7580,
+        triplet: '306:ID:SNTL',
+        name: 'Atlanta Summit',
+        elevation: 7570,
         latitude: 43.7569,
         longitude: -115.23907,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'soldier-wood-river-valley-mtns',
     stations: [
       {
-        triplet: 'DHDI1',
-        name: 'DOLLARHIDE SUMMIT SNOTEL',
+        triplet: '450:ID:SNTL',
+        name: 'Dollarhide Summit',
         elevation: 8390,
-        latitude: 43.60,
-        longitude: -114.67,
+        latitude: 43.6025,
+        longitude: -114.67417,
         primary: true,
       },
       {
-        triplet: 'HYNI1',
-        name: 'HYNDMAN SNOTEL',
-        elevation: 7590,
-        latitude: 43.72,
-        longitude: -114.17,
+        triplet: '769:ID:SNTL',
+        name: 'Soldier R.S.',
+        elevation: 5780,
+        latitude: 43.48407,
+        longitude: -114.82692,
         primary: true,
       },
-      {
-        triplet: 'VNNI1',
-        name: 'VIENNA MINE',
-        elevation: 8960,
-        latitude: 43.79942,
-        longitude: -114.85273,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // PAC - Payette Avalanche Center (ID)
   // ===================================================================
@@ -1218,60 +896,45 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'salmon-river-mountains',
     stations: [
       {
-        triplet: 'BKSI1',
-        name: 'BIG CREEK SUMMIT',
-        elevation: 6580,
-        latitude: 44.62642,
-        longitude: -115.7937,
-        primary: true,
-      },
-      {
-        triplet: 'DDSI1',
-        name: 'DEADWOOD SUMMIT SNOTEL',
+        triplet: '439:ID:SNTL',
+        name: 'Deadwood Summit',
         elevation: 6990,
-        latitude: 44.55,
-        longitude: -115.57,
+        latitude: 44.54492,
+        longitude: -115.56386,
         primary: true,
       },
       {
-        triplet: 'BNRI1',
-        name: 'BANNER SUMMIT',
-        elevation: 7100,
-        latitude: 44.303333,
-        longitude: -115.233333,
+        triplet: '338:ID:SNTL',
+        name: 'Big Creek Summit',
+        elevation: 6550,
+        latitude: 44.62621,
+        longitude: -115.79561,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'west-mountains',
     stations: [
       {
-        triplet: 'BRRI1',
-        name: 'BRUNDAGE RESERVOIR SNOTEL',
-        elevation: 6280,
-        latitude: 45.05,
-        longitude: -116.13,
+        triplet: '338:ID:SNTL',
+        name: 'Big Creek Summit',
+        elevation: 6550,
+        latitude: 44.62621,
+        longitude: -115.79561,
         primary: true,
       },
       {
-        triplet: 'BKSI1',
-        name: 'BIG CREEK SUMMIT',
-        elevation: 6580,
-        latitude: 44.62642,
-        longitude: -115.7937,
+        triplet: '979:ID:SNTL',
+        name: 'Van Wyck',
+        elevation: 4960,
+        latitude: 44.37665,
+        longitude: -116.3366,
         primary: true,
       },
-      {
-        triplet: 'ITD69',
-        name: 'Goose Creek Grade',
-        elevation: 5417,
-        latitude: 44.92944,
-        longitude: -116.1555,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // IPAC - Idaho Panhandle Avalanche Center (ID/MT)
   // ===================================================================
@@ -1279,147 +942,108 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'selkirk-mountains',
     stations: [
       {
-        triplet: 'STZI1',
-        name: 'SCHWEITZER BASIN',
+        triplet: '738:ID:SNTL',
+        name: 'Schweitzer Basin',
         elevation: 6090,
         latitude: 48.37428,
         longitude: -116.63917,
         primary: true,
       },
       {
-        triplet: 'HDLI1',
-        name: 'HIDDEN LAKE',
-        elevation: 5000,
-        latitude: 48.894,
-        longitude: -116.757,
+        triplet: '1053:ID:SNTL',
+        name: 'Myrtle Creek',
+        elevation: 3540,
+        latitude: 48.72263,
+        longitude: -116.46312,
         primary: true,
       },
-      {
-        triplet: 'BRMI1',
-        name: 'BEAR MOUNTAIN',
-        elevation: 5400,
-        latitude: 48.30577,
-        longitude: -116.07448,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'west-cabinet-mountains',
     stations: [
       {
-        triplet: 'CHIM8',
-        name: 'CHICAGO RIDGE',
-        elevation: 5800,
-        latitude: 48.06,
-        longitude: -115.7,
+        triplet: '932:MT:SNTL',
+        name: 'Poorman Creek',
+        elevation: 5050,
+        latitude: 48.12632,
+        longitude: -115.6234,
         primary: true,
       },
       {
-        triplet: 'BRMI1',
-        name: 'BEAR MOUNTAIN',
-        elevation: 5400,
-        latitude: 48.30577,
-        longitude: -116.07448,
+        triplet: '1312:MT:SNTL',
+        name: 'Chicago Ridge',
+        elevation: 5700,
+        latitude: 48.06224,
+        longitude: -115.69748,
         primary: true,
       },
-      {
-        triplet: 'MOQI1',
-        name: 'MOSQUITO RIDGE',
-        elevation: 5200,
-        latitude: 48.05737,
-        longitude: -116.23052,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'east-cabinet-mountains',
     stations: [
       {
-        triplet: 'CHIM8',
-        name: 'CHICAGO RIDGE',
-        elevation: 5800,
-        latitude: 48.06,
-        longitude: -115.7,
+        triplet: '1312:MT:SNTL',
+        name: 'Chicago Ridge',
+        elevation: 5700,
+        latitude: 48.06224,
+        longitude: -115.69748,
         primary: true,
       },
       {
-        triplet: 'PMNM8',
-        name: 'POORMAN CREEK',
+        triplet: '932:MT:SNTL',
+        name: 'Poorman Creek',
         elevation: 5050,
-        latitude: 48.127,
-        longitude: -115.623,
+        latitude: 48.12632,
+        longitude: -115.6234,
         primary: true,
       },
-      {
-        triplet: 'BANM8',
-        name: 'BANFIELD MOUNTAIN',
-        elevation: 5580,
-        latitude: 48.5712,
-        longitude: -115.44573,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'silver-valley-bitterroot-mountains',
     stations: [
       {
-        triplet: 'LKTI1',
-        name: 'LOOKOUT SNOTEL',
-        elevation: 5180,
-        latitude: 47.458,
-        longitude: -115.706,
-        primary: true,
-      },
-      {
-        triplet: 'SNSI1',
-        name: 'SUNSET',
+        triplet: '803:ID:SNTL',
+        name: 'Sunset',
         elevation: 5570,
-        latitude: 47.555,
-        longitude: -115.824,
+        latitude: 47.55545,
+        longitude: -115.82422,
         primary: true,
       },
       {
-        triplet: 'HUGI1',
-        name: 'HUMBOLDT GULCH',
-        elevation: 4260,
-        latitude: 47.533,
-        longitude: -115.783,
+        triplet: '594:ID:SNTL',
+        name: 'Lookout',
+        elevation: 5180,
+        latitude: 47.45749,
+        longitude: -115.70457,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'purcell-mountains',
     stations: [
       {
-        triplet: 'BANM8',
-        name: 'BANFIELD MOUNTAIN',
+        triplet: '311:MT:SNTL',
+        name: 'Banfield Mountain',
         elevation: 5580,
         latitude: 48.5712,
         longitude: -115.44573,
         primary: true,
       },
       {
-        triplet: 'HAWM8',
-        name: 'HAWKINS LAKE',
-        elevation: 6460,
-        latitude: 48.967,
-        longitude: -115.950,
+        triplet: '932:MT:SNTL',
+        name: 'Poorman Creek',
+        elevation: 5050,
+        latitude: 48.12632,
+        longitude: -115.6234,
         primary: true,
       },
-      {
-        triplet: 'STAM8',
-        name: 'STAHL PEAK',
-        elevation: 6040,
-        latitude: 48.917,
-        longitude: -114.867,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // GNFAC - Gallatin National Forest Avalanche Center (MT)
   // ===================================================================
@@ -1427,234 +1051,179 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'bridger-range',
     stations: [
       {
-        triplet: 'BRCM8',
-        name: 'BRACKETT CREEK',
-        elevation: 7320,
+        triplet: '929:MT:SNTL',
+        name: 'Sacajawea',
+        elevation: 6610,
+        latitude: 45.87395,
+        longitude: -110.92783,
+        primary: true,
+      },
+      {
+        triplet: '365:MT:SNTL',
+        name: 'Brackett Creek',
+        elevation: 7370,
         latitude: 45.89107,
         longitude: -110.93851,
         primary: true,
       },
-      {
-        triplet: 'SAJM8',
-        name: 'SACAJAWEA SNOTEL',
-        elevation: 6550,
-        latitude: 45.874,
-        longitude: -110.928,
-        primary: true,
-      },
-      {
-        triplet: 'SFSM8',
-        name: 'S FORK SHIELDS',
-        elevation: 8100,
-        latitude: 46.0896,
-        longitude: -110.43363,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'northern-gallatin-range',
     stations: [
       {
-        triplet: 'SHFM8',
-        name: 'SHOWER FALLS SNOTEL',
+        triplet: '578:MT:SNTL',
+        name: 'Lick Creek',
+        elevation: 6880,
+        latitude: 45.5041,
+        longitude: -110.96625,
+        primary: true,
+      },
+      {
+        triplet: '754:MT:SNTL',
+        name: 'Shower Falls',
         elevation: 8060,
-        latitude: 45.401,
-        longitude: -110.958,
+        latitude: 45.40125,
+        longitude: -110.95758,
         primary: true,
       },
-      {
-        triplet: 'LCKM8',
-        name: 'LICK CREEK SNOTEL',
-        elevation: 6860,
-        latitude: 45.504,
-        longitude: -110.966,
-        primary: true,
-      },
-      {
-        triplet: 'BRCM8',
-        name: 'BRACKETT CREEK',
-        elevation: 7320,
-        latitude: 45.89107,
-        longitude: -110.93851,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'southern-gallatin-range',
     stations: [
       {
-        triplet: 'SHFM8',
-        name: 'SHOWER FALLS SNOTEL',
+        triplet: '590:MT:SNTL',
+        name: 'Lone Mountain',
+        elevation: 8820,
+        latitude: 45.27412,
+        longitude: -111.42692,
+        primary: true,
+      },
+      {
+        triplet: '754:MT:SNTL',
+        name: 'Shower Falls',
         elevation: 8060,
-        latitude: 45.401,
-        longitude: -110.958,
+        latitude: 45.40125,
+        longitude: -110.95758,
         primary: true,
       },
-      {
-        triplet: 'LCKM8',
-        name: 'LICK CREEK SNOTEL',
-        elevation: 6860,
-        latitude: 45.504,
-        longitude: -110.966,
-        primary: true,
-      },
-      {
-        triplet: 'CRRM8',
-        name: 'CARROT BASIN SNOTEL',
-        elevation: 9000,
-        latitude: 44.962,
-        longitude: -111.294,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'northern-madison-range',
     stations: [
       {
-        triplet: 'BSKM8',
-        name: 'LONE MOUNTAIN SNOTEL',
-        elevation: 8880,
-        latitude: 45.274,
-        longitude: -111.427,
+        triplet: '590:MT:SNTL',
+        name: 'Lone Mountain',
+        elevation: 8820,
+        latitude: 45.27412,
+        longitude: -111.42692,
         primary: true,
       },
       {
-        triplet: 'YCTIM',
-        name: 'Yellowstone Club - Timber Station',
-        elevation: 9400,
-        latitude: 45.23114,
-        longitude: -111.45119,
+        triplet: '328:MT:SNTL',
+        name: 'Beaver Creek',
+        elevation: 7820,
+        latitude: 44.94966,
+        longitude: -111.35852,
         primary: true,
       },
-      {
-        triplet: 'YCAND',
-        name: 'Yellowstone Club - Andesite Mountain',
-        elevation: 8850,
-        latitude: 45.26281,
-        longitude: -111.40789,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'southern-madison-range',
     stations: [
       {
-        triplet: 'CRRM8',
-        name: 'CARROT BASIN SNOTEL',
-        elevation: 9000,
-        latitude: 44.962,
-        longitude: -111.294,
+        triplet: '328:MT:SNTL',
+        name: 'Beaver Creek',
+        elevation: 7820,
+        latitude: 44.94966,
+        longitude: -111.35852,
         primary: true,
       },
       {
-        triplet: 'BEVM8',
-        name: 'BEAVER CREEK SNOTEL',
-        elevation: 7850,
-        latitude: 44.950,
-        longitude: -111.359,
+        triplet: '385:MT:SNTL',
+        name: 'Carrot Basin',
+        elevation: 9200,
+        latitude: 44.96192,
+        longitude: -111.29403,
         primary: true,
       },
-      {
-        triplet: 'WYSM8',
-        name: 'WEST YELLOWSTONE',
-        elevation: 6700,
-        latitude: 44.65866,
-        longitude: -111.09199,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'lionhead-area',
     stations: [
       {
-        triplet: 'MPLM8',
-        name: 'MADISON PLATEAU SNOTEL',
-        elevation: 7750,
-        latitude: 44.583,
-        longitude: -111.117,
+        triplet: '858:MT:SNTL',
+        name: 'Whiskey Creek',
+        elevation: 6790,
+        latitude: 44.61088,
+        longitude: -111.14998,
         primary: true,
       },
       {
-        triplet: 'WYSM8',
-        name: 'WEST YELLOWSTONE',
-        elevation: 6700,
+        triplet: '924:MT:SNTL',
+        name: 'West Yellowstone',
+        elevation: 6680,
         latitude: 44.65866,
         longitude: -111.09199,
         primary: true,
       },
-      {
-        triplet: 'WSKM8',
-        name: 'WHISKEY CREEK SNOTEL',
-        elevation: 6800,
-        latitude: 44.611,
-        longitude: -111.150,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'island-park',
     stations: [
       {
-        triplet: 'WHEI1',
-        name: 'WHITE ELEPHANT SNOTEL',
-        elevation: 7710,
-        latitude: 44.533,
-        longitude: -111.411,
+        triplet: '546:ID:SNTL',
+        name: 'Island Park',
+        elevation: 6300,
+        latitude: 44.4203,
+        longitude: -111.38512,
         primary: true,
       },
       {
-        triplet: 'BLBM8',
-        name: 'BLACK BEAR',
-        elevation: 8170,
-        latitude: 44.51389,
-        longitude: -111.12803,
+        triplet: '860:ID:SNTL',
+        name: 'White Elephant',
+        elevation: 7670,
+        latitude: 44.53267,
+        longitude: -111.41085,
         primary: true,
       },
-      {
-        triplet: 'ISPI1',
-        name: 'ISLAND PARK SNOTEL',
-        elevation: 6290,
-        latitude: 44.420,
-        longitude: -111.385,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'cooke-city',
     stations: [
       {
-        triplet: 'FSHM8',
-        name: 'FISHER CREEK SNOTEL',
-        elevation: 9100,
-        latitude: 45.062,
-        longitude: -109.945,
+        triplet: '862:MT:SNTL',
+        name: 'White Mill',
+        elevation: 8730,
+        latitude: 45.04575,
+        longitude: -109.90987,
         primary: true,
       },
       {
-        triplet: 'MNPM8',
-        name: 'MONUMENT PEAK SNOTEL',
-        elevation: 8850,
-        latitude: 45.218,
-        longitude: -110.237,
+        triplet: '480:MT:SNTL',
+        name: 'Fisher Creek',
+        elevation: 9110,
+        latitude: 45.06235,
+        longitude: -109.94488,
         primary: true,
       },
       {
-        triplet: 'WHTM8',
-        name: 'WHITE MILL SNOTEL',
-        elevation: 8700,
-        latitude: 45.046,
-        longitude: -109.910,
+        triplet: '670:MT:SNTL',
+        name: 'Northeast Entrance',
+        elevation: 7420,
+        latitude: 45.00568,
+        longitude: -110.01411,
         primary: true,
-      }
+      },
     ]
   },
+
   // ===================================================================
   // FAC - Flathead Avalanche Center (MT)
   // ===================================================================
@@ -1662,89 +1231,66 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'whitefish-range',
     stations: [
       {
-        triplet: 'LKMMT',
-        name: 'Link Mountain',
-        elevation: 7228,
-        latitude: 48.75989,
-        longitude: -114.5753,
+        triplet: '1311:MT:SNTL',
+        name: 'Stryker Basin',
+        elevation: 6200,
+        latitude: 48.68005,
+        longitude: -114.66365,
         primary: true,
       },
       {
-        triplet: 'BIGMS',
-        name: 'Big Mountain Summit, Whitefish Ski Resort',
-        elevation: 6737,
-        latitude: 48.502483,
-        longitude: -114.342139,
+        triplet: '469:MT:SNTL',
+        name: 'Emery Creek',
+        elevation: 4340,
+        latitude: 48.43412,
+        longitude: -113.93725,
         primary: true,
       },
-      {
-        triplet: 'FTMM8',
-        name: 'FLATTOP MTN.',
-        elevation: 6300,
-        latitude: 48.80225,
-        longitude: -113.85713,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'swan-range',
     stations: [
       {
-        triplet: 'NOIM8',
-        name: 'NOISY BASIN SNOTEL',
-        elevation: 6070,
-        latitude: 48.150,
-        longitude: -113.950,
+        triplet: '562:MT:SNTL',
+        name: 'Kraft Creek',
+        elevation: 4770,
+        latitude: 47.42749,
+        longitude: -113.77515,
         primary: true,
       },
       {
-        triplet: 'MSPM8',
-        name: 'MOSS PEAK',
-        elevation: 6780,
-        latitude: 47.68493,
-        longitude: -113.9623,
+        triplet: '646:MT:SNTL',
+        name: 'Moss Peak',
+        elevation: 6760,
+        latitude: 47.68497,
+        longitude: -113.96239,
         primary: true,
       },
-      {
-        triplet: 'NFJM8',
-        name: 'NORTH FORK JOCKO',
-        elevation: 6330,
-        latitude: 47.2726,
-        longitude: -113.75617,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'flathead-range-glacier-np',
     stations: [
       {
-        triplet: 'S11MT',
-        name: 'BNSF Shed 11',
-        elevation: 6416,
-        latitude: 48.24667,
-        longitude: -113.54285,
-        primary: true,
-      },
-      {
-        triplet: 'FTMM8',
-        name: 'FLATTOP MTN.',
-        elevation: 6300,
-        latitude: 48.80225,
-        longitude: -113.85713,
-        primary: true,
-      },
-      {
-        triplet: 'PICM8',
-        name: 'PIKE CREEK',
+        triplet: '693:MT:SNTL',
+        name: 'Pike Creek',
         elevation: 5930,
         latitude: 48.30305,
         longitude: -113.32868,
         primary: true,
-      }
+      },
+      {
+        triplet: '613:MT:SNTL',
+        name: 'Many Glacier',
+        elevation: 4930,
+        latitude: 48.79698,
+        longitude: -113.6705,
+        primary: true,
+      },
     ]
   },
+
   // ===================================================================
   // WCMAC - West Central Montana Avalanche Center (MT)
   // ===================================================================
@@ -1752,89 +1298,66 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'seeley-lake',
     stations: [
       {
-        triplet: 'STTM8',
-        name: 'STUART MOUNTAIN',
-        elevation: 7270,
-        latitude: 46.99523,
-        longitude: -113.92664,
-        primary: true,
-      },
-      {
-        triplet: 'NFJM8',
-        name: 'NORTH FORK JOCKO',
+        triplet: '667:MT:SNTL',
+        name: 'North Fork Jocko',
         elevation: 6110,
-        latitude: 47.2726,
-        longitude: -113.75617,
+        latitude: 47.27258,
+        longitude: -113.75631,
         primary: true,
       },
       {
-        triplet: 'MSPM8',
-        name: 'MOSS PEAK',
-        elevation: 6780,
-        latitude: 47.68493,
-        longitude: -113.9623,
+        triplet: '562:MT:SNTL',
+        name: 'Kraft Creek',
+        elevation: 4770,
+        latitude: 47.42749,
+        longitude: -113.77515,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'rattlesnake',
     stations: [
       {
-        triplet: 'STTM8',
-        name: 'STUART MOUNTAIN',
+        triplet: '901:MT:SNTL',
+        name: 'Stuart Mountain',
         elevation: 7270,
-        latitude: 46.99523,
-        longitude: -113.92664,
+        latitude: 46.99521,
+        longitude: -113.92667,
         primary: true,
       },
       {
-        triplet: 'NFJM8',
-        name: 'NORTH FORK JOCKO',
+        triplet: '667:MT:SNTL',
+        name: 'North Fork Jocko',
         elevation: 6110,
-        latitude: 47.2726,
-        longitude: -113.75617,
+        latitude: 47.27258,
+        longitude: -113.75631,
         primary: true,
       },
-      {
-        triplet: 'NOIM8',
-        name: 'NOISY BASIN SNOTEL',
-        elevation: 6070,
-        latitude: 48.150,
-        longitude: -113.950,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'bitterroot',
     stations: [
       {
-        triplet: 'SDMM8',
-        name: 'SADDLE MTN SNOTEL',
-        elevation: 7890,
-        latitude: 45.700,
-        longitude: -113.967,
-        primary: true,
-      },
-      {
-        triplet: 'LPSI1',
-        name: 'LOLO PASS',
-        elevation: 5240,
+        triplet: '588:ID:SNTL',
+        name: 'Lolo Pass',
+        elevation: 5280,
         latitude: 46.63448,
         longitude: -114.58072,
         primary: true,
       },
       {
-        triplet: 'TWLM8',
-        name: 'TWIN LAKES',
-        elevation: 6400,
-        latitude: 46.1438,
-        longitude: -114.5056,
+        triplet: '735:ID:SNTL',
+        name: 'Savage Pass',
+        elevation: 6170,
+        latitude: 46.46633,
+        longitude: -114.63333,
         primary: true,
-      }
+      },
     ]
   },
+
   // ===================================================================
   // BTAC - Bridger-Teton Avalanche Center (WY)
   // ===================================================================
@@ -1842,118 +1365,87 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'tetons',
     stations: [
       {
-        triplet: 'JHR',
-        name: 'JACKSON HOLE-RAYMER',
-        elevation: 9657,
-        latitude: 43.603815,
-        longitude: -110.855884,
-        primary: true,
-      },
-      {
-        triplet: 'GTHW4',
-        name: 'GRAND TARGHEE',
+        triplet: '1082:WY:SNTL',
+        name: 'Grand Targhee',
         elevation: 9260,
         latitude: 43.77933,
         longitude: -110.92783,
         primary: true,
       },
       {
-        triplet: 'PHBW4',
-        name: 'PHILLIPS BENCH',
-        elevation: 8200,
-        latitude: 43.51948,
-        longitude: -110.91103,
+        triplet: '689:WY:SNTL',
+        name: 'Phillips Bench',
+        elevation: 8170,
+        latitude: 43.51687,
+        longitude: -110.91258,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'togwotee-pass',
     stations: [
       {
-        triplet: 'TOGW4',
-        name: 'TOGWOTEE PASS',
-        elevation: 9580,
+        triplet: '822:WY:SNTL',
+        name: 'Togwotee Pass',
+        elevation: 9590,
         latitude: 43.74902,
         longitude: -110.0578,
         primary: true,
       },
       {
-        triplet: 'LTWW4',
-        name: 'LITTLE WARM',
-        elevation: 9370,
-        latitude: 43.50278,
-        longitude: -109.752,
+        triplet: '878:WY:SNTL',
+        name: 'Younts Peak',
+        elevation: 8340,
+        latitude: 43.93225,
+        longitude: -109.81775,
         primary: true,
       },
-      {
-        triplet: 'TOPW4',
-        name: 'TWO OCEAN PLATEAU',
-        elevation: 9240,
-        latitude: 44.15178,
-        longitude: -110.22122,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'snake-river-range',
     stations: [
       {
-        triplet: 'PHBW4',
-        name: 'PHILLIPS BENCH',
-        elevation: 8200,
-        latitude: 43.51948,
-        longitude: -110.91103,
+        triplet: '689:WY:SNTL',
+        name: 'Phillips Bench',
+        elevation: 8170,
+        latitude: 43.51687,
+        longitude: -110.91258,
         primary: true,
       },
       {
-        triplet: 'GTHW4',
-        name: 'GRAND TARGHEE',
-        elevation: 9260,
-        latitude: 43.77933,
-        longitude: -110.92783,
+        triplet: '695:ID:SNTL',
+        name: 'Pine Creek Pass',
+        elevation: 6710,
+        latitude: 43.56998,
+        longitude: -111.21157,
         primary: true,
       },
-      {
-        triplet: 'INCW4',
-        name: 'INDIAN CREEK SNOTEL',
-        elevation: 9400,
-        latitude: 42.3,
-        longitude: -110.683,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'salt-river-wyoming-ranges',
     stations: [
       {
-        triplet: 'SCDW4',
-        name: 'SPRING CREEK DIVIDE',
-        elevation: 9000,
-        latitude: 42.5254,
-        longitude: -110.6615,
+        triplet: '868:WY:SNTL',
+        name: 'Willow Creek',
+        elevation: 8060,
+        latitude: 42.81513,
+        longitude: -110.83515,
         primary: true,
       },
       {
-        triplet: 'BBSW4',
-        name: 'BLIND BULL SUM',
-        elevation: 8650,
-        latitude: 42.964,
-        longitude: -110.60973,
-        primary: true,
-      },
-      {
-        triplet: 'TRPW4',
-        name: 'TRIPLE PEAK',
-        elevation: 8500,
+        triplet: '831:WY:SNTL',
+        name: 'Triple Peak',
+        elevation: 8520,
         latitude: 42.76393,
         longitude: -110.5914,
         primary: true,
-      }
+      },
     ]
   },
+
   // ===================================================================
   // EWYAIX - Eastern Wyoming Avalanche Info Exchange (WY)
   // ===================================================================
@@ -1961,89 +1453,66 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'big-horns',
     stations: [
       {
-        triplet: 'CPKW4',
-        name: 'CLOUD PEAK RESERVOIR',
-        elevation: 9860,
-        latitude: 44.40343,
-        longitude: -107.06057,
+        triplet: '402:WY:SNTL',
+        name: 'Cloud Peak Reservoir',
+        elevation: 9830,
+        latitude: 44.40328,
+        longitude: -107.06074,
         primary: true,
       },
       {
-        triplet: 'BGEW4',
-        name: 'BIG GOOSE',
-        elevation: 7990,
-        latitude: 44.57924,
-        longitude: -107.20068,
+        triplet: '1131:WY:SNTL',
+        name: 'Little Goose',
+        elevation: 8560,
+        latitude: 44.54315,
+        longitude: -107.17865,
         primary: true,
       },
-      {
-        triplet: 'SCRW4',
-        name: 'SHELL CREEK',
-        elevation: 9580,
-        latitude: 44.50012,
-        longitude: -107.42947,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'snowy-range',
     stations: [
       {
-        triplet: 'BKLW4',
-        name: 'BROOKLYN LAKE',
-        elevation: 10240,
-        latitude: 41.35885,
-        longitude: -106.23209,
+        triplet: '668:WY:SNTL',
+        name: 'North French Creek',
+        elevation: 10150,
+        latitude: 41.33087,
+        longitude: -106.37558,
         primary: true,
       },
       {
-        triplet: 'MBSW4',
-        name: 'MED BOW',
-        elevation: 10500,
-        latitude: 41.37833,
-        longitude: -106.34681,
+        triplet: '367:WY:SNTL',
+        name: 'Brooklyn Lake',
+        elevation: 10250,
+        latitude: 41.36038,
+        longitude: -106.23038,
         primary: true,
       },
-      {
-        triplet: 'WBSW4',
-        name: 'WEBBER SPRINGS',
-        elevation: 9250,
-        latitude: 41.167,
-        longitude: -106.933,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'sierra-madre',
     stations: [
       {
-        triplet: 'BLHW4',
-        name: 'BLACKHALL MTN',
-        elevation: 9820,
-        latitude: 41.05616,
-        longitude: -106.71384,
+        triplet: '859:WY:SNTL',
+        name: 'Whiskey Park',
+        elevation: 8950,
+        latitude: 41.00368,
+        longitude: -106.90795,
         primary: true,
       },
       {
-        triplet: 'C3RED',
-        name: 'Red Creek',
-        elevation: 8228,
-        latitude: 40.77179,
-        longitude: -106.98333,
+        triplet: '1119:WY:SNTL',
+        name: 'Blackhall Mtn',
+        elevation: 9830,
+        latitude: 41.05623,
+        longitude: -106.714,
         primary: true,
       },
-      {
-        triplet: 'OLDW4',
-        name: 'OLD BATTLE',
-        elevation: 10000,
-        latitude: 41.15397,
-        longitude: -106.96937,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // UAC - Utah Avalanche Center (UT)
   // ===================================================================
@@ -2051,263 +1520,200 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'logan',
     stations: [
       {
-        triplet: 'CRDUT',
-        name: 'Card Canyon',
-        elevation: 8715,
-        latitude: 41.73126,
-        longitude: -111.6834,
+        triplet: '1098:UT:SNTL',
+        name: 'Usu Doc Daniel',
+        elevation: 8610,
+        latitude: 41.86425,
+        longitude: -111.50603,
         primary: true,
       },
       {
-        triplet: 'PSINK',
-        name: 'Peter Sinks',
-        elevation: 8173,
-        latitude: 41.91302,
-        longitude: -111.51416,
+        triplet: '823:UT:SNTL',
+        name: 'Tony Grove Lake',
+        elevation: 8450,
+        latitude: 41.89833,
+        longitude: -111.62957,
         primary: true,
       },
-      {
-        triplet: 'WSUBC',
-        name: 'WSU Bloomington Canyon Yurt',
-        elevation: 7607,
-        latitude: 42.17266,
-        longitude: -111.55534,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'ogden',
     stations: [
       {
-        triplet: 'UTPWD',
+        triplet: '1300:UT:SNTL',
         name: 'Powder Mountain',
-        elevation: 8897,
-        latitude: 41.3699,
-        longitude: -111.764,
+        elevation: 8490,
+        latitude: 41.37428,
+        longitude: -111.76673,
         primary: true,
       },
       {
-        triplet: 'CKRU1',
-        name: 'CHICKEN RIDGE',
-        elevation: 7648,
-        latitude: 41.33156,
-        longitude: -111.30341,
+        triplet: '533:UT:SNTL',
+        name: 'Horse Ridge',
+        elevation: 8210,
+        latitude: 41.31372,
+        longitude: -111.44624,
         primary: true,
       },
-      {
-        triplet: 'BLPU1',
-        name: 'BEN LOMOND PEAK SNOTEL',
-        elevation: 7688,
-        latitude: 41.376,
-        longitude: -111.944,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'salt-lake',
     stations: [
       {
-        triplet: 'IFF',
-        name: 'CARDIFF PEAK',
-        elevation: 10059,
-        latitude: 40.595,
-        longitude: -111.6519,
+        triplet: '366:UT:SNTL',
+        name: 'Brighton',
+        elevation: 8790,
+        latitude: 40.59936,
+        longitude: -111.58167,
         primary: true,
       },
       {
-        triplet: 'SOL',
-        name: 'SOLITUDE POWDERHORN',
-        elevation: 9888,
-        latitude: 40.6083,
-        longitude: -111.6044,
+        triplet: '1308:UT:SNTL',
+        name: 'Atwater',
+        elevation: 8750,
+        latitude: 40.59124,
+        longitude: -111.63775,
         primary: true,
       },
       {
-        triplet: 'CLN',
-        name: 'ALTA COLLINS',
-        elevation: 9662,
-        latitude: 40.576,
-        longitude: -111.638,
+        triplet: '766:UT:SNTL',
+        name: 'Snowbird',
+        elevation: 9170,
+        latitude: 40.56914,
+        longitude: -111.65852,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'provo',
     stations: [
       {
-        triplet: 'BUNUT',
-        name: 'Bunnells Ridge',
-        elevation: 8800,
-        latitude: 40.314757,
-        longitude: -111.563976,
+        triplet: '820:UT:SNTL',
+        name: 'Timpanogos Divide',
+        elevation: 8180,
+        latitude: 40.42817,
+        longitude: -111.61633,
         primary: true,
       },
       {
-        triplet: 'TIMU1',
-        name: 'TIMPANOGOS DIVIDE SNOTEL',
-        elevation: 8170,
-        latitude: 40.428,
-        longitude: -111.617,
-        primary: true,
-      },
-      {
-        triplet: 'CAMU1',
-        name: 'CASCADE MOUNTAIN SNOTEL',
-        elevation: 7747,
+        triplet: '1039:UT:SNTL',
+        name: 'Cascade Mountain',
+        elevation: 7750,
         latitude: 40.283,
-        longitude: -111.610,
+        longitude: -111.60992,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'uintas',
     stations: [
       {
-        triplet: 'GSTPS',
-        name: 'Upper Humpy Basin',
-        elevation: 10023,
-        latitude: 40.84855,
-        longitude: -111.00183,
+        triplet: '481:UT:SNTL',
+        name: 'Five Points Lake',
+        elevation: 10920,
+        latitude: 40.71785,
+        longitude: -110.46721,
         primary: true,
       },
       {
-        triplet: 'TRLU1',
-        name: 'TRIAL LAKE',
-        elevation: 9945,
-        latitude: 40.67933,
-        longitude: -110.94877,
+        triplet: '513:UT:SNTL',
+        name: 'Lakefork Basin',
+        elevation: 10890,
+        latitude: 40.73785,
+        longitude: -110.62121,
         primary: true,
       },
-      {
-        triplet: 'TPRUT',
-        name: 'Red Creek',
-        elevation: 9369,
-        latitude: 40.84404,
-        longitude: -111.04269,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'skyline',
     stations: [
       {
-        triplet: 'SEEU1',
-        name: 'SEELEY CREEK',
-        elevation: 9903,
-        latitude: 39.31042,
-        longitude: -111.43297,
+        triplet: '714:UT:SNTL',
+        name: 'Red Pine Ridge',
+        elevation: 8990,
+        latitude: 39.45197,
+        longitude: -111.27221,
         primary: true,
       },
       {
-        triplet: 'SKY',
-        name: 'Skyline',
-        elevation: 9330,
-        latitude: 39.6362,
-        longitude: -111.3286,
+        triplet: '1227:UT:SNTL',
+        name: 'Upper Joes Valley',
+        elevation: 8600,
+        latitude: 39.4155,
+        longitude: -111.2491,
         primary: true,
       },
-      {
-        triplet: 'ULAMB',
-        name: 'Huntington Canyon Portable',
-        elevation: 8731,
-        latitude: 39.59591,
-        longitude: -111.22164,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'moab',
     stations: [
       {
-        triplet: 'GOLDB',
-        name: 'Goldbasin',
-        elevation: 10050,
-        latitude: 38.465283,
-        longitude: -109.264475,
+        triplet: '572:UT:SNTL',
+        name: 'Lasal Mountain',
+        elevation: 9580,
+        latitude: 38.48226,
+        longitude: -109.27198,
         primary: true,
       },
       {
-        triplet: 'UTLSD',
-        name: 'SR-46 at MP 12.5 La Sal Divide',
-        elevation: 7734,
-        latitude: 38.3426,
-        longitude: -109.20875,
+        triplet: '1304:UT:SNTL',
+        name: 'Gold Basin',
+        elevation: 10070,
+        latitude: 38.46516,
+        longitude: -109.26332,
         primary: true,
       },
-      {
-        triplet: 'LSMU1',
-        name: 'LA SAL MOUNTAIN SNOTEL',
-        elevation: 9577,
-        latitude: 38.482,
-        longitude: -109.272,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'abajos',
     stations: [
       {
-        triplet: 'ABAUT',
-        name: 'Abajo Peak',
-        elevation: 11330,
-        latitude: 37.841,
-        longitude: -109.462,
+        triplet: '383:UT:SNTL',
+        name: 'Camp Jackson',
+        elevation: 8840,
+        latitude: 37.81333,
+        longitude: -109.48723,
         primary: true,
       },
       {
-        triplet: 'BUCU1',
-        name: 'BUCKBOARD FLAT',
-        elevation: 8923,
+        triplet: '1153:UT:SNTL',
+        name: 'Buckboard Flat',
+        elevation: 8920,
         latitude: 37.86943,
         longitude: -109.44717,
         primary: true,
       },
-      {
-        triplet: 'CJSU1',
-        name: 'CAMP JACKSON',
-        elevation: 8857,
-        latitude: 37.81333,
-        longitude: -109.48723,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'southwest',
     stations: [
       {
-        triplet: 'BHCU1',
-        name: 'Brian Head 2S',
-        elevation: 10472,
-        latitude: 37.66296,
-        longitude: -112.8376,
+        triplet: '593:UT:SNTL',
+        name: 'Long Valley Jct',
+        elevation: 7460,
+        latitude: 37.48756,
+        longitude: -112.51458,
         primary: true,
       },
       {
-        triplet: 'UT14S',
-        name: 'SR-14 Summit',
-        elevation: 9909,
-        latitude: 37.56805,
-        longitude: -112.85013,
+        triplet: '907:UT:SNTL',
+        name: 'Agua Canyon',
+        elevation: 8890,
+        latitude: 37.52217,
+        longitude: -112.27118,
         primary: true,
       },
-      {
-        triplet: 'MDVU1',
-        name: 'MIDWAY VALLEY',
-        elevation: 9826,
-        latitude: 37.56933,
-        longitude: -112.83849,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // CAIC - Colorado Avalanche Information Center (CO)
   // ===================================================================
@@ -2315,321 +1721,242 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'caic-front-range-north',
     stations: [
       {
-        triplet: 'LKIC2',
-        name: 'LAKE IRENE',
-        elevation: 10700,
-        latitude: 40.41432,
-        longitude: -105.8198,
+        triplet: '322:CO:SNTL',
+        name: 'Bear Lake',
+        elevation: 9490,
+        latitude: 40.31176,
+        longitude: -105.6467,
         primary: true,
       },
       {
-        triplet: 'WPRC2',
-        name: 'WILLOW PARK',
-        elevation: 10700,
-        latitude: 40.43254,
-        longitude: -105.73337,
+        triplet: '870:CO:SNTL',
+        name: 'Willow Park',
+        elevation: 10710,
+        latitude: 40.43397,
+        longitude: -105.73588,
         primary: true,
       },
-      {
-        triplet: 'CACMP',
-        name: 'CAMERON PASS',
-        elevation: 10574,
-        latitude: 40.49371,
-        longitude: -105.9083,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-front-range-boulder',
     stations: [
       {
-        triplet: 'CABTP',
-        name: 'BERTHOUD PASS (CAIC)',
-        elevation: 11861,
-        latitude: 39.80,
-        longitude: -105.77,
+        triplet: '838:CO:SNTL',
+        name: 'University Camp',
+        elevation: 10330,
+        latitude: 40.03307,
+        longitude: -105.57562,
         primary: true,
       },
       {
-        triplet: 'BTSC2',
-        name: 'BERTHOUD SUMMIT',
-        elevation: 11300,
-        latitude: 39.80392,
-        longitude: -105.77789,
+        triplet: '663:CO:SNTL',
+        name: 'Niwot',
+        elevation: 9940,
+        latitude: 40.03581,
+        longitude: -105.5452,
         primary: true,
       },
-      {
-        triplet: 'LBAC2',
-        name: 'LOVELAND BASIN SNOTEL',
-        elevation: 11400,
-        latitude: 39.67,
-        longitude: -105.90,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-front-range-south',
     stations: [
       {
-        triplet: 'GLNC2',
-        name: 'GLEN COVE (PIKES PEAK) SNOTEL',
-        elevation: 11460,
-        latitude: 38.876,
-        longitude: -105.074,
+        triplet: '1057:CO:SNTL',
+        name: 'Glen Cove',
+        elevation: 11410,
+        latitude: 38.87602,
+        longitude: -105.07605,
         primary: true,
       },
-      {
-        triplet: 'ECLC2',
-        name: 'ECHO LAKE SNOTEL',
-        elevation: 10600,
-        latitude: 39.66,
-        longitude: -105.59,
-        primary: true,
-      },
-      {
-        triplet: 'BTSC2',
-        name: 'BERTHOUD SUMMIT',
-        elevation: 11300,
-        latitude: 39.80392,
-        longitude: -105.77789,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-vail-summit-county',
     stations: [
       {
-        triplet: 'HOOC2',
-        name: 'HOOSIER PASS',
-        elevation: 11611,
-        latitude: 39.36055,
-        longitude: -106.05994,
+        triplet: '415:CO:SNTL',
+        name: 'Copper Mountain',
+        elevation: 10500,
+        latitude: 39.48917,
+        longitude: -106.17154,
         primary: true,
       },
       {
-        triplet: 'CPMC2',
-        name: 'COPPER MOUNTAIN SNOTEL',
-        elevation: 10550,
-        latitude: 39.49,
-        longitude: -106.17,
+        triplet: '802:CO:SNTL',
+        name: 'Summit Ranch',
+        elevation: 9350,
+        latitude: 39.71803,
+        longitude: -106.1577,
         primary: true,
       },
       {
-        triplet: 'MIHC2',
-        name: 'MICHIGAN CREEK',
-        elevation: 10600,
-        latitude: 39.43577,
-        longitude: -105.91078,
+        triplet: '602:CO:SNTL',
+        name: 'Loveland Basin',
+        elevation: 11410,
+        latitude: 39.67428,
+        longitude: -105.90264,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'caic-elk-mountains',
     stations: [
       {
-        triplet: 'IDPC2',
-        name: 'INDEPENDENCE PASS SNOTEL',
-        elevation: 10600,
-        latitude: 39.08,
-        longitude: -106.61,
+        triplet: '1326:CO:SNTL',
+        name: 'Castle Peak',
+        elevation: 11510,
+        latitude: 39.00074,
+        longitude: -106.83912,
         primary: true,
       },
       {
-        triplet: 'SOSC2',
-        name: 'SCHOFIELD PASS',
-        elevation: 10700,
-        latitude: 39.01522,
-        longitude: -107.04877,
+        triplet: '542:CO:SNTL',
+        name: 'Independence Pass',
+        elevation: 10570,
+        latitude: 39.07543,
+        longitude: -106.61154,
         primary: true,
       },
-      {
-        triplet: 'ASEC2',
-        name: 'CASTLE CREEK NEAR ASPEN',
-        elevation: 11394,
-        latitude: 39.00778,
-        longitude: -106.79194,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-sawatch-range',
     stations: [
       {
-        triplet: 'PRPC2',
-        name: 'PORPHYRY CREEK',
-        elevation: 10760,
-        latitude: 38.48884,
-        longitude: -106.33965,
+        triplet: '1100:CO:SNTL',
+        name: 'Saint Elmo',
+        elevation: 10420,
+        latitude: 38.69985,
+        longitude: -106.36805,
         primary: true,
       },
       {
-        triplet: 'SGMC2',
-        name: 'SARGENTS MESA SNOTEL',
-        elevation: 11530,
-        latitude: 38.29,
-        longitude: -106.37,
+        triplet: '680:CO:SNTL',
+        name: 'Park Cone',
+        elevation: 9600,
+        latitude: 38.81982,
+        longitude: -106.58962,
         primary: true,
       },
-      {
-        triplet: 'CAPC2',
-        name: 'CASTLE PEAK',
-        elevation: 11500,
-        latitude: 39.0,
-        longitude: -106.84,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-grand-mesa-west-elk',
     stations: [
       {
-        triplet: 'CAELT',
-        name: 'DAN K-ELKTON',
-        elevation: 11147,
-        latitude: 38.96973,
-        longitude: -107.03999,
+        triplet: '675:CO:SNTL',
+        name: 'Overland Res.',
+        elevation: 9890,
+        latitude: 39.09035,
+        longitude: -107.63583,
         primary: true,
       },
       {
-        triplet: 'CAIRW',
-        name: 'IRWIN GUIDES STUDY PLOT',
-        elevation: 10423,
-        latitude: 38.88736,
-        longitude: -107.1084,
+        triplet: '618:CO:SNTL',
+        name: 'Mc Clure Pass',
+        elevation: 8760,
+        latitude: 39.12899,
+        longitude: -107.28834,
         primary: true,
       },
-      {
-        triplet: 'SOSC2',
-        name: 'SCHOFIELD PASS',
-        elevation: 10700,
-        latitude: 39.01522,
-        longitude: -107.04877,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-park-range',
     stations: [
       {
-        triplet: 'ARPC2',
-        name: 'ARAPAHO RIDGE',
-        elevation: 10960,
-        latitude: 40.35098,
-        longitude: -106.38142,
+        triplet: '825:CO:SNTL',
+        name: 'Tower',
+        elevation: 10610,
+        latitude: 40.5374,
+        longitude: -106.67655,
         primary: true,
       },
       {
-        triplet: 'STORM',
-        name: 'Storm Peak Laboratory',
-        elevation: 10531,
-        latitude: 40.455111,
-        longitude: -106.74428,
+        triplet: '457:CO:SNTL',
+        name: 'Dry Lake',
+        elevation: 8240,
+        latitude: 40.5337,
+        longitude: -106.7814,
         primary: true,
       },
       {
-        triplet: 'TOWC2',
-        name: 'TOWER',
-        elevation: 10500,
-        latitude: 40.53743,
-        longitude: -106.6768,
+        triplet: '709:CO:SNTL',
+        name: 'Rabbit Ears',
+        elevation: 9390,
+        latitude: 40.36735,
+        longitude: -106.74118,
         primary: true,
-      }
+      },
     ]
   },
   {
     zoneId: 'caic-northern-san-juan',
     stations: [
       {
-        triplet: 'CATEL',
-        name: 'TELLURIDE SKI RESORT',
-        elevation: 12159,
-        latitude: 37.89913,
-        longitude: -107.82088,
+        triplet: '713:CO:SNTL',
+        name: 'Red Mountain Pass',
+        elevation: 11060,
+        latitude: 37.89168,
+        longitude: -107.71389,
         primary: true,
       },
       {
-        triplet: 'RMPC2',
-        name: 'RED MOUNTAIN PASS',
-        elevation: 11200,
-        latitude: 37.8918,
-        longitude: -107.71342,
+        triplet: '632:CO:SNTL',
+        name: 'Molas Lake',
+        elevation: 10610,
+        latitude: 37.74929,
+        longitude: -107.68933,
         primary: true,
       },
-      {
-        triplet: 'SLMC2',
-        name: 'SLUMGULLION',
-        elevation: 11440,
-        latitude: 37.9908,
-        longitude: -107.20327,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-southern-san-juan',
     stations: [
       {
-        triplet: 'WCSC2',
-        name: 'WOLF CREEK SUMMIT',
-        elevation: 11000,
-        latitude: 37.47922,
-        longitude: -106.8017,
+        triplet: '874:CO:SNTL',
+        name: 'Wolf Creek Summit',
+        elevation: 10930,
+        latitude: 37.47903,
+        longitude: -106.80234,
         primary: true,
       },
       {
-        triplet: 'GYBC2',
-        name: 'GRAYBACK',
-        elevation: 11620,
-        latitude: 37.47033,
-        longitude: -106.53783,
+        triplet: '840:CO:SNTL',
+        name: 'Upper San Juan',
+        elevation: 10140,
+        latitude: 37.48563,
+        longitude: -106.83528,
         primary: true,
       },
-      {
-        triplet: 'URGC2',
-        name: 'UPPER RIO GRANDE',
-        elevation: 9400,
-        latitude: 37.72194,
-        longitude: -107.26015,
-        primary: true,
-      }
     ]
   },
   {
     zoneId: 'caic-sangre-de-cristo',
     stations: [
       {
-        triplet: 'SCYC2',
-        name: 'SOUTH COLONY',
-        elevation: 10800,
-        latitude: 37.96811,
-        longitude: -105.53787,
+        triplet: '914:CO:SNTL',
+        name: 'Medano Pass',
+        elevation: 9650,
+        latitude: 37.85192,
+        longitude: -105.43666,
         primary: true,
       },
       {
-        triplet: 'UTCC2',
-        name: 'UTE CREEK',
-        elevation: 10650,
-        latitude: 37.61497,
-        longitude: -105.37327,
+        triplet: '773:CO:SNTL',
+        name: 'South Colony',
+        elevation: 10790,
+        latitude: 37.96647,
+        longitude: -105.53671,
         primary: true,
       },
-      {
-        triplet: 'HPAC2',
-        name: 'HAYDEN PASS SNOTEL',
-        elevation: 10700,
-        latitude: 38.293,
-        longitude: -105.851,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // TAC - Taos Avalanche Center (NM)
   // ===================================================================
@@ -2637,31 +1964,24 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'northern-new-mexico',
     stations: [
       {
-        triplet: 'TABN5',
-        name: 'TAOS POWDERHORN',
-        elevation: 11057,
-        latitude: 36.58203,
-        longitude: -105.45611,
+        triplet: '1168:NM:SNTL',
+        name: 'Taos Powderhorn',
+        elevation: 11020,
+        latitude: 36.58195,
+        longitude: -105.45617,
         primary: true,
       },
       {
-        triplet: 'SHUN5',
-        name: 'SHUREE',
-        elevation: 10100,
-        latitude: 36.78778,
-        longitude: -105.23999,
+        triplet: '1307:NM:SNTL',
+        name: 'Taos Pueblo',
+        elevation: 10990,
+        latitude: 36.54099,
+        longitude: -105.35944,
         primary: true,
       },
-      {
-        triplet: 'RRPN5',
-        name: 'RED RIVER PASS #2',
-        elevation: 9850,
-        latitude: 36.69925,
-        longitude: -105.34125,
-        primary: true,
-      }
     ]
   },
+
   // ===================================================================
   // KPAC - Kachina Peaks Avalanche Center (AZ)
   // ===================================================================
@@ -2669,30 +1989,32 @@ export const WEATHER_STATION_CONFIG: ZoneStationConfig[] = [
     zoneId: 'san-francisco-peaks',
     stations: [
       {
-        triplet: 'ASBTP',
-        name: 'AZ Snowbowl Top Patrol',
-        elevation: 11555,
-        latitude: 35.326,
-        longitude: -111.686,
+        triplet: '927:AZ:SNTL',
+        name: 'Snowslide Canyon',
+        elevation: 9720,
+        latitude: 35.34179,
+        longitude: -111.65084,
         primary: true,
       },
       {
-        triplet: 'XSCA3',
-        name: 'SNOWSLIDE CANYON',
-        elevation: 9730,
-        latitude: 35.3416,
-        longitude: -111.65058,
+        triplet: '1121:AZ:SNTL',
+        name: 'Fort Valley',
+        elevation: 7360,
+        latitude: 35.26773,
+        longitude: -111.74479,
         primary: true,
       },
-      {
-        triplet: 'JE356',
-        name: 'Upper Weatherford',
-        elevation: 10025,
-        latitude: 35.320,
-        longitude: -111.641,
-        primary: true,
-      }
     ]
+  },
+
+  // ===================================================================
+  // MWAC - Mount Washington Avalanche Center (NH)
+  // Note: No SNTL stations exist in New England. Nearest SNTL is in
+  // South Dakota (~1600mi). This zone has no SNOTEL coverage.
+  // ===================================================================
+  {
+    zoneId: 'presidential-range',
+    stations: []
   },
 ];
 
