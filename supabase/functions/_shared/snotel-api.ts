@@ -345,12 +345,9 @@ function parseAWDBResponse(
   console.log(`- Calculated trend: ${trend || 'NULL (missing data!)'}`);
 
   // Wind data (many stations don't have this)
-  // Some SNOTEL stations only report WSPDX (max gust) without WSPD (avg speed)
   const wspdValues = elements.get('WSPD') || [];
   const wspdxValues = elements.get('WSPDX') || [];
   const wdirValues = elements.get('WDIR') || [];
-  // Fall back to gust data when average speed isn't available
-  const windSpeedSource = wspdValues.length > 0 ? wspdValues : wspdxValues;
 
   const hasWindData = wspdValues.length > 0 || wspdxValues.length > 0;
 
@@ -412,11 +409,11 @@ function parseAWDBResponse(
       hourly72hr: getHourlyData(tobsValues, 72),
     },
     wind: hasWindData ? {
-      speedCurrent: getLatestValue(windSpeedSource),
-      speedAvg24hr: getAvg(windSpeedSource, 24),
-      speedMax24hr: getMax(wspdxValues.length > 0 ? wspdxValues : wspdValues, 24),
-      speedAvg72hr: getAvg(windSpeedSource, 72),
-      speedMax72hr: getMax(wspdxValues.length > 0 ? wspdxValues : wspdValues, 72),
+      speedCurrent: getLatestValue(wspdValues),
+      speedAvg24hr: getAvg(wspdValues, 24),
+      speedMax24hr: getMax(wspdxValues, 24),
+      speedAvg72hr: getAvg(wspdValues, 72),
+      speedMax72hr: getMax(wspdxValues, 72),
       direction: getWindDirection(getLatestValue(wdirValues)),
       direction24hr: getPredominantWindDirection(wdirValues, 24),
       direction72hr: getPredominantWindDirection(wdirValues, 72),
