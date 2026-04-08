@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { SynopticLogo, BeadedCloudLogo } from "./SponsorLogos";
+import { SynopticLogo } from "./SponsorLogos";
 
 const Footer = forwardRef<HTMLElement>((_, ref) => {
   const currentYear = new Date().getFullYear();
@@ -11,7 +11,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
           <p className="text-center text-xs font-medium uppercase tracking-widest text-background/40 mb-5">
             Made possible in part by
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
+          <div className="flex items-center justify-center">
             <a
               href="https://synopticdata.com"
               target="_blank"
@@ -19,15 +19,6 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
               className="group flex items-center transition-opacity hover:opacity-100 opacity-80"
             >
               <SynopticLogo className="h-9 sm:h-10 w-auto text-background" />
-            </a>
-            <div className="hidden sm:block h-8 w-px bg-background/15" />
-            <a
-              href="https://beadedcloud.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center transition-opacity hover:opacity-100 opacity-80"
-            >
-              <BeadedCloudLogo className="h-8 sm:h-9 w-auto text-background" />
             </a>
           </div>
           <p className="text-center text-background/35 text-xs mt-5 max-w-md mx-auto leading-relaxed">
@@ -59,8 +50,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
         </div>
         <p className="text-background/40 text-xs text-center">
           © {currentYear} Avalanche Summary Tool. Data from the National Avalanche Center, NOAA/NWS,{" "}
-          <a href="https://synopticdata.com" target="_blank" rel="noopener noreferrer" className="text-background/55 hover:text-background/80 transition-colors">Synoptic</a>, and{" "}
-          <a href="https://beadedcloud.com" target="_blank" rel="noopener noreferrer" className="text-background/55 hover:text-background/80 transition-colors">Beaded Cloud</a>.
+          <a href="https://synopticdata.com" target="_blank" rel="noopener noreferrer" className="text-background/55 hover:text-background/80 transition-colors">Synoptic</a>.
         </p>
       </div>
     </footer>
